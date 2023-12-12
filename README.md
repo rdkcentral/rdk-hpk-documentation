@@ -11,8 +11,7 @@
 
 - `HPK` - Hardware Porting Kit
 - `HAL` - Hardware Abstraction Layer
-- `SOC` - System on a Chip
-- `OEM` - Original Equipment Manufacturer
+- `API` - Application Programming Interface
 
 ## Description
 
@@ -20,7 +19,9 @@ This is the public documentation to support the Hardware Porting Kit (`HPK`), fo
 
 ## Hardware Porting Kit
 
-The Hardware Porting Kit (`HPK`) represents an advanced stage in the progression of the extensively delineated Hardware Abstraction Layer (`HAL`). It is enhanced with extensive documentation and thorough test suites, empowering `OEM` or `SOC` vendors to independently validate their ports prior to submission for final integration and deployment with an operator. This kit serves as a comprehensive resource, enabling `OEMs` and/or `SOC` vendors to autonomously undergo certification for their devices.
+The Hardware Porting Kit (`HPK`) is a collection resources that simplify the process of adapting existing software to run on a new hardware platform. It provides a framework for making the necessary changes to the software to account for the differences between the hardware vendors.
+
+It will provide both Hardware Abstraction Layer (API) Header files, and software tests to ensure compatibility with the RDK Middleware Stack.
 
 ## Release History
 
