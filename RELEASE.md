@@ -3,15 +3,15 @@
 ## Table of Contents
 
 - [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
-- [Latest Release Information](#latest-release-information)
-    - [2023-12-12](#2023-12-12)
+- [Latest Release Information](#latest-component-release-information)
+  - [2023-12-12](#2023-12-12)
 
 ## Acronyms, Terms and Abbreviations
 
 - `HAL` - Hardware Abstraction Layer
 - `RDK-V` - Reference Design Kit - Video
 
-## Latest Release Information
+## Latest Component Release Information
 
 ### 2023-12-12
 
