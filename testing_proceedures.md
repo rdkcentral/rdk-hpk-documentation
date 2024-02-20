@@ -1,21 +1,22 @@
-# <blue>Testing Procedures and Acceptance Criteria for Components
+# Testing Procedures and Acceptance Criteria for Components
 
-## <blue>Document history
+## Document history
 
 |Version|Author|Date|Changes|
 |-------|------|----|-------|
-|1.0.0|Ulrond|Feb 2024|Updated & refracted|
-|0.0.1|Ulrdon|May 2023|Draft|
+|1.0.1|Ulrond|Feb 2024|Corrected Format|
+|1.0.0|Ulrond|Feb 2024|Updated & refactored|
+|0.0.1|Ulrond|May 2023|Draft|
 
 ## Overview
 
-This document describes the levels of test, and the definition of done for the vendor layers. The target audience are developers, testers and integration engineers. 
+This document describes the levels of test, and the definition of done for the vendor layers. The target audience are developers, testers and integration engineers.
 
 By defining clear testing levels and a well-defined 'done' state for vendor layers, this document promotes improved functional coverage, reduction of defects, enhancing stability which will streamlined integration and reduce rework.
 
-### <blue>Automated Pre-application Testing for Engineering Platform
+### Automated Pre-application Testing for Engineering Platform
 
-This testing system aims to comprehensively verify the behavior of the engineering platform before any applications or layers are loaded. By simulating external influences like power, IR, serial, SSH, and Telnet, the system will:
+This testing system aims to comprehensively verify the behaviour of the engineering platform before any applications or layers are loaded. By simulating external influences like power, IR, serial, SSH, and Telnet, the system will:
 
 - **Control the box under test:** Interact with the engineering platform at a low level.
 - **Validate the boot sequence:** Ensure the boot process operates flawlessly.
@@ -27,23 +28,26 @@ Box Characteristics:
 - **Kernel terminal build:** Runs a basic terminal environment without additional user interfaces.
 - **No additional layers:** Operates without application (APPS), middleware (MW), or vendor software at startup.
 
-### <green>Level 1 - Function Testing
+### Level 1 - Function Testing
 
 **Purpose:**
 
 The Level 1 test suite comprises function-level tests designed to validate consistent interface behavior across various vendor implementations. These tests include both positive and negative scenarios, along with verification of proper parameter value checking.
 
 **Parameter Testing:**
+
 - **Max/Min Values:** Test functions with both maximum and minimum parameter values defined in the documentation.
 
 **Negative Testing:**
+
 - Pass invalid parameters that violate specified limitations or data types.
 - Verify each function responds to invalid parameters as documented (e.g., error messages, exceptions).
 - Consider edge cases like "invalid valid" values if relevant.
 
 **Positive Testing:**
+
 - Pass valid parameters within defined ranges and data types.
-- Verify function results match expected behavior through independent means (e.g., manual checks, command-line verification).
+- Verify function results match expected behaviour through independent means (e.g., manual checks, command-line verification).
 
 **Testing Frequency:**
 
@@ -53,24 +57,23 @@ The Level 1 test suite comprises function-level tests designed to validate consi
 
 - **Post-commit:** Run a single execution as part of the review process for final sign-off.
 
-
 ```mermaid
 flowchart LR
-		developer --> BC[Builds Code] --> ut
-    	developer -->|triggers|TS[Component Test]
-	automation -->|triggers|TC
-	  TC[testController] -->|triggers|TS[Component Test]
-		TS -->|uses|ut
-		ut --> hardware[Platform hardware]
-		ut --> ut-logger
-		ut-logger --> LocalR[ut test results]
-		developer <--> LocalR
-		TC <--> LocalR
-		TC --> Upload[Upload test results]
-		TC --> Build[Builds Code]
+    developer --> BC[Builds Code] --> ut
+    developer -->|triggers|TS[Component Test]
+    automation -->|triggers|TC
+    TC[testController] -->|triggers|TS[Component Test]
+    TS -->|uses|ut
+    ut --> hardware[Platform hardware]
+    ut --> ut-logger
+    ut-logger --> LocalR[ut test results]
+    developer <--> LocalR
+    TC <--> LocalR
+    TC --> Upload[Upload test results]
+    TC --> Build[Builds Code]
 ```
 
-### <green>Level 2 - Module Testing
+### Level 2 - Module Testing
 
 **Purpose:**
 
@@ -91,21 +94,21 @@ This test level aims to comprehensively verify the module's functionality from a
 
 ```mermaid
 flowchart LR
-		developer --> BC[Builds Code] --> ut
-    	developer -->|triggers|TS[Module Test]
-	automation -->|triggers|TC
-	  TC[testController] -->|triggers|TS[Module Test]
-		TS -->|uses|ut
-		ut --> hardware[Platform hardware]
-		ut --> ut-logger
-		ut-logger --> LocalR[ut test results]
-		developer <--> LocalR
-		TC <--> LocalR
-		TC --> Upload[Upload test results]
-		TC --> Build[Builds Code]
+    developer --> BC[Builds Code] --> ut
+    developer -->|triggers|TS[Module Test]
+    automation -->|triggers|TC
+    TC[testController] -->|triggers|TS[Module Test]
+    TS -->|uses|ut
+    ut --> hardware[Platform hardware]
+    ut --> ut-logger
+    ut-logger --> LocalR[ut test results]
+    developer <--> LocalR
+    TC <--> LocalR
+    TC --> Upload[Upload test results]
+    TC --> Build[Builds Code]
 ```
 
-### <green>Level 3 Testing: External Device Interaction and Performance
+### Level 3 Testing: External Device Interaction and Performance
 
 **Purpose:**
 
@@ -115,26 +118,26 @@ This test level focuses on verifying the device's ability to handle external sti
 
 - **Independent testing with external devices:** Utilizes dedicated 3rd-party devices (if necessary) to simulate real-world interactions.
 - **Black-box approach:** The testing framework controls the external device and treats the tested module as a black box, evaluating pass/fail criteria.
-- **Performance testing**: May include assessing the module's behavior under varying external device workloads.
+- **Performance testing**: May include assessing the module's behaviour under varying external device workloads.
 - **Developer-driven execution:** Developers perform these tests extensively before code check-in (expected runs: hundreds per commit).
 - **Automated post-commit verification:** A single post-commit execution serves as a final sign-off within the review process.
 
 ```mermaid
 flowchart LR
-		developer --> BC[Builds Code] --> TC
+    developer --> BC[Builds Code] --> TC
     developer -->|triggers|TC
     automation -->|triggers|TC
-	  TC[testController] -->|controls|TKX[Test KitX]
-	  TKX -->|interacts|PH
-	  TC[testController] -->|controls|TKY[Test KitY]
-	  TKY -->|interacts|PH
-	  TC[testController] -->|controls|TKZ[Test KitZ]
-	  TKZ -->|interacts|PH
-	  TC[testController] -->|controls|PH[Platform Hardware]
-		TC --> Build[Optionally Builds Test Suite]
+    TC[testController] -->|controls|TKX[Test KitX]
+    TKX -->|interacts|PH
+    TC[testController] -->|controls|TKY[Test KitY]
+    TKY -->|interacts|PH
+    TC[testController] -->|controls|TKZ[Test KitZ]
+    TKZ -->|interacts|PH
+    TC[testController] -->|controls|PH[Platform Hardware]
+    TC --> Build[Optionally Builds Test Suite]
 ```
 
-### <green>Level 4: System Integration and Stress Testing (Adhoc)
+### Level 4: System Integration and Stress Testing (Adhoc)
 
 **Purpose:**
 
@@ -151,18 +154,18 @@ This level focuses on rigorously testing groups of interacting components togeth
 
 ```mermaid
 flowchart LR
-		developer --> BC[Builds Code] --> Group
-    	developer -->|triggers|Group
-    	automation -->|triggers|Group
-		Group --> L2
-		Group --> L3
-		Group --> L4
-	  	L2[Level 2 Tests] -->|controls|TC[Test Controller]
-	  	L3[Level 3 Tests] -->|controls|TC[Test Controller]
-	  	L4[Level 4 Tests] -->|controls|TC[Test Controller]
+    developer --> BC[Builds Code] --> Group
+    developer -->|triggers|Group
+    automation -->|triggers|Group
+    Group --> L2
+    Group --> L3
+    Group --> L4
+    L2[Level 2 Tests] -->|controls|TC[Test Controller]
+    L3[Level 3 Tests] -->|controls|TC[Test Controller]
+    L4[Level 4 Tests] -->|controls|TC[Test Controller]
 ```
 
-### <green>Level 4: Middleware Interoperability Testing
+### Level 4: Middleware Interoperability Testing
 
 **Purpose:**
 
@@ -174,7 +177,7 @@ This level focuses on verifying seamless interaction between the middleware laye
 - **Smoke test approach**: Prioritises quick execution to identify critical interoperability issues early.
 - **Interop validation:** Ensures smooth communication and data exchange between middleware and vendor components.
 
-### <green>Level 5: End-to-End Testing and Customer Experience Validation
+### Level 5: End-to-End Testing and Customer Experience Validation
 
 **Purpose:**
 
@@ -186,7 +189,7 @@ This level simulates real-world scenarios to comprehensively evaluate the entire
 - **Customer Experience Focus:** Validates that the system is user-friendly, intuitive, and meets customer expectations.
 - **Regression Testing:** Verifies functionality remains stable and compatible with previous releases.
 
-## <blue>Identifying Root Causes:
+## Identifying Root Causes
 
 When issues are detected in Level 4 or 5 tests (causing potential regressions or impacting user experience), a two-pronged approach is used to pinpoint the origin:
 
@@ -208,11 +211,11 @@ When issues are detected in Level 4 or 5 tests (causing potential regressions or
 - **Continually evaluate:** Regularly review uncovered areas in the testing suite and prioritise their inclusion.
 - **Adaptive Expansion:** Extend tests at any level (L2-L5) as needed to address new features or potential risks.
 
-## <blue>Definition of Done ( Vendor Layer )
+## Definition of Done ( Vendor Layer )
 
 In the following table all tests are expected to be automated.
 
-|<green>Area|<green>Comment|
+|Area|Comment|
 |----|----|
 |APIs are well documented|Required|
 |Test Suites are well documented|Required|
@@ -220,16 +223,16 @@ In the following table all tests are expected to be automated.
 |Critical functionality covered by tests| Required|
 |Feature is covered| Features are required to be covered by testing, L2 - L4 is expected |
 |Unit Tests meet coverage target and have been peer reviewed| Isofar as it's possible for 3rd Party Code|
-|Static code analysis| Passed on code owned by our teams<br> Reviewed on 3rd Party code for issues|
-|L1-L4 tests have been manually ran, before code commit| Tests have been ran locally <red>before commit</red>|
-|Approved open source| Where appliciable|
-|Approved security checks performed| Where appliciable|
-|Critical functionality is covered by performance tests| Where appliciable |
+|Static code analysis| Passed on code owned by our teams, Reviewed on 3rd Party code for issues|
+|L1-L4 tests have been manually ran, before code commit| Tests have been ran locally before commit|
+|Approved open source| Where applicable|
+|Approved security checks performed| Where applicable|
+|Critical functionality is covered by performance tests| Where applicable |
 |Tests to prove hardware compliance approval| Have been created and can re-run (ideal)|
 |All tests are green | No Flaky tests |
-|Feedback loops| Tests are expanded as required to support further clarity and investgations shall expand the testing suites. The reproduction of issues through the tesing suites is the goal, so that pass / fail criteria can be expanded over time|
+|Feedback loops| Tests are expanded as required to support further clarity and investigations shall expand the testing suites. The reproduction of issues through the testing suites is the goal, so that pass / fail criteria can be expanded over time|
 
-### <green>Vendor Layer: Interface Compliance and Documentation
+### Vendor Layer: Interface Compliance and Documentation
 
 This section outlines the steps and responsibilities for achieving interface compliance for vendor layers.
 
@@ -241,24 +244,21 @@ This section outlines the steps and responsibilities for achieving interface com
 **Activities:**
 
 - **Interface Specification:**
-	- Develop a clear and concise document outlining the interface's purpose, functionalities, and usage details.
-	- Include relevant references, such as the provided guide "How to document an interface".
+  - Develop a clear and concise document outlining the interface's purpose, functionalities, and usage details.
+  - Include relevant references, such as the provided guide "How to document an interface".
 - **Interface Definition:**
-	- Translate the specification into concrete code structures, adhering to established standards.
-	- Generate header files that define the interface for developers.
+  - Translate the specification into concrete code structures, adhering to established standards.
+  - Generate header files that define the interface for developers.
 - **Interface Documentation:**
-	- Utilize Doxygen to create comprehensive documentation for the interface, based on the definition.
-	- Ensure clarity, organization, and alignment with other components' documentation.
+  - Utilize Doxygen to create comprehensive documentation for the interface, based on the definition.
+  - Ensure clarity, organization, and alignment with other components' documentation.
 - **L1-L4 Testing:**
-	- Create specifications for testing the interface across different levels (L1-L4), covering various scenarios and functionalities.
-	- Develop autogenerated testing suite requirements to automate testing procedures.
-	- Produce L1-L4 documentation in markdown or Doxygen format, providing clear test case descriptions and expected outcomes.
+  - Create specifications for testing the interface across different levels (L1-L4), covering various scenarios and functionalities.
+  - Develop autogenerated testing suite requirements to automate testing procedures.
+  - Produce L1-L4 documentation in markdown or Doxygen format, providing clear test case descriptions and expected outcomes.
 
 **Benefits:**
 
 - **Improved clarity and maintainability**: Well-defined and documented interfaces enhance understanding and facilitate collaborative development.
 - **Efficient testing:** Autogenerated test suites ensure consistent and thorough testing across testing levels.
 - **Reduced errors and rework:** Clear documentation minimises ambiguities and potential misunderstandings, leading to fewer errors and rework.
-
-
-
