@@ -53,6 +53,16 @@ build_ut.sh TARGET=arm
 
 - `build_ut.sh` script will clone the hal-test repo, ut-core and generate a `hal_test` binary in `ut/bin/` upon successful completion.
 
+- Installing the Python Environment for L3 and above tests
+  - Goto `ut/host` folder. This folder contains the script files required for installing python
+  - Run script files to download the python environment
+
+```bash
+./install.sh
+source ./activate_venv.sh
+./install.sh
+```
+
 ## Running the test suite on the target
 
 Copy files from `bin/*` to the target.
