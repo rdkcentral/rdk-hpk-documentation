@@ -53,7 +53,8 @@ build_ut.sh TARGET=arm
 
 - `build_ut.sh` script will clone the hal-test repo, ut-core and generate a `hal_test` binary in `ut/bin/` upon successful completion.
 
-- Installing the Python Environment for L3 and above tests
+- Installing the Python Environment for `L3` tests
+
   - Goto `ut/host` folder. This folder contains the script files required for installing python
   - Run script files to download the python environment
   - For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
