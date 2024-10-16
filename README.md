@@ -56,6 +56,7 @@ build_ut.sh TARGET=arm
 - Installing the Python Environment for L3 and above tests
   - Goto `ut/host` folder. This folder contains the script files required for installing python
   - Run script files to download the python environment
+  - For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
 
 ```bash
 ./install.sh
