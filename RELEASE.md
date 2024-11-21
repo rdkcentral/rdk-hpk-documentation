@@ -4,6 +4,7 @@
 
 - [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
 - [Release History](#release-history)
+  - [1.4.1](#141)
   - [1.4.0](#140)
   - [1.3.0](#130)
   - [1.2.1](#121)
@@ -22,10 +23,40 @@
 - `CEC` - Consumer Electronics Control
 - `RMF` - RDK Media Framework
 - `DRM` - Direct Rendering Manager
+- `VTS` - Vendor Layer Test Suit
 - `NYA` - Not yet available
 - `NA` - Not Applicable
 
 ## Release History
+
+### 1.4.1
+
+**Release date (YYYY-MM-DD)** : `2024-11-08`  
+**Release Version**: `1.4.1`  
+**Previous Version**: `1.4.0`  
+
+| #  | Component Name | HAL Interface Version | | HAL Testing Suite Version | |
+| --- | -------------- | --------------------- | ---------------- | ---------------------- | -------------------- |
+|     |                | **Current**           | **Previous**     | **Current**            | **Previous**         |
+| 1   | [Deep Sleep Manager](https://github.com/rdkcentral/rdk-halif-deepsleep_manager) | `No change` | [1.0.4](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/milestone/1) |`No change`| [1.2.3](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/milestone/5) |
+| 2   | [Power Manager](https://github.com/rdkcentral/rdk-halif-power_manager) | `No change` | [1.0.3](https://github.com/rdkcentral/rdk-halif-power_manager/milestone/1) | `No change`|[1.3.1](https://github.com/rdkcentral/rdk-halif-test-power_manager/milestone/4) |
+| 3   | [Device Settings](https://github.com/rdkcentral/rdk-halif-device_settings/) |[`4.0.1`](https://github.com/rdkcentral/rdk-halif-device_settings/milestone/7)| [4.0.0](https://github.com/rdkcentral/rdk-halif-device_settings/milestone/5) |[`3.3.0`](https://github.com/rdkcentral/rdk-halif-test-device_settings/milestone/15)| [3.2.0](https://github.com/rdkcentral/rdk-halif-test-device_settings/milestone/7) |
+| 4   | [HDMI CEC](https://github.com/rdkcentral/rdk-halif-hdmi_cec) | `No change` | [1.3.9](https://github.com/rdkcentral/rdk-halif-hdmi_cec/milestone/1) |[`1.3.3`](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/milestone/18)|[1.3.1](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/milestone/17) |
+| 5   | [RMF Audio Capture](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture) | `No change` | [1.0.5](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/milestone/1) | `No change` |[`1.3.1`](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/milestone/3) |
+| 6   | [`RDK-V` TVSettings](https://github.com/rdkcentral/rdkv-halif-tvsettings) |`No change` |[2.0.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/milestone/3) |[`2.1.0`](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/milestone/9)| [2.0.0](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/milestone/8) |
+| 7   | [`RDK-V` WiFi](https://github.com/rdkcentral/rdkv-halif-wifi) [^1] | `No change` | [2.0.0](https://github.com/rdkcentral/rdkv-halif-wifi/blob/2.0.0) | `No change` | [1.0.0](https://github.com/rdkcentral/rdkv-halif-test-wifi/blob/1.0.0) |
+| 8   | [LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm) | `No change` | [1.0.0](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.0) | `NYA` | |
+| 9  | [AvSync](https://github.com/rdkcentral/rdk-halif-avsync) | `No change` | [1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0) | `NYA` | |
+| 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) | `No change` | [1.0.0](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.0) | `NYA` | |
+
+**Summary of current release:**
+
+- `VTS` `L3` test suites are available for all modules within device settings and TV settings.
+- `L1` & `L2` bug fixes
+
+**limitations:**
+
+- The L3 test suites for the TVSettings module currently support only the IP video source and are implemented with GStreamer for playback. Other video sources and playback methods are not covered in this version of the test suite.
 
 ### 1.4.0
 
@@ -38,7 +69,7 @@
 |     |                | **Current**           | **Previous**     | **Current**            | **Previous**         |
 | 1   | [Deep Sleep Manager](https://github.com/rdkcentral/rdk-halif-deepsleep_manager) | `No change` | [1.0.4](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/milestone/1) | [`1.2.3`](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/milestone/5) | [1.2.2](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/milestone/3) |
 | 2   | [Power Manager](https://github.com/rdkcentral/rdk-halif-power_manager) | `No change` | [1.0.3](https://github.com/rdkcentral/rdk-halif-power_manager/milestone/1) | `No change`|[1.3.1](https://github.com/rdkcentral/rdk-halif-test-power_manager/milestone/4) |
-| 3   | [Device Settings](https://github.com/rdkcentral/rdk-halif-device_settings/) | [`4.0.0`](https://github.com/rdkcentral/rdk-halif-device_settings/milestone/5) | [3.0.0](https://github.com/rdkcentral/rdk-halif-device_settings/milestone/1) | [`3.2.0`](https://github.com/rdkcentral/rdk-halif-test-device_settings/milestone/13) |[3.1.2](https://github.com/rdkcentral/rdk-halif-test-device_settings/milestone/4) |
+| 3   | [Device Settings](https://github.com/rdkcentral/rdk-halif-device_settings/) | [`4.0.0`](https://github.com/rdkcentral/rdk-halif-device_settings/milestone/5) | [3.0.0](https://github.com/rdkcentral/rdk-halif-device_settings/milestone/1) | [`3.2.0`](https://github.com/rdkcentral/rdk-halif-test-device_settings/milestone/7) |[3.1.2](https://github.com/rdkcentral/rdk-halif-test-device_settings/milestone/4) |
 | 4   | [HDMI CEC](https://github.com/rdkcentral/rdk-halif-hdmi_cec) | `No change` | [1.3.9](https://github.com/rdkcentral/rdk-halif-hdmi_cec/milestone/1) |[`1.3.1`](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/milestone/17) | [1.3.0](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/milestone/6) |
 | 5   | [RMF Audio Capture](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture) | `No change` | [1.0.5](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/milestone/1) | `No change` |[`1.3.1`](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/milestone/3) |
 | 6   | [`RDK-V` TVSettings](https://github.com/rdkcentral/rdkv-halif-tvsettings) | [`2.0.0`](https://github.com/rdkcentral/rdkv-halif-tvsettings/milestone/3) | [1.3.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/milestone/1) | [`2.0.0`](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/milestone/8) |[1.3.0](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/milestone/4) |
