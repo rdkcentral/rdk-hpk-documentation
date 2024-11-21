@@ -14,6 +14,7 @@
 - `HPK` - Hardware Porting Kit
 - `HAL` - Hardware Abstraction Layer
 - `API` - Application Programming Interface
+- `NA` - Not Applicable
 
 ## Description
 
@@ -25,6 +26,21 @@ The Hardware Porting Kit (`HPK`) is a collection resources that simplify the pro
 
 It will provide both Hardware Abstraction Layer (`API`) Header files, and software tests to ensure compatibility with the RDK Middleware Stack.
 
+The components and their respective repositories are listed below:
+
+| #  | Component Name | Repositories |
+| ---| ---------------| -------------|
+| 1|Deep Sleep Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-deepsleep_manager)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager)|
+| 2|Power Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-power_manager)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-power_manager)|
+| 3|Device Settings|[HALInterface](https://github.com/rdkcentral/rdk-halif-device_settings)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-device_settings)|
+| 4|HDMI CEC|[HAL Interface](https://github.com/rdkcentral/rdk-halif-hdmi_cec)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec)|
+| 5|RMF Audio Capture|[HAL Interface](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture)|
+| 6|`RDK-V` TVSettings|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-tvsettings)/[Test Suit](https://github.com/rdkcentral/rdkv-halif-test-tvsettings)|
+| 7|`RDK-V` WiFi|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-wifi)/[Test Suit](https://github.com/rdkcentral/rdkv-halif-test-wifi)|
+| 8|LibDRM|[HAL Interface](https://github.com/rdkcentral/rdk-halif-libdrm)/Test Suit NA|
+| 9|AvSync|[HAL Interface](https://github.com/rdkcentral/rdk-halif-avsync)/Test Suit NA|
+|10|V4L2|[HAL Interface](https://github.com/rdkcentral/rdk-halif-v4l2)/Test Suit NA|
+
 ## How to build the test suite
 
 In order to build the test suits, there is a requirement to supply the toolchain, either as a vendor independent toolchain, an SDK, or an RDK toolchain.
@@ -35,6 +51,8 @@ In order to build the test suits, there is a requirement to supply the toolchain
 export TOOLCHAIN_PATH=/opt/toolchains/rdk-glibc-x86_64/sysroots/armv7at2hf-neon-rdk-linux-gnueabi
 export CC="arm-rdk-linux-gnueabi-gcc  -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard --sysroot=$TOOLCHAIN_PATH"
 ```
+
+For more information about RDK Docker Toolchain, please check [RDK Docker Toolchain](https://github.com/rdkcentral/ut-core/wiki/FAQ:-RDK-Docker-Toolchain)
 
 - Clone the `hal` repo, e.g.:
 
@@ -53,17 +71,10 @@ build_ut.sh TARGET=arm
 
 - `build_ut.sh` script will clone the hal-test repo, ut-core and generate a `hal_test` binary in `ut/bin/` upon successful completion.
 
-- Installing the Python Environment for `L3` tests
-
+- Installing the Python Environment for `L3` Testing Suite
   - Goto `ut/host` folder. This folder contains the script files required for installing python
   - Run script files to download the python environment
   - For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
-
-```bash
-./install.sh
-source ./activate_venv.sh
-./install.sh
-```
 
 ## Running the test suite on the target
 
