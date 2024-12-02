@@ -75,6 +75,7 @@ build_ut.sh TARGET=arm
   - Goto `ut/host` folder. This folder contains the script files required for installing python
   - Run script files to download the python environment
   - For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
+  - More information about the Python installation and requirement refer [RAFT](https://github.com/rdkcentral/python_raft/?tab=readme-ov-file#installation)
 
 ## Running the test suite on the target
 
