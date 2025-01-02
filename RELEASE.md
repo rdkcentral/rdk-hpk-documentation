@@ -4,6 +4,7 @@
 
 - [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
 - [Release History](#release-history)
+  - [1.4.3](#143)
   - [1.4.2](#142)
   - [1.4.1](#141)
   - [1.4.0](#140)
@@ -29,6 +30,32 @@
 - `NA` - Not Applicable
 
 ## Release History
+
+### 1.4.3
+
+**Release date (YYYY-MM-DD)** : `2024-01-02`  
+**Release Version**: `1.4.3`  
+**Previous Version**: `1.4.2`  
+
+| #  | Component Name | HAL Interface Version ||              | HAL Testing Suite Version | |            |
+| --- | -------------- | -----------          |-|--------------| ------------------------- |-| ----------- |
+|     |                | **Current**          |**ChangeInfo**| **Previous**| **Current**|**ChangeInfo**   | **Previous**|
+| 1   | [Deep Sleep Manager](https://github.com/rdkcentral/rdk-halif-deepsleep_manager) | `No change` || [1.0.4](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/milestone/1) |`No change`| |[1.3.0](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/tree/1.3.0) |
+| 2   | [Power Manager](https://github.com/rdkcentral/rdk-halif-power_manager) | `No change` | | [1.0.3](https://github.com/rdkcentral/rdk-halif-power_manager/milestone/1) | `No change`||[1.4.0](https://github.com/rdkcentral/rdk-halif-test-power_manager/tree/1.4.0) |
+| 3   | [Device Settings](https://github.com/rdkcentral/rdk-halif-device_settings/) |[`4.1.1`](https://github.com/rdkcentral/rdk-halif-device_settings/tree/4.1.1)|[4.1.0...4.1.1](https://github.com/rdkcentral/rdk-halif-device_settings/compare/4.1.0...4.1.1) |[4.1.0](https://github.com/rdkcentral/rdk-halif-device_settings/tree/4.1.0) |[`3.5.0`](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/3.5.0)|[3.4.0...3.5.0](https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.4.0...3.5.0) | [3.4.0](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/3.4.0) |
+| 4   | [HDMI CEC](https://github.com/rdkcentral/rdk-halif-hdmi_cec) | `No change` | |[1.3.9](https://github.com/rdkcentral/rdk-halif-hdmi_cec/milestone/1) |[`1.4.0`](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.4.0)|[1.3.3...1.4.0](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.3.3...1.4.0)|[1.3.3](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.3.3) |
+| 5   | [RMF Audio Capture](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture) | `No change` | |[1.0.5](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/milestone/1) | `No change`| |[1.4.0](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/tree/1.4.0) |
+| 6   | [`RDK-V` TVSettings](https://github.com/rdkcentral/rdkv-halif-tvsettings) |[`2.1.0`](https://github.com/rdkcentral/rdkv-halif-tvsettings/tree/2.1.0) |[2.0.0...2.1.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/compare/2.0.0...2.1.0)|[2.0.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/tree/2.0.0) |[`2.1.3`](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/tree/2.1.3)|[2.1.2...2.1.3](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/compare/2.1.2...2.1.3)|[2.1.2](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/tree/2.1.2) |
+| 7   | [`RDK-V` WiFi](https://github.com/rdkcentral/rdkv-halif-wifi) [^1] | `No change`| | [2.0.0](https://github.com/rdkcentral/rdkv-halif-wifi/blob/2.0.0) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdkv-halif-test-wifi/blob/1.0.0) |
+| 8   | [LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm) | `No change` || [1.0.0](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.0) | `NYA` | ||
+| 9  | [AvSync](https://github.com/rdkcentral/rdk-halif-avsync) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0) | `NYA` | ||
+| 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) | `No change` | |[1.0.0](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.0) | `NYA` | ||
+
+**Summary of current release:**
+
+- Enhanced `HAL` header documentation to clarify the dialog enhancement range in the audio `DS` module.
+- `VTS` `L3` test cases have been added for the `HDMI` `CEC` module.
+- `VTS` `L1` , `L2` & `L3` bug fixes.
 
 ### 1.4.2
 
