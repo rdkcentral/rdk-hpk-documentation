@@ -6,7 +6,8 @@
 - [Description](#description)
 - [Hardware Porting Kit](#hardware-porting-kit)
 - [How to build the test suite](#how-to-build-the-test-suite)
-- [Running the test suite on the target](#running-the-test-suite-on-the-target)
+  - [Installing the Python Environment for `L3` Testing Suite](#installing-the-python-environment-for-l3-testing-suite)
+- [Running the `L1` `L2` test suite on the target](#running-the-l1-l2-test-suite-on-the-target)
 - [Release History](#release-history)
 
 ## Acronyms, Terms and Abbreviations
@@ -60,7 +61,23 @@ For more information about RDK Docker Toolchain, please check [RDK Docker Toolch
 git clone git@github.com:rdkcentral/rdk-halif-hdmi_cec.git
 ```
 
-- There are two targets for the platform
+- Set Project Version:
+
+If you want to build the test repository with a specific tag or branch, set the `UT_PROJECT_VERSION` variable accordingly. If not set, the default main branch will be used.
+
+```bash
+export UT_PROJECT_VERSION=1.0.1  # Build using a specific tag
+```
+
+or
+
+```bash
+export UT_PROJECT_VERSION=develop  # Build using a specific branch
+```
+
+- Build Targets:
+
+There are two targets for the platform
 
   1. linux - (default)
   2. arm - TARGET=arm
@@ -71,13 +88,14 @@ build_ut.sh TARGET=arm
 
 - `build_ut.sh` script will clone the hal-test repo, ut-core and generate a `hal_test` binary in `ut/bin/` upon successful completion.
 
-- Installing the Python Environment for `L3` Testing Suite
-  - Goto `ut/host` folder. This folder contains the script files required for installing python
-  - Run script files to download the python environment
-  - For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
-  - More information about the Python installation and requirement refer [RAFT](https://github.com/rdkcentral/python_raft/?tab=readme-ov-file#installation)
+### Installing the Python Environment for `L3` Testing Suite
 
-## Running the test suite on the target
+- Goto `ut/host` folder. This folder contains the script files required for installing python
+- Run script files to download the python environment
+- For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
+- More information about the Python installation and requirement refer [RAFT](https://github.com/rdkcentral/python_raft/?tab=readme-ov-file#installation)
+
+## Running the `L1` `L2` test suite on the target
 
 Copy files from `bin/*` to the target.
 
