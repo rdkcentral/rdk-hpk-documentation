@@ -6,12 +6,12 @@
 - [Description](#description)
 - [Hardware Porting Kit](#hardware-porting-kit)
 - [How to build the test suite](#how-to-build-the-test-suite)
-  - [Levels of Test for Vendor Layer](levels-of-test-for-vendor-layer)
+  - [Levels of Test for Vendor Layer](#levels-of-test-for-vendor-layer)
   - [Installing the Python Environment for `L3` Testing Suite](#installing-the-python-environment-for-l3-testing-suite)
   - [`L1` and `L2` test suites are being executed manually on the target](#l1-and-l2-test-suites-are-being-executed-manually-on-the-target)
-  - [Executing the L1 & L2 test suite via automation on the target](executing-the-l1-&-l2-test-suite-via-automation-on-the-target)
+  - [Executing the L1 L2 test suite via automation on the target](#executing-the-l1-l2-test-suite-via-automation-on-the-target)
 - [Release History](#release-history)
-- [Reference](reference)
+- [Reference](#reference)
 
 ## Acronyms, Terms and Abbreviations
 
@@ -138,7 +138,7 @@ Help
 2. Automated Mode - will output in xUnit form as a .xml file
 3. Basic Mode - All tests will be ran and the output redirected to the shell
 
-### Executing the L1 & L2 test suite via automation on the target
+### Executing the L1 L2 test suite via automation on the target
 
 - To run the `L1` & `L2` via automation please install [Python Environment](#installing-the-python-environment-for-l3-testing-suite)
 - For detailed instructions on how to run the `L1` & `L2` automation tests for a specific HPK component, please refer to the `doc` folder within the corresponding test repository.
