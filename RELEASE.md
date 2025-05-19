@@ -4,6 +4,7 @@
 
 - [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
 - [Release History](#release-history)
+  - [2.1.0](#210)
   - [2.0.0](#200)
   - [1.4.5](#145)
   - [1.4.4](#144)
@@ -33,8 +34,58 @@
 - `NA` - Not Applicable
 - `AVI`- Auxiliary Video Information InfoFrame
 - `ALLM` - Auto Low Latency Mode
+- `VRR` - Variable Refresh Rate
 
 ## Release History
+### 2.1.0
+
+**Release date (YYYY-MM-DD)** : `2025-05-19`  
+**Release Version**: `2.1.0`  
+**Previous Version**: `2.0.0`  
+
+| #  | Component Name | HAL Interface Version ||              | HAL Testing Suite Version | |            |
+| --- | ------------- | ------------          |-|-------------| ------------------------- |-| ----------- |
+|     |                | **Current**          |**ChangeInfo**| **Previous**| **Current**|**ChangeInfo**   | **Previous**|
+| 1   | [Deep Sleep Manager](https://github.com/rdkcentral/rdk-halif-deepsleep_manager) | `No change` || [1.0.4](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/tree/1.0.4) |`No change` |  |[1.4.1](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/tree/1.4.1) |
+| 2   | [Power Manager](https://github.com/rdkcentral/rdk-halif-power_manager) | `No change` | | [1.0.3](https://github.com/rdkcentral/rdk-halif-power_manager/tree/1.0.3) | `No change` | |[1.5.2](https://github.com/rdkcentral/rdk-halif-test-power_manager/tree/1.5.2) |
+| 3   | [Device Settings](https://github.com/rdkcentral/rdk-halif-device_settings/) |[`5.1.0`](https://github.com/rdkcentral/rdk-halif-device_settings/tree/5.1.0)|[5.0.0...5.1.0](https://github.com/rdkcentral/rdk-halif-device_settings/compare/5.0.0...5.1.0)|[5.0.0](https://github.com/rdkcentral/rdk-halif-device_settings/tree/5.0.0) |[`5.1.0`](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/5.1.0)| [5.0.1...5.1.0](https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/5.0.1...5.1.0)| [5.0.1](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/5.0.1) |
+| 4   | [HDMI CEC](https://github.com/rdkcentral/rdk-halif-hdmi_cec) | `No change` | |[1.3.11](https://github.com/rdkcentral/rdk-halif-hdmi_cec/tree/1.3.11) |[`1.5.2`](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.5.2)|[1.5.1...1.5.2](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.5.1...1.5.2)|[1.5.1](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.5.1) |
+| 5   | [RMF Audio Capture](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture) | `No change` | |[1.0.5](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/tree/1.0.5) | [`1.5.3`](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/tree/1.5.3)|[1.5.2...1.5.3](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/compare/1.5.2...1.5.3) |[1.5.2](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/tree/1.5.2) |
+| 6   | [`RDK-V` TVSettings](https://github.com/rdkcentral/rdkv-halif-tvsettings) |[`2.3.0`](https://github.com/rdkcentral/rdkv-halif-tvsettings/tree/2.3.0)|[2.1.0...2.3.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/compare/2.1.0...2.3.0)|[2.1.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/tree/2.1.0)|[`2.3.1`](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/tree/2.3.1)|[2.1.3...2.3.1](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/compare/2.1.3...2.3.0)|[2.1.3](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/tree/2.1.3)|
+| 7   | [`RDK-V` WiFi](https://github.com/rdkcentral/rdkv-halif-wifi) [^1] | `No change`| | [2.0.0](https://github.com/rdkcentral/rdkv-halif-wifi/blob/2.0.0) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdkv-halif-test-wifi/blob/1.0.0) |
+| 8   | [LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm) |  `No change` || [1.0.1](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.1) | `NYA` | ||
+| 9  | [AvSync](https://github.com/rdkcentral/rdk-halif-avsync) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0) | `NYA` | ||
+| 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) |  `No change` ||[1.0.1](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.1) | `NYA` | ||
+
+
+**Summary of Current Release**
+---
+**HAL IF Summary**
+
+- Introduced **VRR** feature interfaces
+- Updated documentation for **AVI** and **ALLM** features
+- Introduced new HAL definitions to support advanced **Picture Quality (PQ)** and **Dolby Vision (DV) IQ** features. VTS tests for these APIs are still under development.  
+- Restored previously removed **ODM APIs** related to **White Balance** control, including support for saving **Color Temperature**, set/get  **HLG** and **HDR10** modes  
+- Documentation enhancements
+---
+**VTS Summary**
+
+- Implemented **VRR** Test for Sink Devices, **ALLM** and **AVI** Info frame tests for Source devices  
+- Resolved bugs across multiple modules  
+- Automated **TV Settings** L1 and L2 test cases, including:
+  - Result summary logging  
+  - Version banner display  
+  - Binary renaming to align with the module name  
+
+- Resolved TVSettings VTS issues across platforms, specifically:
+  - Fixed **L1**, **L2**, and **L3** test failures reported by **SoC vendors** and **internal teams**  
+  - Enhanced **YAML configuration** with **PQ parameter support**, enabling VTS to perform dynamic comparisons based on YAML-defined criteria
+    
+  **More information is available in the ChangeInfo section of the table above**
+
+
+
+
 
 ### 2.0.0
 
