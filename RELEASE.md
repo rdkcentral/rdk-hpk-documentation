@@ -34,6 +34,7 @@
 - `NA` - Not Applicable
 - `AVI`- Auxiliary Video Information InfoFrame
 - `ALLM` - Auto Low Latency Mode
+- `VRR` - Variable Refresh Rate
 
 ## Release History
 ### 2.1.0
@@ -58,24 +59,34 @@
 
 
 
-**Summary of current release:**
 
-HAL IF summary:
+### Summary of Current Release
+---
+**HAL IF Summary**
 
-- Enhanced HAL header documentation and `AVI` feature support has been introduced in the dsDisplay module for source devices.
-- Removed `dsGetEdid2AllmSupport` API from dsHDMIIn.
-- TVSettings interfaces have been reverted to the previous version due to compatibility issues with some deprecated ODM API interfaces.
+- Introduced **VRR** feature interfaces  
+- Updated documentation for **AVI** and **ALLM** features  
+- Introduced new HAL definitions to support advanced **Picture Quality (PQ)** and **Dolby Vision (DV) IQ** features. VTS test development for these APIs are under development.  
+- Restored previously removed **ODM APIs** related to **White Balance** control, including support for saving **Color Temperature**, set/get  **HLG** and **HDR10** modes  
+- Documentation enhancements
+---
+**VTS Summary**
 
-VTS Summary:
+- Implemented **VRR Test** for **Sink Devices**  
+- Developed **AVI InfoFrame Test** for **Source Devices**  
+- Integrated **ALLM Info Test** for **Source Devices**  
+- Resolved bugs across multiple modules  
+- Automated **TV Settings** L1 and L2 test cases, including:
+  - Result summary logging  
+  - Version banner display  
+  - Binary renaming to align with the module name  
 
-- Automation of `L1` and `L2`.
-- Binary nomenclatures for each module are now well defined with proper names to provide a scope to share the binary files as well.
-- `VTS` enhancements implemented to validate the latest `HAL` interface updates.
-- NULL checks were handled in few modules to avoid crashes.
+- Resolved VTS issues across platforms, specifically:
+  - Fixed **L1**, **L2**, and **L3** test failures reported by **SoC vendors** and **internal teams**  
+  - Enabled test support for interfaces previously unsupported on earlier platforms  
+  - Enhanced **YAML configuration** with **PQ parameter support**, enabling VTS to perform dynamic comparisons based on YAML-defined criteria
 
-Limitation:
 
-- VTS Level 3 test for ALLM mode is not included in this release and will be provided in a future update.
 
 ### 2.0.0
 
