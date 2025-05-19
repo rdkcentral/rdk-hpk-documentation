@@ -58,33 +58,32 @@
 | 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) |  `No change` ||[1.0.1](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.1) | `NYA` | ||
 
 
-
-
-### Summary of Current Release
+**Summary of Current Release**
 ---
 **HAL IF Summary**
 
-- Introduced **VRR** feature interfaces  
-- Updated documentation for **AVI** and **ALLM** features  
-- Introduced new HAL definitions to support advanced **Picture Quality (PQ)** and **Dolby Vision (DV) IQ** features. VTS test development for these APIs are under development.  
+- Introduced **VRR** feature interfaces
+- Updated documentation for **AVI** and **ALLM** features
+- Introduced new HAL definitions to support advanced **Picture Quality (PQ)** and **Dolby Vision (DV) IQ** features. VTS tests for these APIs are still under development.  
 - Restored previously removed **ODM APIs** related to **White Balance** control, including support for saving **Color Temperature**, set/get  **HLG** and **HDR10** modes  
 - Documentation enhancements
 ---
 **VTS Summary**
 
-- Implemented **VRR Test** for **Sink Devices**  
-- Developed **AVI InfoFrame Test** for **Source Devices**  
-- Integrated **ALLM Info Test** for **Source Devices**  
+- Implemented **VRR** Test for Sink Devices, **ALLM** and **AVI** Info frame tests for Source devices  
 - Resolved bugs across multiple modules  
 - Automated **TV Settings** L1 and L2 test cases, including:
   - Result summary logging  
   - Version banner display  
   - Binary renaming to align with the module name  
 
-- Resolved VTS issues across platforms, specifically:
+- Resolved TVSettings VTS issues across platforms, specifically:
   - Fixed **L1**, **L2**, and **L3** test failures reported by **SoC vendors** and **internal teams**  
-  - Enabled test support for interfaces previously unsupported on earlier platforms  
   - Enhanced **YAML configuration** with **PQ parameter support**, enabling VTS to perform dynamic comparisons based on YAML-defined criteria
+    
+  **More information is available in the ChangeInfo section of the table above**
+
+
 
 
 
