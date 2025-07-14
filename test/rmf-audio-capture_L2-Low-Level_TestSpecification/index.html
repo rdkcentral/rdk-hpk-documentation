@@ -1,0 +1,1322 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/rdkcentral/rdk-hpk-documentation/test/rmf-audio-capture_L2-Low-Level_TestSpecification/">
+      
+      
+        <link rel="prev" href="../rmf-audio-capture_L3_TestProcedure/">
+      
+      
+        <link rel="next" href="../rmf-audio-capture_L3_Low-Level_TestSpecification/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.2">
+    
+    
+      
+        <title>L2 Low-Level Spec - RDK HPK Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.d7758b05.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rmf-audio-capture-l2-low-level-test-specification-and-procedure-documentation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="RDK HPK Documentation" class="md-header__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RDK HPK Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              L2 Low-Level Spec
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="RDK HPK Documentation" class="md-nav__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RDK HPK Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    RMF Audio Capture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            RMF Audio Capture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rmf-audio-capture_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HAL Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rmf-audio-capture_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level Test Spec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Test Procedures
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Test Procedures
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rmf-audio-capture_L1_L2_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L1/L2 Test Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rmf-audio-capture_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3 Test Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1_4" id="__nav_1_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Test Specifications
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            Test Specifications
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    L2 Low-Level Spec
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    L2 Low-Level Spec
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acronyms-terms-and-abbreviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acronyms, Terms and Abbreviations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#level-2-test-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Level 2 Test Procedure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Level 2 Test Procedure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test 1
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test 2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test 3
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rmf-audio-capture_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3 Low-Level Spec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acronyms-terms-and-abbreviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acronyms, Terms and Abbreviations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#level-2-test-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Level 2 Test Procedure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Level 2 Test Procedure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test 1
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test 2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test 3
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="rmf-audio-capture-l2-low-level-test-specification-and-procedure-documentation">RMF AUDIO CAPTURE L2 Low Level Test Specification and Procedure Documentation</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#acronyms-terms-and-abbreviations">Acronyms, Terms and Abbreviations</a></li>
+<li><a href="#references">References</a></li>
+<li><a href="#level-2-test-procedure">Level 2 Test Procedure</a></li>
+</ul>
+<h2 id="overview">Overview</h2>
+<p>This document describes the level 2 testing suite for the RMF AUDIO CAPTURE module.</p>
+<h3 id="acronyms-terms-and-abbreviations">Acronyms, Terms and Abbreviations</h3>
+<ul>
+<li><code>HAL</code> - Hardware Abstraction Layer, may include some common components</li>
+<li><code>UT</code>  - Unit Test(s)</li>
+<li><code>OEM</code>  - Original Equipment Manufacture</li>
+<li><code>SoC</code>  - System on a Chip</li>
+</ul>
+<h3 id="references">References</h3>
+<ul>
+<li><code>High Level Test Specification</code> - <a href="../rmf-audio-capture_High-Level_TestSpec/">rmf-audio-capture_High-Level_TestSpec.md</a></li>
+</ul>
+<h2 id="level-2-test-procedure">Level 2 Test Procedure</h2>
+<p>The following functions are expecting to test the module operates correctly.</p>
+<h3 id="test-1">Test 1</h3>
+<table>
+<thead>
+<tr>
+<th>Title</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Function Name</td>
+<td><code>test_l2_rmfAudioCapture_primary_data_check</code></td>
+</tr>
+<tr>
+<td>Description</td>
+<td>Run primary audio capture for 10 seconds and verify receipt of commensurate amount of audio samples. Verify that there are no more data ready callbacks issued after the RMF_AudioCapture_Stop returns</td>
+</tr>
+<tr>
+<td>Test Group</td>
+<td>Module : 02</td>
+</tr>
+<tr>
+<td>Test Case ID</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Priority</td>
+<td>High</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pre-Conditions :</strong>
+None</p>
+<p><strong>Dependencies :</strong>
+None</p>
+<p><strong>User Interaction :</strong>
+If user chose to run the test in interactive mode, then the test case has to be selected via console.</p>
+<p><strong>Test Procedure :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Variation / Steps</th>
+<th>Description</th>
+<th>Test Data</th>
+<th>Expected Result</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01</td>
+<td>Call <code>RMF_AudioCapture_Open()</code> to open interface</td>
+<td>handle = valid pointer</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>02</td>
+<td>Call <code>RMF_AudioCapture_GetDefaultSettings()</code> to get default settings</td>
+<td>valid settings</td>
+<td>returns RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>03</td>
+<td>Call <code>RMF_AudioCapture_Start()</code> with settings obtained above to start audio capture</td>
+<td>settings=default settings from previous step, data callback will increment a static byte counter every time it runs. Data callback will also set an atomic int cookie variable to 1 every time it runs, status callback NULL</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>04</td>
+<td>Capture audio for 10 seconds</td>
+<td>sleep(10)</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>05</td>
+<td>Call <code>RMF_AudioCapture_Stop</code> with handle and set cookie variable to 0 immediately afterwards</td>
+<td>handle = valid pointer</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>06</td>
+<td>Sleep for 1 second and verify that no more callbacks have arrived by verifying that cookie variable remains 0</td>
+<td>N/A</td>
+<td>cookie=0</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>07</td>
+<td>Call <code>RMF_AudioCapture_Close()</code> to release resources</td>
+<td>current handle</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>08</td>
+<td>Compare actual total bytes logged by data callback with expected total. Expected total = 10 * byte-rate computed from audio parameters in default settings</td>
+<td>byte rate = num. channels * bytes per channel * sampling frequency</td>
+<td>Actual bytes received must be within 10% margin of error of expected</td>
+<td>Should be successful</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TD
+    A[Call RMF_AudioCapture_Open] --&gt;|RMF_SUCCESS| B[Call RMF_AudioCapture_GetDefaultSettings]
+    A --&gt;|Failure| A1[Test case fail]
+    B --&gt;|Failure| B1[Test case fail]
+    B --&gt;|RMF_SUCCESS| B2[Call RMF_AudioCapture_Start with settings]
+    B2 --&gt; |Failure| B3[Test case fail]
+    B2 --&gt;|RMF_SUCCESS| C[Wait 10 seconds]
+    C --&gt; D[Call RMF_AudioCapture_Stop, set cookie = 0]
+    D --&gt; DCW{Wait for 1 second. &lt;br&gt; Is cookie = 0?}
+    DCW --&gt; |No| DCF[Test case fail]
+    DCW --&gt; |Yes|E[call RMF_AudioCapture_Close]
+    E --&gt; |Failure| E1[Test case fail]
+    E --&gt;|RMF_SUCCESS| F{Total captured data &lt;br&gt; size comparable to &lt;br&gt; estimated total?}
+    F --&gt;|Yes| G[Test case success]
+    F --&gt;|No| F1[Test case fail]</code></pre>
+<h3 id="test-2">Test 2</h3>
+<table>
+<thead>
+<tr>
+<th>Title</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Function Name</td>
+<td><code>test_l2_rmfAudioCapture_auxiliary_data_check</code></td>
+</tr>
+<tr>
+<td>Description</td>
+<td>Run auxiliary audio capture for 10 seconds and verify receipt of commensurate amount of audio samples. Verify that there are no more data ready callbacks issued after the RMF_AudioCapture_Stop returns</td>
+</tr>
+<tr>
+<td>Test Group</td>
+<td>Module : 02</td>
+</tr>
+<tr>
+<td>Test Case ID</td>
+<td>002</td>
+</tr>
+<tr>
+<td>Priority</td>
+<td>High</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pre-Conditions :</strong>
+Device must support auxiliary audio capture.</p>
+<p><strong>Dependencies :</strong>
+None</p>
+<p><strong>User Interaction :</strong>
+If user chose to run the test in interactive mode, then the test case has to be selected via console.</p>
+<p><strong>Test Procedure :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Variation / Steps</th>
+<th>Description</th>
+<th>Test Data</th>
+<th>Expected Result</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01</td>
+<td>Call <code>RMF_AudioCapture_Open_Type()</code> to open interface</td>
+<td>handle = valid pointer, type=auxiliary</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>02</td>
+<td>Call <code>RMF_AudioCapture_GetDefaultSettings()</code> to get default settings</td>
+<td>valid settings</td>
+<td>returns RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>03</td>
+<td>Call <code>RMF_AudioCapture_Start()</code> with settings obtained above to start audio capture</td>
+<td>settings=default settings from previous step, data callback will increment a static byte counter every time it runs. Data callback will also set an atomic int cookie variable to 1 every time it runs, status callback NULL</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>04</td>
+<td>Capture audio for 10 seconds</td>
+<td>sleep(10)</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>05</td>
+<td>Call <code>RMF_AudioCapture_Stop</code> with handle and set cookie variable to 0 immediately afterwards</td>
+<td>handle = valid pointer</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>06</td>
+<td>Sleep for 1 second and verify that no more callbacks have arrived by verifying that cookie variable remains 0</td>
+<td>N/A</td>
+<td>cookie=0</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>07</td>
+<td>Call <code>RMF_AudioCapture_Close()</code> to release resources</td>
+<td>current handle</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>08</td>
+<td>Compare actual total bytes logged by data callback with expected total. Expected total = 10 * byte-rate computed from audio parameters in default settings</td>
+<td>byte rate = num. channels * bytes per channel * sampling frequency</td>
+<td>Actual bytes received must be within 10% margin of error of expected</td>
+<td>Should be successful</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TD
+    A[Call RMF_AudioCapture_Open_Type] --&gt;|RMF_SUCCESS| B[Call RMF_AudioCapture_GetDefaultSettings]
+    A --&gt;|Failure| A1[Test case fail]
+    B --&gt;|Failure| B1[Test case fail]
+    B --&gt;|RMF_SUCCESS| B2[Call RMF_AudioCapture_Start with settings]
+    B2 --&gt; |Failure| B3[Test case fail]
+    B2 --&gt;|RMF_SUCCESS| C[Wait 10 seconds]
+    C --&gt; D[Call RMF_AudioCapture_Stop, set cookie = 0]
+    D --&gt; DCW{Wait for 1 second. &lt;br&gt; Is cookie = 0?}
+    DCW --&gt; |No| DCF[Test case fail]
+    DCW --&gt; |Yes|E[call RMF_AudioCapture_Close]
+    E --&gt; |Failure| E1[Test case fail]
+    E --&gt;|RMF_SUCCESS| F{Total captured data &lt;br&gt; size comparable to &lt;br&gt; estimated total?}
+    F --&gt;|Yes| G[Test case success]
+    F --&gt;|No| F1[Test case fail]</code></pre>
+<h3 id="test-3">Test 3</h3>
+<table>
+<thead>
+<tr>
+<th>Title</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Function Name</td>
+<td><code>test_l2_rmfAudioCapture_combined_data_check</code></td>
+</tr>
+<tr>
+<td>Description</td>
+<td>Run auxiliary+primary audio capture for 10 seconds and verify receipt of commensurate amount of audio samples. Verify that there are no more data ready callbacks issued after the RMF_AudioCapture_Stop returns.</td>
+</tr>
+<tr>
+<td>Test Group</td>
+<td>Module : 02</td>
+</tr>
+<tr>
+<td>Test Case ID</td>
+<td>003</td>
+</tr>
+<tr>
+<td>Priority</td>
+<td>High</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pre-Conditions :</strong>
+Device must support auxiliary audio capture.</p>
+<p><strong>Dependencies :</strong>
+None</p>
+<p><strong>User Interaction :</strong>
+If user chose to run the test in interactive mode, then the test case has to be selected via console.</p>
+<p><strong>Test Procedure :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Variation / Steps</th>
+<th>Description</th>
+<th>Test Data</th>
+<th>Expected Result</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01</td>
+<td>Call <code>RMF_AudioCapture_Open_Type()</code> to open interface</td>
+<td>handle = valid pointer; type = "auxiliary"</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>02</td>
+<td>Call <code>RMF_AudioCapture_Open_Type()</code> to open interface</td>
+<td>handle = valid pointer; type = "primary"</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>03</td>
+<td>Call <code>RMF_AudioCapture_GetDefaultSettings()</code> to get default settings</td>
+<td>valid settings pointer</td>
+<td>returns RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>04</td>
+<td>Call <code>RMF_AudioCapture_Start()</code> with settings obtained above to start audio capture</td>
+<td>handle = primary handle, settings initalized to default settings, data callback will increment a static byte counter every time it runs. Data callback will also set an atomic int cookie variable to 1 every time it runs, cbBufferReadyParm = pointer to primary capture context with byte counter and cookie, status callback NULL</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>05</td>
+<td>Call <code>RMF_AudioCapture_Start()</code> with settings obtained above to start audio capture</td>
+<td>handle = auxiliary handle, settings initalized to default settings, data callback will increment a static byte counter every time it runs. Data callback will also set an atomic int cookie variable to 1 every time it runs, cbBufferReadyParm = pointer to auxiliary capture context with byte counter and cookie, status callback NULL</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>06</td>
+<td>Capture audio for 10 seconds</td>
+<td>sleep(10)</td>
+<td>N/A</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>07</td>
+<td>Call <code>RMF_AudioCapture_Stop</code> with primary handle and set primary context cookie variable to 0 immediately afterwards</td>
+<td>handle = primary</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>08</td>
+<td>Call <code>RMF_AudioCapture_Stop</code> with auxiliary handle and set auxiliary context cookie variable to 0 immediately afterwards</td>
+<td>handle = auxiliary</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>09</td>
+<td>Sleep for 1 second and verify that no more callbacks have arrived by verifying that cookie variables for both primary and auxiliary contexts remain 0</td>
+<td>N/A</td>
+<td>primary and auxiliary cookies = 0</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Call <code>RMF_AudioCapture_Close()</code> to release resources</td>
+<td>current primary handle</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Call <code>RMF_AudioCapture_Close()</code> to release resources</td>
+<td>current auxiliary handle</td>
+<td>RMF_SUCCESS</td>
+<td>Should be successful</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Compare actual total bytes logged by data callbacks for both primary and auxiliary contexts with expected total. Expected total = 10 * byte-rate computed from audio parameters in default settings</td>
+<td>byte rate = num. channels * bytes per channel * sampling frequency</td>
+<td>Actual bytes received must be within 10% margin of error of expected</td>
+<td>Should be successful</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TD
+    A[Call RMF_AudioCapture_Open_Type &lt;br&gt; for primary] --&gt;|RMF_SUCCESS| B[Call RMF_AudioCapture_Open_Type &lt;br&gt; for auxillary]
+    A --&gt;|Fail| A_Fail[Test case fail]
+    B --&gt;|RMF_SUCCESS| C[Call RMF_AudioCapture_GetDefaultSettings]
+    B --&gt;|Fail| B_Fail[Test case fail]
+    C --&gt;|RMF_SUCCESS| D[Modify settings,&lt;br&gt; set cbBufferReady and cbBufferReadyParm for &lt;br&gt; both primary and secondary]
+    C --&gt;|Fail| C_Fail[Test case fail]
+    D --&gt; E[Call RMF_AudioCapture_Start &lt;br&gt; with primary handle]
+    E --&gt;|RMF_SUCCESS| F[Call RMF_AudioCapture_Start &lt;br&gt; with auxiliary handle]
+    E --&gt;|Fail| E_Fail[Test case fail]
+    F --&gt;|RMF_SUCCESS| G[Capture audio for 10 seconds]
+    F --&gt;|Fail| F_Fail[Test case fail]
+    G --&gt; I[Call RMF_AudioCapture_Stop &lt;br&gt; for primary handle, &lt;br&gt; set cookie = 0]
+    I --&gt;|RMF_SUCCESS| J[Call RMF_AudioCapture_Stop &lt;br&gt; for auxiliary handle, &lt;br&gt; set cookie = 0]
+    I --&gt;|Fail| I_Fail[Test case fail]
+    J --&gt;|RMF_SUCCESS| K[Wait 1 second, &lt;br&gt; verify that cookies = 0]
+    J --&gt;|Fail| J_Fail[Test case fail]
+    K --&gt; |cookies = 0|L[Call RMF_AudioCapture_Close &lt;br&gt; for primary handle]
+    K --&gt; |cookies = 1| K_FAIL[Test case fail]
+    L --&gt;|RMF_SUCCESS| M[Call RMF_AudioCapture_Close &lt;br&gt; for auxiliary handle]
+    L --&gt;|Fail| L_Fail[Test case fail]
+    M --&gt;|Fail| M_Fail[Test case fail]
+    M --&gt;|RMF_SUCCESS| N{Total captured data\nsize comparable to\nestimated total for\nprimary and auxiliary?}
+    N --&gt;|Yes| N1[Test case success]
+    N --&gt;|No| N2[Test case fail]</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../rmf-audio-capture_L3_TestProcedure/" class="md-footer__link md-footer__link--prev" aria-label="Previous: L3 Test Procedure">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                L3 Test Procedure
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../rmf-audio-capture_L3_Low-Level_TestSpecification/" class="md-footer__link md-footer__link--next" aria-label="Next: L3 Low-Level Spec">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                L3 Low-Level Spec
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.footer", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "toc.follow", "content.code.copy", "content.code.annotate", "content.tooltips", "content.print.stylesheet", "search.highlight", "search.suggest", "search.share", "header.autohide", "announce.dismiss"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f13b1293.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+      
+        <script src="../javascript/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>
