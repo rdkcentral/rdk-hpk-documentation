@@ -1,0 +1,90 @@
+site_name: RDK HPK Documentation
+site_url: https://github.com/rdkcentral/rdk-hpk-documentation
+repo_url: https://github.com/rdkcentral/rdk-hpk-documentation
+repo_name: rdkcentral/rdk-hpk-documentation
+docs_dir: docs/external_content
+site_dir: site
+
+nav:
+  - RMF Audio Capture:
+      - HAL Specification: rmf-audio-capture_halSpec.md
+      - High-Level Test Spec: rmf-audio-capture_High-Level_TestSpec.md
+      - Test Procedures:
+          - L1/L2 Test Procedure: rmf-audio-capture_L1_L2_TestProcedure.md
+          - L3 Test Procedure: rmf-audio-capture_L3_TestProcedure.md
+      - Test Specifications:
+          - L2 Low-Level Spec: rmf-audio-capture_L2-Low-Level_TestSpecification.md
+          - L3 Low-Level Spec: rmf-audio-capture_L3_Low-Level_TestSpecification.md
+
+markdown_extensions:
+  - admonition
+  - def_list
+  - footnotes
+  - abbr
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.snippets
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences  
+  - toc:
+      toc_depth: 4
+  - pymdownx.emoji: # Enable Extended Emoji if required
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences: # Enable mermaid
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_css:
+  - stylesheets/extra.css  # Ensure this file exists
+#  - stylesheets/version.css
+
+extra:
+  version:
+    provider: mike # This enables mike integration for the version selector
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js
+  - javascript/mermaid-init.js
+
+theme:
+  name: material
+  features:
+    - navigation.footer
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    #- navigation.tabs
+    - navigation.instant  # New feature
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tooltips  # New feature  icon:
+    - content.print.stylesheet
+    - search.highlight
+    - search.suggest
+    - search.share
+    - header.autohide
+    - announce.dismiss
+  repo: fontawesome/brands/github
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
