@@ -10,29 +10,29 @@ nav:
   - Components:
     - RMF Audio Capture:
       - API: external_content/rmf_audio_capture/docs/pages/rmf-audio-capture_halSpec.md
-      - CHANGELOG: external_content/rmf_audio_capture/CHANGELOG.md
+      - Changelog: external_content/rmf_audio_capture/CHANGELOG.md
       - Tests:
         - High Level: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_High-Level_TestSpec.md
         - L2 Low Level: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_L2-Low-Level_TestSpecification.md
         - L3 Low Level: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_Low-Level_TestSpecification.md
         - L3 Test Procedure: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_TestProcedure.md
-        - CHANGELOG: external_content/rmf_audio_capture_test/CHANGELOG.md
+        - Changelog: external_content/rmf_audio_capture_test/CHANGELOG.md
     - Power Manager:
       - API: external_content/power_manager/docs/pages/power-manager_halSpec.md
-      - CHANGELOG: external_content/power_manager/CHANGELOG.md
+      - Changelog: external_content/power_manager/CHANGELOG.md
       - Tests:
         - High Level: external_content/power_manager_test/docs/pages/power-manager_High-Level_TestSpec.md
         - L2 Low Level: external_content/power_manager_test/docs/pages/power-manager_L2_Low-Level_TestSpec.md
-        - CHANGELOG: external_content/power_manager_test/CHANGELOG.md
+        - Changelog: external_content/power_manager_test/CHANGELOG.md
     - Deep Sleep Manager:
       - API: external_content/deepsleep_manager/docs/pages/deepsleep-manager_halSpec.md
-      - CHANGELOG: external_content/deepsleep_manager/CHANGELOG.md
+      - Changelog: external_content/deepsleep_manager/CHANGELOG.md
       - Tests:
         - High Level: external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_High-Level_TestSpec.md
         - L2 Low Level: external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_L2-Low-Level_TestSpec.md
         - L3 Low Level: external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_L3-Low-Level_TestSpec.md
         - L3 Test Procedure: external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_L3_TestProcedure.md
-        - CHANGELOG: external_content/deepsleep_manager_test/CHANGELOG.md
+        - Changelog: external_content/deepsleep_manager_test/CHANGELOG.md
     - Device Settings:
       - DS Audio:
         - API: external_content/device_settings/docs/pages/ds-audio_halSpec.md
@@ -90,11 +90,11 @@ nav:
           - L2 Low Level: external_content/device_settings_test/docs/pages/dsVideoPort/ds-video-port_L2_Low-Level_TestSpecification.md
           - L3 Low Level: external_content/device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Low-Level_TestSpecification.md
           - L3 Test Procedure: external_content/device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Test-Procedure.md
-      - CHANGELOG: external_content/device_settings/CHANGELOG.md
-      - Tests CHANGELOG: external_content/device_settings_test/CHANGELOG.md
+      - Changelog: external_content/device_settings/CHANGELOG.md
+      - Tests Changelog: external_content/device_settings_test/CHANGELOG.md
     - HDMI CEC:
       - API: external_content/hdmi_cec/docs/pages/hdmi-cec_halSpec.md
-      - CHANGELOG: external_content/hdmi_cec/CHANGELOG.md
+      - Changelog: external_content/hdmi_cec/CHANGELOG.md
       - Tests:
         - Sink High Level: external_content/hdmi_cec_test/docs/pages/hdmi-cec-sink_High-Level_TestSpec.md
         - Sink L2 Low Level: external_content/hdmi_cec_test/docs/pages/hdmi-cec-sink_L2_Low-Level_TestSpec.md
@@ -104,16 +104,31 @@ nav:
         - L3 Test Procedure: external_content/hdmi_cec_test/docs/pages/hdmi-cec-L3_TestProcedure.md
         - Virtual Component ControlPlane Commands: external_content/hdmi_cec_test/docs/pages/hdmi_cec_VirtualComponent_ControlPlaneCommands.md
         - Virtual Component Design: external_content/hdmi_cec_test/docs/pages/hdmi_cec_virtual_component_design.md
-        - CHANGELOG: external_content/hdmi_cec_test/CHANGELOG.md
+        - Changelog: external_content/hdmi_cec_test/CHANGELOG.md
     - TV Settings:
       - API: external_content/tvsettings/docs/pages/tv-settings_halSpec.md
-      - CHANGELOG: external_content/tvsettings/CHANGELOG.md
+      - Changelog: external_content/tvsettings/CHANGELOG.md
       - Tests:
         - High Level: external_content/tvsettings_test/docs/pages/tv-settings_High_Level_Test_Spec.md
         - L2 Low Level: external_content/tvsettings_test/docs/pages/tv-settings_L2_Low_Level_Test_Spec.md
         - L3 Low Level: external_content/tvsettings_test/docs/pages/tv-settings_L3_Low_Level_Test_Spec.md
         - L3 Test Procedure: external_content/tvsettings_test/docs/pages/tv-settings_L3_TestProcedure.md
-        - CHANGELOG: external_content/tvsettings_test/CHANGELOG.md
+        - Changelog: external_content/tvsettings_test/CHANGELOG.md
+  - Miscellaneous:
+    - Building Blocks:
+      - UT-Core Test Framework:
+        - UT-Core Overview: external_content/ut-core-wiki/Home.md
+        - Level Actors: external_content/ut-core-wiki/FAQ:-UT-Core-Framework-Overview.md
+      - Python RAFT:
+        - Overview: external_content/python_raft_wiki/Home.md
+    - Virtual Device:
+      - What is the vDevice: external_content/ut-core-wiki/5.0:-Standards:-vDevice-Overview.md
+      - Architecture Overview: external_content/ut-core-wiki/5.0.1:-Standards:-vDevice-Architecture-Overview.md
+      - Key Concepts:
+        - Controller: external_content/ut-core-wiki/5.1.0:-Standards:-vDevice-Controller.md
+        - Control Plane: external_content/ut-core-wiki/5.1.1:-Standards:-vDevice-Control-Plane.md
+    - Contributing: CONTRIBUTING.md
+    - Changelog: CHANGELOG.md
 
 
 

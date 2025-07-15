@@ -193,7 +193,7 @@ setup_and_enable_venv
 ### Clone required repos ###
 # Clone ut-core docs for reference material
 mkdir -p ${EXTERNAL_CONTENT_DIR}
-#clone_repo "https://github.com/rdkcentral/ut-core.wiki.git" "${EXTERNAL_CONTENT_DIR}/ut-core-wiki" "main"
+clone_repo "https://github.com/rdkcentral/ut-core.wiki.git" "${EXTERNAL_CONTENT_DIR}/ut-core-wiki" "main"
 clone_repo "https://github.com/rdkcentral/rdk-halif-rmf_audio_capture.git" "${EXTERNAL_CONTENT_DIR}/rmf_audio_capture" "hotfix/1.0.5_hotfix"
 clone_repo "https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture.git" "${EXTERNAL_CONTENT_DIR}/rmf_audio_capture_test" "hotfix/1.4.0_hotfix"
 clone_repo "https://github.com/rdkcentral/rdk-halif-power_manager.git" "${EXTERNAL_CONTENT_DIR}/power_manager" "hotfix/1.0.3_hotfix"
@@ -206,6 +206,7 @@ clone_repo "https://github.com/rdkcentral/rdk-halif-hdmi_cec.git" "${EXTERNAL_CO
 clone_repo "https://github.com/rdkcentral/rdk-halif-test-hdmi_cec.git" "${EXTERNAL_CONTENT_DIR}/hdmi_cec_test" "hotfix/1.4.0_hotfix"
 clone_repo "https://github.com/rdkcentral/rdkv-halif-tvsettings.git" "${EXTERNAL_CONTENT_DIR}/tvsettings" "feature/2.1.0_hotfix"
 clone_repo "https://github.com/rdkcentral/rdkv-halif-test-tvsettings.git" "${EXTERNAL_CONTENT_DIR}/tvsettings_test" "feature/2.1.3_hotfix"
+clone_repo "https://github.com/rdkcentral/python_raft.wiki.git" "${EXTERNAL_CONTENT_DIR}/python_raft_wiki" "main"
 
 
 
