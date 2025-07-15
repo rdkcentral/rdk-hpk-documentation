@@ -205,6 +205,7 @@ clone_repo "https://github.com/rdkcentral/rdk-halif-test-device_settings.git" "$
 clone_repo "https://github.com/rdkcentral/rdk-halif-hdmi_cec.git" "${EXTERNAL_CONTENT_DIR}/hdmi_cec" "feature/1.3.10_hotfix"
 clone_repo "https://github.com/rdkcentral/rdk-halif-test-hdmi_cec.git" "${EXTERNAL_CONTENT_DIR}/hdmi_cec_test" "hotfix/1.4.0_hotfix"
 clone_repo "https://github.com/rdkcentral/rdkv-halif-tvsettings.git" "${EXTERNAL_CONTENT_DIR}/tvsettings" "feature/2.1.0_hotfix"
+clone_repo "https://github.com/rdkcentral/rdkv-halif-test-tvsettings.git" "${EXTERNAL_CONTENT_DIR}/tvsettings_test" "feature/2.1.3_hotfix"
 
 
 
