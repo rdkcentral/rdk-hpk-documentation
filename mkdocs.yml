@@ -2,19 +2,83 @@ site_name: RDK HPK Documentation
 site_url: https://github.com/rdkcentral/rdk-hpk-documentation
 repo_url: https://github.com/rdkcentral/rdk-hpk-documentation
 repo_name: rdkcentral/rdk-hpk-documentation
-docs_dir: docs/external_content
+docs_dir: docs
 site_dir: site
 
 nav:
-  - RMF Audio Capture:
-      - HAL Specification: rmf-audio-capture_halSpec.md
-      - High-Level Test Spec: rmf-audio-capture_High-Level_TestSpec.md
-      - Test Procedures:
-          - L1/L2 Test Procedure: rmf-audio-capture_L1_L2_TestProcedure.md
-          - L3 Test Procedure: rmf-audio-capture_L3_TestProcedure.md
-      - Test Specifications:
-          - L2 Low-Level Spec: rmf-audio-capture_L2-Low-Level_TestSpecification.md
-          - L3 Low-Level Spec: rmf-audio-capture_L3_Low-Level_TestSpecification.md
+  - Home: index.md
+  - RMF Audio Capture : 
+    - rmf-audio-capture_Hal_Specification: external_content/rmf_audio_capture/docs/pages/rmf-audio-capture_halSpec.md
+    - rmf-audio-capture_High-Level_TestSpec: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_High-Level_TestSpec.md
+    - rmf-audio-capture_L2-Low-Level_TestSpecification: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_L2-Low-Level_TestSpecification.md
+    - rmf-audio-capture_L3_Low-Level_TestSpecification: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_Low-Level_TestSpecification.md
+    - rmf-audio-capture_L3_TestProcedure: external_content/rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_TestProcedure.md
+  - Power Manager:
+    - power-manager_Hal_Specification: external_content/power_manager/docs/pages/power-manager_halSpec.md
+    - power-manager_High-Level_TestSpec: external_content/power_manager_test/docs/pages/power-manager_High-Level_TestSpec.md
+    - power-manager_L2-Low-Level_TestSpecification: external_content/power_manager_test/docs/pages/power-manager_L2_Low-Level_TestSpec.md
+  - Deep Sleep Manager:
+    - deepsleep-manager_halSpec : external_content/deepsleep_manager/docs/pages/deepsleep-manager_halSpec.md
+    - deep-sleep-manager_High-Level_TestSpec: external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_High-Level_TestSpec.md
+    - deep-sleep-manager_L2-Low-Level_TestSpec : external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_L2-Low-Level_TestSpec.md
+    - deep-sleep-manager_L3-Low-Level_TestSpec : external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_L3-Low-Level_TestSpec.md
+    - deep-sleep-manager_L3_TestProcedure : external_content/deepsleep_manager_test/docs/pages/deep-sleep-manager_L3_TestProcedure.md
+  - Device Settings:
+    - ds-audio_halSpec: external_content/device_settings/docs/pages/ds-audio_halSpec.md
+    - ds-composite-in_halSpec: external_content/device_settings/docs/pages/ds-composite-in_halSpec.md
+    - ds-display_halSpec: external_content/device_settings/docs/pages/ds-display_halSpec.md
+    - ds-front-panel-display_halSpec: external_content/device_settings/docs/pages/ds-front-panel-display_halSpec.md
+    - ds-hdmi-in_halSpec: external_content/device_settings/docs/pages/ds-hdmi-in_halSpec.md
+    - ds-host_halSpec: external_content/device_settings/docs/pages/ds-host_halSpec.md
+    - ds-video-device_halSpec: external_content/device_settings/docs/pages/ds-video-device_halSpec.md
+    - ds-video-port_halSpec: external_content/device_settings/docs/pages/ds-video-port_halSpec.md
+    - ds-audio_High-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsAudio/ds-audio_High-Level_TestSpecification.md
+    - ds-audio_L2_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsAudio/ds-audio_L2_Low-Level_TestSpecification.md
+    - ds-audio_L3_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsAudio/ds-audio_L3_Low-Level_TestSpecification.md
+    - ds-audio_L3_TestProcedure: external_content/device_settings_test/docs/pages/dsAudio/ds-audio_L3_TestProcedure.md
+    - ds-compositeIn_High-Level_TestSpec: external_content/device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-High-Level_TestSpec.md
+    - ds-compositeIn_L2_Low-Level_TestSpec: external_content/device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L2-Low-Level_TestSpec.md
+    - ds-compositeIn_L3_Low-Level_TestSpec: external_content/device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-Low-Level-TestSpec.md
+    - ds-compositeIn_L3_TestProcedure: external_content/device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-TestProcedure.md
+    - ds-display_L2_Low-Level_TestSpec: external_content/device_settings_test/docs/pages/dsDisplay/ds-display-L2-Low-Level_TestSpec.md
+    - ds-display_High-Level_TestSpec: external_content/device_settings_test/docs/pages/dsDisplay/ds-display-high-Level_TestSpec.md
+    - ds-display_L3_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsDisplay/ds-display_L3_Low-Level_TestSpecification.md
+    - ds-display_L3_TestProcedure: external_content/device_settings_test/docs/pages/dsDisplay/ds-display_L3_TestProcedure.md
+    - ds-front-panel-display_High-Level_TestSpec: external_content/device_settings_test/docs/pages/dsFPD/ds-front-panel-display_High-Level_TestSpec.md
+    - ds-front-panel-display_L2_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L2_Low-Level_TestSpecification.md
+    - ds-front-panel-display_L3_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_Low-Level_TestSpecification.md
+    - ds-front-panel-display_L3_TestProcedure: external_content/device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_TestProcedure.md
+    - ds-hdmi-in_L3_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsHDMIIn/ds-Hdmi-In_L3_Low-Level_TestSpecification.md
+    - ds-hdmi-in_High-Level_TestSpec: external_content/device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-High-Level_TestSpec.md
+    - ds-hdmi-in_L2_Low-Level_TestSpec: external_content/device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-L2-Low-Level_TestSpec.md
+    - ds-hdmi-in_L3_Test-Procedure: external_content/device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in_L3_Test-Procedure.md
+    - ds-host_High-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsHost/ds-host_High-Level_TestSpecification.md
+    - ds-host_L2_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsHost/ds-host_L2_Low-Level_TestSpecification.md
+    - ds-host_L3_Low-Level_TestSpec: external_content/device_settings_test/docs/pages/dsHost/ds-host_L3_Low-Level_TestSpec.md
+    - ds-host_L3_TestProcedure: external_content/device_settings_test/docs/pages/dsHost/ds-host_L3_TestProcedure.md
+    - ds-video-device_High-Level_TestSpec: external_content/device_settings_test/docs/pages/dsVideoDevice/ds-video-device_High-Level_TestSpec.md
+    - ds-video-device_L2-Low-Level_TestSpec: external_content/device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L2-Low-Level_TestSpec.md
+    - ds-video-device_L3_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_Low-Level_TestSpecification.md
+    - ds-video-device_L3_TestProcedure: external_content/device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_TestProcedure.md
+    - ds-video-port_High-Level_TestSpec: external_content/device_settings_test/docs/pages/dsVideoPort/ds-video-port_High-Level_TestSpec.md
+    - ds-video-port_L2_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsVideoPort/ds-video-port_L2_Low-Level_TestSpecification.md
+    - ds-video-port_L3_Low-Level_TestSpecification: external_content/device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Low-Level_TestSpecification.md
+    - ds-video-port_L3_Test-Procedure: external_content/device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Test-Procedure.md
+  - HDMI CEC:
+     - hdmi-cec_halSpec: external_content/hdmi_cec/docs/pages/hdmi-cec_halSpec.md
+     - hdmi-cec_L3_Low-Level_TestSpec: external_content/hdmi_cec_test/docs/pages/hdmi-cec-L3-Low-Level_TestSpec.md
+     - hdmi-cec_L3_TestProcedure: external_content/hdmi_cec_test/docs/pages/hdmi-cec-L3_TestProcedure.md
+     - hdmi-cec-sink_High-Level_TestSpec: external_content/hdmi_cec_test/docs/pages/hdmi-cec-sink_High-Level_TestSpec.md
+     - hdmi-cec-sink_L2_Low-Level_TestSpec: external_content/hdmi_cec_test/docs/pages/hdmi-cec-sink_L2_Low-Level_TestSpec.md
+     - hdmi-cec-source_High-Level_TestSpec: external_content/hdmi_cec_test/docs/pages/hdmi-cec-source_High-Level_TestSpec.md
+     - hdmi-cec-source_L2_Low-Level_TestSpec: external_content/hdmi_cec_test/docs/pages/hdmi-cec-source_L2_Low-Level_TestSpec.md
+     - hdmi_cec_VirtualComponent_ControlPlaneCommands: external_content/hdmi_cec_test/docs/pages/hdmi_cec_VirtualComponent_ControlPlaneCommands.md
+     - hdmi_cec_virtual_component_design: external_content/hdmi_cec_test/docs/pages/hdmi_cec_virtual_component_design.md
+  - TV Settings:
+     - tv-settings_halSpec: external_content/tvsettings/docs/pages/tv-settings_halSpec.md
+
+
+
 
 markdown_extensions:
   - admonition

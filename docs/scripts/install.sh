@@ -182,55 +182,6 @@ function setup_and_enable_venv()
     touch ${VENV_DIR}/.installed
 }
 
-function create_symlinks_for_docs() 
-{
-    local base_dir="external_content"
-    local target_subpath="docs/pages"
-
-    # Iterate over all subdirectories in external_content/
-    for dir in "$base_dir"/*/; do
-        local folder_name
-        folder_name=$(basename "$dir")
-
-        local search_path="$dir$target_subpath"
-        if [ -d "$search_path" ]; then
-            find "$search_path" -maxdepth 1 -name "*.md" | while read -r md_file; do
-                # Skip symlinks
-                if [ -L "$md_file" ]; then
-                    echo "Skipping symlink: $md_file"
-                    continue
-                fi
-
-                # Ensure it's a regular file
-                if [ ! -f "$md_file" ]; then
-                    echo "Skipping non-regular file: $md_file"
-                    continue
-                fi
-
-                # Get the file name only
-                local md_filename
-                md_filename=$(basename "$md_file")
-
-                # Relative symlink target (omit external_content/)
-                local relative_target="${folder_name}/$target_subpath/$md_filename"
-
-                # Symlink path in external_content/
-                local symlink_path="$base_dir/$md_filename"
-
-                # Create the symlink if it doesn't exist
-                if [ -L "$symlink_path" ] || [ -e "$symlink_path" ]; then
-                    echo "Skipping: $symlink_path already exists."
-                else
-                    ln -s "$relative_target" "$symlink_path"
-                    echo "Created symlink: $symlink_path -> $relative_target"
-                fi
-            done
-        else
-            echo "No $target_subpath found in $dir"
-        fi
-    done
-}
-
 QUIET=0
 if [ "$1" == "--quiet" ]; then
     QUIET=1
@@ -243,11 +194,19 @@ setup_and_enable_venv
 # Clone ut-core docs for reference material
 mkdir -p ${EXTERNAL_CONTENT_DIR}
 #clone_repo "https://github.com/rdkcentral/ut-core.wiki.git" "${EXTERNAL_CONTENT_DIR}/ut-core-wiki" "main"
-clone_repo "https://github.com/rdkcentral/rdk-halif-rmf_audio_capture.git" "${EXTERNAL_CONTENT_DIR}/rmf_audio_capture" "main"
-clone_repo "https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture.git" "${EXTERNAL_CONTENT_DIR}/rmf_audio_capture_test" "main"
+clone_repo "https://github.com/rdkcentral/rdk-halif-rmf_audio_capture.git" "${EXTERNAL_CONTENT_DIR}/rmf_audio_capture" "hotfix/1.0.5_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture.git" "${EXTERNAL_CONTENT_DIR}/rmf_audio_capture_test" "hotfix/1.4.0_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-power_manager.git" "${EXTERNAL_CONTENT_DIR}/power_manager" "hotfix/1.0.3_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-test-power_manager.git" "${EXTERNAL_CONTENT_DIR}/power_manager_test" "hotfix/1.4.0_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-deepsleep_manager.git" "${EXTERNAL_CONTENT_DIR}/deepsleep_manager" "hotfix/1.0.4_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager.git" "${EXTERNAL_CONTENT_DIR}/deepsleep_manager_test" "hotfix/1.3.0_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-device_settings.git" "${EXTERNAL_CONTENT_DIR}/device_settings" "feature/4.1.2_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-test-device_settings.git" "${EXTERNAL_CONTENT_DIR}/device_settings_test" "feature/3.5.0_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-hdmi_cec.git" "${EXTERNAL_CONTENT_DIR}/hdmi_cec" "feature/1.3.10_hotfix"
+clone_repo "https://github.com/rdkcentral/rdk-halif-test-hdmi_cec.git" "${EXTERNAL_CONTENT_DIR}/hdmi_cec_test" "hotfix/1.4.0_hotfix"
+clone_repo "https://github.com/rdkcentral/rdkv-halif-tvsettings.git" "${EXTERNAL_CONTENT_DIR}/tvsettings" "feature/2.1.0_hotfix"
 
-# create symlinks for markdown files inside external_content
-create_symlinks_for_docs
+
 
 # Setup Pip Env
 install_pip_requirements ${DOCS_DIR}/requirements.txt
@@ -257,5 +216,3 @@ install_pip_requirements ${DOCS_DIR}/requirements.txt
 if [ ${QUIET} == 0 ]; then
     INFO "Run "${YELLOW}./build_docs.sh${NO_COLOR}" to generate the documentation"
 fi
-
-
