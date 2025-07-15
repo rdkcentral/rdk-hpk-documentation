@@ -1,0 +1,13 @@
+dsCompositeIn:
+  Type: sink
+  Name: Panel_compositeIn_1_port
+  features:
+    extendedEnumsSupported: false
+  composite_input_configurations:
+    #dsCOMPOSITE_IN_PORT_NONE = -1,  ///< No composite port.
+    #dsCOMPOSITE_IN_PORT_0,          ///< Composite port index 0.
+    #dsCOMPOSITE_IN_PORT_1,          ///< Composite port index 1.
+    #dsCOMPOSITE_IN_PORT_MAX         ///< Out of range
+    number_of_ports: 1 # Port 0
+    ports:
+      - 0  # dsCOMPOSITE_IN_PORT_0
