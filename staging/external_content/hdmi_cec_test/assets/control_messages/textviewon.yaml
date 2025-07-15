@@ -1,4 +1,0 @@
-hdmicec:
-  command: TextViewOn
-  initiator: IPSTB
-  destination: TVPanel
