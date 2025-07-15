@@ -1,0 +1,2273 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/rdkcentral/rdk-hpk-documentation/staging/external_content/hdmi_cec_test/CHANGELOG/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.2">
+    
+    
+      
+        <title>CHANGELOG - RDK HPK Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.d7758b05.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="RDK HPK Documentation" class="md-header__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RDK HPK Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CHANGELOG
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="RDK HPK Documentation" class="md-nav__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RDK HPK Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    RMF Audio Capture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            RMF Audio Capture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture/docs/pages/rmf-audio-capture_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L2-Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Power Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Power Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../power_manager/docs/pages/power-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../power_manager_test/docs/pages/power-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../power_manager_test/docs/pages/power-manager_L2-Low-Level_TestSpecification.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Deep Sleep Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Deep Sleep Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager/docs/pages/deepsleep-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Device Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Device Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-audio_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-composite-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-composite-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-front-panel-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-hdmi-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-host_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-video-device_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-video-port_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsAudio/ds-audio_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsAudio/ds-audio_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsAudio/ds-audio_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsAudio/ds-audio_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-Low-Level-TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsDisplay/ds-display-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsDisplay/ds-display-high-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsDisplay/ds-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsDisplay/ds-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHDMIIn/ds-Hdmi-In_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHost/ds-host_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHost/ds-host_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHost/ds-host_L3_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsHost/ds-host_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    HDMI CEC
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            HDMI CEC
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec/docs/pages/hdmi-cec_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi-cec-L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi-cec-L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi-cec-sink_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi-cec-sink_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi-cec-source_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi-cec-source_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi_cec_VirtualComponent_ControlPlaneCommands/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    VirtualComponent_ControlPlaneCommands
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/hdmi_cec_virtual_component_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual_component_design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    TV Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            TV Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tvsettings/docs/pages/tv-settings_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changelog
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Changelog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#140" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#133" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3.3
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3.2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#131" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3.1
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#130" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#120" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#110" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#104" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.4
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.3
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.2
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>CHANGELOG</h1>
+
+<h3 id="changelog">Changelog</h3>
+<p>All notable changes to this project will be documented in this file. Dates are displayed in UTC.</p>
+<p>Generated by <a href="https://github.com/CookPete/auto-changelog"><code>auto-changelog</code></a>.</p>
+<h4 id="140"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.3.3...1.4.0">1.4.0</a></h4>
+<ul>
+<li>gh #44 Initial L3 C-Test Code generation. <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/45"><code>#45</code></a></li>
+</ul>
+<h4 id="133"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.3.2...1.3.3">1.3.3</a></h4>
+<blockquote>
+<p>7 November 2024</p>
+</blockquote>
+<ul>
+<li>gh #58 l1 logic update fix <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/60"><code>#60</code></a></li>
+<li>gh #61 updated the intiator and destination address in the log <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/cd92f1c6ada5fc910cd677eb4c1c6434276cb499"><code>cd92f1c</code></a></li>
+<li>gh #61 L1 Fix on Logical address update <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/d76034e5544aae17044c6bf8e656f8b6370049d9"><code>d76034e</code></a></li>
+<li>gh #61 L1 logical address update <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/bb0ea759110754f1750b45b09f4b35a4373dddf1"><code>bb0ea75</code></a></li>
+</ul>
+<h4 id="132"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.3.1...1.3.2">1.3.2</a></h4>
+<blockquote>
+<p>5 November 2024</p>
+</blockquote>
+<ul>
+<li>gh #58 Issue fix L1 and L2 <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/59"><code>#59</code></a></li>
+<li>gh #41 Support State commands (AddDevice, RemoveDevice, PrintStatus) <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/46"><code>#46</code></a></li>
+<li>Fixed #50 : updated activate &amp; added test_helper <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/issues/50"><code>#50</code></a></li>
+<li>Baseline #50 setup layout <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/28aa81895584442561f43c522aceb87c3705d742"><code>28aa818</code></a></li>
+<li>Added #50 baseline requirements <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/d1191279836d457aee4aa56f51b05c8ce076f1e9"><code>d119127</code></a></li>
+<li>Added example config #50 <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/1d972fd0121f71f4d30eadcc94dff8bb53be9f10"><code>1d972fd</code></a></li>
+</ul>
+<h4 id="131"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.3.0...1.3.1">1.3.1</a></h4>
+<blockquote>
+<p>4 September 2024</p>
+</blockquote>
+<ul>
+<li>gh #53 Update L1 and L2 according to new pre post condition. <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/55"><code>#55</code></a></li>
+<li>gh #52 Update L1 and L2 for pre post condition update <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/7910ceb8bc40e60eb866311f8f1cb5d1d247d79c"><code>7910ceb</code></a></li>
+<li>gh #53 Update L1 and L2 for pre and post condition <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/0afa1daea5e3eb17bf7ada3f7f961b3d261e5317"><code>0afa1da</code></a></li>
+<li>gh #53 Update L1 L2 with post and pre condition. <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/30f601c2bb37b7e572b9a54b3273c3b121526ddf"><code>30f601c</code></a></li>
+</ul>
+<h4 id="130"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.2.0...1.3.0">1.3.0</a></h4>
+<blockquote>
+<p>13 August 2024</p>
+</blockquote>
+<ul>
+<li>gh #47 L1 Test code cleanup <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/49"><code>#49</code></a></li>
+<li>gh #30 VTS L1 Enhancement - Test Profile Changes - HDMI CEC <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/33"><code>#33</code></a></li>
+<li>gh #36 Update L1 suite with specification 1.3.9 <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/38"><code>#38</code></a></li>
+<li>Document the control plane commands that will be supported <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/40"><code>#40</code></a></li>
+<li>Feature/issue18 control plane integration <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/37"><code>#37</code></a></li>
+<li>Feature/issues9: Support emulating a cec network <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/29"><code>#29</code></a></li>
+<li>gh #47 L1 cod cleanup <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/ffdb87a75d80234f1fcf9b6ee8acd28f63d3cf7a"><code>ffdb87a</code></a></li>
+<li>gh #36 Addressing review comments <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/91ee018bc984aded39eb067f01801555708b3c68"><code>91ee018</code></a></li>
+<li>gh #36 Update L1 with specification 1.3.9 <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/ab12bd63f52260eedc8dbc9f5f6d7f0c7a5f1ac8"><code>ab12bd6</code></a></li>
+</ul>
+<h4 id="120"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.1.0...1.2.0">1.2.0</a></h4>
+<blockquote>
+<p>28 June 2024</p>
+</blockquote>
+<ul>
+<li>gh #24 hdmicec source &amp; sink l2 tests  <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/28"><code>#28</code></a></li>
+<li>Feature/issues15 emulator startup <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/21"><code>#21</code></a></li>
+<li>Update <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/19"><code>#19</code></a></li>
+<li>Update with Sink tests <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/9655adfc5e492fdeff797b7f0dad0bdd1ad28d91"><code>9655adf</code></a></li>
+<li>Update based on review discussion <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/ab6f66870bbb3c5fea99a8c429ca74b37ace6b95"><code>ab6f668</code></a></li>
+<li>Update with generated L2 code and specification document <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/769045a5b17736013d7950f6a4fa746b1e676433"><code>769045a</code></a></li>
+</ul>
+<h4 id="110"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.0.4...1.1.0">1.1.0</a></h4>
+<blockquote>
+<p>5 June 2024</p>
+</blockquote>
+<ul>
+<li>gh #11 hdmi_cec: Test Profile: Adding MACRO ENABLE_ENHANCED_ERROR_CODE to enalbe/disable the enhanced error code tests <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/12"><code>#12</code></a></li>
+<li>Capture the YAML Template and design for CEC Emulator <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/8"><code>#8</code></a></li>
+<li>Create hdmi_cec_emulator_design.md <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/84741c312dfc3b9ff96ec79ad1a93e2fd1e2565a"><code>84741c3</code></a></li>
+<li>Handling Enhanced error code with kvp profile <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/117c8d40d14b9a63f188cc894e2f192e40253ed6"><code>117c8d4</code></a></li>
+<li>Adding MACRO ENABLE_ENHANCED_ERROR_CODE <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/a77ad32447a7dbc07cfcd8e8b5b1be9906afcf42"><code>a77ad32</code></a></li>
+</ul>
+<h4 id="104"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.0.3...1.0.4">1.0.4</a></h4>
+<blockquote>
+<p>11 May 2024</p>
+</blockquote>
+<ul>
+<li>fixing the usage of UT core functions  <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/pull/10"><code>#10</code></a></li>
+<li>gh #1 Updated UT version2 and removed unnecessary clean up <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/284ac9356a676fbd78e9e2702530830e06f4dca4"><code>284ac93</code></a></li>
+<li>gh #1 replace UT fatal to non fatal &amp; updated the test suite <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/bb6bc687212201d78ae17f1322f211eaef64143b"><code>bb6bc68</code></a></li>
+<li>gh #1 Updated the ut assert true <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/febc59d7666944d5bf6593c7c8b98ecc4923c84e"><code>febc59d</code></a></li>
+</ul>
+<h4 id="103"><a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.0.2...1.0.3">1.0.3</a></h4>
+<blockquote>
+<p>12 December 2023</p>
+</blockquote>
+<ul>
+<li>Updated README.md with hal &amp; haltest supported version <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/21501351ac954661d0e719b0fd21f386516244ea"><code>2150135</code></a></li>
+<li>Bumped CHANGELOG.md - 1.0.3 <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/c948d2ada95437fa27602d96b60b2150cbf3c5f0"><code>c948d2a</code></a></li>
+<li>Merge tag '1.0.2' into develop <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/4bf3988b05c3a36b3967a1aa4968ad99e76fdb45"><code>4bf3988</code></a></li>
+</ul>
+<h4 id="102">1.0.2</h4>
+<blockquote>
+<p>5 December 2023</p>
+</blockquote>
+<ul>
+<li>baseline version <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/9f45b9ea126052ff58451cc4081e6aa736abfd10"><code>9f45b9e</code></a></li>
+<li>Added CHANGELOG.md - 1.0.2 <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/1c8f1c3e09fe4a81ef771ef4e95cf7e28a4e7abe"><code>1c8f1c3</code></a></li>
+<li>minior fix for doxgen warning <a href="https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/commit/8e7777a9d7ea8bfcfb57e4a8b2389ae7882b1333"><code>8e7777a</code></a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.footer", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "toc.follow", "content.code.copy", "content.code.annotate", "content.tooltips", "content.print.stylesheet", "search.highlight", "search.suggest", "search.share", "header.autohide", "announce.dismiss"], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.f13b1293.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+      
+        <script src="../../../javascript/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>
