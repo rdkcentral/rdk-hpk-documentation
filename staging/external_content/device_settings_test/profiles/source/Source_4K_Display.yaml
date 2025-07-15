@@ -1,8 +1,0 @@
-dsDisplay:
-  Type: source
-  Name: xione
-  Number_of_ports: 1
-  Video_Ports: [0x06] # dsVIDEOPORT_TYPE_HDMI
-  VideoPort_Index: [0] #Index of the port
-  features:
-    extendedEnumsSupported: false
