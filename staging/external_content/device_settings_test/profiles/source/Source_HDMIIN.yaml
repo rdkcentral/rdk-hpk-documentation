@@ -1,0 +1,13 @@
+# Profile for L1
+dsHdmiIn:
+  Type: source
+  Name: STB
+  features:
+    extendedEnumsSupported: false
+  numberOfPorts: 0
+  EdidVersion: #No ports
+  HdmiArcPortID: #No ports
+  gameFeatures:
+    feature: ""
+    count: 0
+  HdmiCompatibilityVersion: #No ports
