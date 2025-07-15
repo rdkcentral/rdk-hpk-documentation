@@ -1,0 +1,27 @@
+# Profile for L1
+dsHdmiIn:
+  Type: sink
+  Name: panel_4k
+  features:
+    extendedEnumsSupported: false
+  #dsHDMI_IN_PORT_NONE = -1,  /*!< HDMI input port index for NONE */
+  #dsHDMI_IN_PORT_0,          /*!< HDMI input port index for PORT 0 */
+  #dsHDMI_IN_PORT_1,          /*!< HDMI input port index for PORT 1 */
+  #dsHDMI_IN_PORT_2,          /*!< HDMI input port index for PORT 2 */
+  #dsHDMI_IN_PORT_MAX         /*!< Out of range */
+  numberOfPorts: 3
+  # HDMI_EDID_VER_14  = 0x0,   /*!< EDID version 1.4 */
+  # HDMI_EDID_VER_20  = 0x01,       /*!< EDID version 2.0 */
+  # HDMI_EDID_VER_MAX = 0x02,      /*!< Out of bounds */
+  EdidVersion: [0x01, 0x01, 0x01] # supported 2.0 for all three HDMI input ports
+  edidBytes: [00,ff,ff,ff,ff,ff,ff,00,15,85,2d,2a]
+  spdInfo: [83,01,19,00,dc,51,44,49,00,00,00,00,00,48,44,4d,49,20,41,4e,41,4c,59,5a,45,52,00,00,00] # quantum data Analyzer M41h
+  HdmiArcPortID: 1
+  gameFeatures:
+    feature: "allm"
+    count: 1
+  # HDMI_COMPATIBILITY_VERSION_14 = 0x00, /*!< Hdmi Compatibility Version 1.4 */
+  # HDMI_COMPATIBILITY_VERSION_20 = 0x01,     /*!< Hdmi Compatibility Version 2.0 */
+  # HDMI_COMPATIBILITY_VERSION_21 = 0x02,     /*!< Hdmi Compatibility Version 2.1 */
+  # HDMI_COMPATIBILITY_VERSION_MAX = 0x03     /*!< Out of bounds */
+  HdmiCompatibilityVersion: [0x01, 0x01, 0x01] #update vertion based on port number

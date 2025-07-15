@@ -1,0 +1,2529 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/rdkcentral/rdk-hpk-documentation/staging/external_content/device_settings_test/CHANGELOG/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.2">
+    
+    
+      
+        <title>CHANGELOG - RDK HPK Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.d7758b05.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="RDK HPK Documentation" class="md-header__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RDK HPK Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CHANGELOG
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="RDK HPK Documentation" class="md-nav__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RDK HPK Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    RMF Audio Capture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            RMF Audio Capture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture/index.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture/docs/pages/rmf-audio-capture_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L2-Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Power Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Power Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../power_manager/docs/pages/power-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../power_manager_test/docs/pages/power-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../power_manager_test/docs/pages/power-manager_L2-Low-Level_TestSpecification.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Deep Sleep Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Deep Sleep Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager/docs/pages/deepsleep-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Device Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Device Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-audio_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-composite-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-composite-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-front-panel-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-hdmi-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-host_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-video-device_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../device_settings/docs/pages/ds-video-port_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsAudio/ds-audio_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsAudio/ds-audio_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsAudio/ds-audio_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsAudio/ds-audio_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsCompositeIn/ds-compositeIn-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsCompositeIn/ds-compositeIn-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsCompositeIn/ds-compositeIn-L3-Low-Level-TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsCompositeIn/ds-compositeIn-L3-TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsDisplay/ds-display-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsDisplay/ds-display-high-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsDisplay/ds-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsDisplay/ds-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsFPD/ds-front-panel-display_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsFPD/ds-front-panel-display_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsFPD/ds-front-panel-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsFPD/ds-front-panel-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHDMIIn/ds-Hdmi-In_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHDMIIn/ds-hdmi-in-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHDMIIn/ds-hdmi-in-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHDMIIn/ds-hdmi-in_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHost/ds-host_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHost/ds-host_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHost/ds-host_L3_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsHost/ds-host_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoDevice/ds-video-device_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoDevice/ds-video-device_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoDevice/ds-video-device_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoDevice/ds-video-device_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoPort/ds-video-port_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoPort/ds-video-port_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoPort/ds-video-port_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/pages/dsVideoPort/ds-video-port_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    HDMI CEC
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            HDMI CEC
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec/docs/pages/hdmi-cec_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi-cec-L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi-cec-L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi-cec-sink_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi-cec-sink_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi-cec-source_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi-cec-source_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi_cec_VirtualComponent_ControlPlaneCommands/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    VirtualComponent_ControlPlaneCommands
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hdmi_cec_test/docs/pages/hdmi_cec_virtual_component_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual_component_design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    TV Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            TV Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tvsettings/docs/pages/tv-settings_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changelog
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Changelog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#350" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.5.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#340" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#330" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#321" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2.1
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#320" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#314" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1.4
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#313" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1.3
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#312" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1.2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#311" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1.1
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#310" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1.0
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#301" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.0.1
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#300" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.0.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#210" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1.0
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#200" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.0.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#103" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.3
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.2
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#101" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.1
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>CHANGELOG</h1>
+
+<h3 id="changelog">Changelog</h3>
+<p>All notable changes to this project will be documented in this file. Dates are displayed in UTC.</p>
+<p>Generated by <a href="https://github.com/CookPete/auto-changelog"><code>auto-changelog</code></a>.</p>
+<h4 id="350"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.4.0...3.5.0">3.5.0</a></h4>
+<ul>
+<li>gh #280 Updated profile,testcase for Dialog Enhancement <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/281"><code>#281</code></a></li>
+<li>gh #268 CompositeIn L3 testcase for new API <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/269"><code>#269</code></a></li>
+<li>gh #137 dshdmi in l1 l2 dsGetHdmiVersion <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/147"><code>#147</code></a></li>
+<li>gh #270 dsFPD L3 issue fix <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/271"><code>#271</code></a></li>
+<li>gh #227 updated Make file with target=linux <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/278"><code>#278</code></a></li>
+<li>gh #272 change the correct value for bitwise operation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/273"><code>#273</code></a></li>
+<li>gh #137 Update ds-hdmi-in-High-Level_TestSpec.md <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/b9a16534fc32009b15b4e96169d2d9b3b9c0059a"><code>b9a1653</code></a></li>
+<li>gh #268 L3 testcase for new API <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/602ba6633a2ad4934a4ab60549f6c7fcf73d47e4"><code>602ba66</code></a></li>
+</ul>
+<h4 id="340"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.3.0...3.4.0">3.4.0</a></h4>
+<blockquote>
+<p>28 November 2024</p>
+</blockquote>
+<ul>
+<li>gh #266 Changing the UT Project version to 4.x <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/267"><code>#267</code></a></li>
+<li>gh #262 updating the video port index for the L1 and L2 testcase <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/265"><code>#265</code></a></li>
+<li>gh #260 dsDisplay L1 update <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/261"><code>#261</code></a></li>
+<li>gh #263 : updated dsAudio L3 test procedure document <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/264"><code>#264</code></a></li>
+<li>gh #251 dsHost: L3 Python test updates <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/259"><code>#259</code></a></li>
+<li>Gh #245 dsFPD L3 Python update <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/250"><code>#250</code></a></li>
+<li>gh #249 dsDisplay L3 Python update <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/252"><code>#252</code></a></li>
+<li>gh #248  python l3 hdmiIn enhancement <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/254"><code>#254</code></a></li>
+<li>gh #246 CompositeIn L3 enhancement changes <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/255"><code>#255</code></a></li>
+<li>gh #244 dsVideoPort python improvements <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/258"><code>#258</code></a></li>
+<li>gh #256  Remove Skeleton lib after build <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/257"><code>#257</code></a></li>
+<li>gh #247 dsVideoDevice L3 python enhancement <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/253"><code>#253</code></a></li>
+<li>gh #242 L1 test case for dsCompositeInRegisterVideoModeUpdateCB <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/243"><code>#243</code></a></li>
+<li>gh #233 dsAudio Enhance python tests <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/234"><code>#234</code></a></li>
+<li>gh #247 Python update (Need to test) <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/1b7db7aac61a9c48b3c3d3325dcf756494c72d60"><code>1b7db7a</code></a></li>
+<li>gh #248 HdmiIn L3 python testcases enhancement <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/50a19c8773dd12efbe29848b5d6369c91e46c351"><code>50a19c8</code></a></li>
+<li>gh #262 updating the video port index for the L1 and L2 related test cases <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/932e4b8586d1d3593d444b3107e73fc208f89380"><code>932e4b8</code></a></li>
+</ul>
+<h4 id="330"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.2.1...3.3.0">3.3.0</a></h4>
+<blockquote>
+<p>6 November 2024</p>
+</blockquote>
+<ul>
+<li>gh #198 dsVideoDevice L3 Python Test Code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/216"><code>#216</code></a></li>
+<li>gh #202 l3 hdmiin python testcases <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/215"><code>#215</code></a></li>
+<li>gh #200 dsDisplay L3 Python test cases <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/208"><code>#208</code></a></li>
+<li>gh #201 dsFPD L3 Python Test Code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/238"><code>#238</code></a></li>
+<li>gh #199 dsCompositeIn L3 Python Test code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/210"><code>#210</code></a></li>
+<li>gh #205 dsHost L3 Python Test Cases <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/206"><code>#206</code></a></li>
+<li>gh #239 Updated the install script with ut_raft tag <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/240"><code>#240</code></a></li>
+<li>Fix #192 upgraded review comments <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/issues/192"><code>#192</code></a></li>
+<li>Fix #192 - corrected version selection bug <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/issues/192"><code>#192</code></a></li>
+<li>fix #192 - corrected calling ut-core with correct params <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/issues/192"><code>#192</code></a></li>
+<li>gh #198 test case python code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/5a277c015d0170316c8eb70963f599d43506abd8"><code>5a277c0</code></a></li>
+<li>gh #198 addressed review comments <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/ba4350d5fbaeb91c4a2acc785ada40b6b95b6a2c"><code>ba4350d</code></a></li>
+<li>gh #198 updated test cases <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/7d6a383ac8f9f29a327504f89279609ef90b32fb"><code>7d6a383</code></a></li>
+</ul>
+<h4 id="321"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.2.0...3.2.1">3.2.1</a></h4>
+<blockquote>
+<p>5 November 2024</p>
+</blockquote>
+<ul>
+<li>gh #230 L1 Issue fixes - dsAudio <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/232"><code>#232</code></a></li>
+<li>gh #229 VTS - L1 Issue fix -  dsVideoPort  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/231"><code>#231</code></a></li>
+<li>gh #217 L1 dsVideoDevice Issue fix <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/218"><code>#218</code></a></li>
+<li>gh #236 dsHdmiIn L1 Issue Fix. <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/237"><code>#237</code></a></li>
+<li>gh #192 make file upgrade correcting clean and framework make <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/193"><code>#193</code></a></li>
+<li>Fix #192 upgraded review comments <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/issues/192"><code>#192</code></a></li>
+<li>Fix #192 - corrected version selection bug <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/issues/192"><code>#192</code></a></li>
+<li>fix #192 - corrected calling ut-core with correct params <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/issues/192"><code>#192</code></a></li>
+<li>update #192 - added debugging features <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/6c97a9175497e0d330471050773fb953bdc72510"><code>6c97a91</code></a></li>
+<li>updated #192 - corrected make of ut-core <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/f4940f74834e0ff7cf760492d819b757333a5959"><code>f4940f7</code></a></li>
+<li>gh #217 dsVideoDevice L1 Issue fix <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/9f5c1f1f80a3938ca8aeedb0b8c9c824473384da"><code>9f5c1f1</code></a></li>
+</ul>
+<h4 id="320"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.1.4...3.2.0">3.2.0</a></h4>
+<blockquote>
+<p>16 October 2024</p>
+</blockquote>
+<ul>
+<li>gh #226 ds audio update python tests <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/228"><code>#228</code></a></li>
+<li>gh #220: dsAudio L3 Test Procedure document <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/221"><code>#221</code></a></li>
+<li>gh #224 dsVideoPort L3 test procedure documentation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/225"><code>#225</code></a></li>
+<li>gh #222 Update the README.md <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/223"><code>#223</code></a></li>
+<li>gh #190 dsvideo port l3 C and Python testcase Implementation  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/196"><code>#196</code></a></li>
+<li>gh #186 : dsAudio L3 development code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/187"><code>#187</code></a></li>
+<li>gh #212  dsFPD L1 issue fix  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/214"><code>#214</code></a></li>
+<li>gh #211 l1 issue fix dsDisplay <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/213"><code>#213</code></a></li>
+<li>gh #184: dsFPD  get led state test step update <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/185"><code>#185</code></a></li>
+<li>gh#148 dsVideoDevice L3 test suit code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/153"><code>#153</code></a></li>
+<li>gh #203 l3 linking issue fix <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/204"><code>#204</code></a></li>
+<li>gh #151 - FPD L3 C Test <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/155"><code>#155</code></a></li>
+<li>gh #145 HdmiIn l3 testcases implementation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/149"><code>#149</code></a></li>
+<li>gh #194 dshost l3 remove warnings <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/197"><code>#197</code></a></li>
+<li>gh #150 dsDisplay L3 Test case Development  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/152"><code>#152</code></a></li>
+<li>gh #154 VTS - L3 dsCompisiteIn C-Test Spec and Code Implementation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/156"><code>#156</code></a></li>
+<li>gh #169 dsDisplay : L3 Low level Test specification <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/170"><code>#170</code></a></li>
+<li>gh #175 Test Spec Document - FPD L3  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/176"><code>#176</code></a></li>
+<li>gh #179 l3 ds video device test doc <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/180"><code>#180</code></a></li>
+<li>gh #157 dshost l3 c test code generation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/177"><code>#177</code></a></li>
+<li>gh #171 ds hdmi in l3 highlevl spec <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/178"><code>#178</code></a></li>
+<li>gh #173 L3 ds composite-In Low level Test specification and procedure document <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/174"><code>#174</code></a></li>
+<li>gh #188 VideoPort Updated L3 python Overview <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/189"><code>#189</code></a></li>
+<li>gh #159: dsAudio L3 Python test code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/164"><code>#164</code></a></li>
+<li>gh #181: L3 C Test: Issues after merging dsAudio dsVideo <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/182"><code>#182</code></a></li>
+<li>gh #115 dsAudio: L3 Test case Development <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/116"><code>#116</code></a></li>
+<li>gh #101 dsAudio: L3 Low level Test specification and procedure document <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/102"><code>#102</code></a></li>
+<li>gh #99 dsVideoPort L3 low-level Spec &amp; implementation  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/103"><code>#103</code></a></li>
+<li>fix #159 - minor correction to description <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/issues/159"><code>#159</code></a></li>
+<li>gh #190 Updated dsVideoPort python class &amp; add testcase <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/34b7820f535b56e54ab3b87737242617c9a9ccba"><code>34b7820</code></a></li>
+<li>gh #186: dsAudio L3 developement code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/71c48014c08d9fa5af36c2a29b5d81ae3041fac7"><code>71c4801</code></a></li>
+<li>gh #186: dsAudio L3 developement code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/7c81638a03b5488c94e4c17bdbc18212f97dacc3"><code>7c81638</code></a></li>
+</ul>
+<h4 id="314"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.1.3...3.1.4">3.1.4</a></h4>
+<blockquote>
+<p>20 September 2024</p>
+</blockquote>
+<ul>
+<li>gh #165 UT_ASSERT update for sting Comparison <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/166"><code>#166</code></a></li>
+<li>Bumped CHANGELOG.md - 3.1.4 <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/da7f90f2a1afdd4be61a3c90b20d61debb73f119"><code>da7f90f</code></a></li>
+<li>gh #165 UT_ASSERT Macro Update <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/1beb71202a24304d4b4515fd8b2dab0e7f5282c8"><code>1beb712</code></a></li>
+<li>Merge tag '3.1.3' into develop <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/29e88ac43b839804a06d6cf69e3c3a164de6e372"><code>29e88ac</code></a></li>
+</ul>
+<h4 id="313"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.1.2...3.1.3">3.1.3</a></h4>
+<blockquote>
+<p>20 September 2024</p>
+</blockquote>
+<ul>
+<li>gh #141 VideoDevice Profile update issue fixes <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/142"><code>#142</code></a></li>
+<li>gh #162: Add helpers folder to python <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/163"><code>#163</code></a></li>
+<li>gh #160: Initial python setup layout <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/161"><code>#161</code></a></li>
+<li>gh #143 Added supported Resolutions for Source device profile file <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/144"><code>#144</code></a></li>
+<li>gh #143 Added supported Resolutions for Source device profile &amp; L2 code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/9c8f0d85d65883ca9145c186b4c68cd324d187d0"><code>9c8f0d8</code></a></li>
+<li>gh #141 Update l2 for FRF Mode <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/7d3cdeef1d03b17f3e447e4e515a2cee277b6933"><code>7d3cdee</code></a></li>
+<li>gh #141 L1 Profile Update <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/6832971a191b07f030f21fe80b6bd377cbb7bd5a"><code>6832971</code></a></li>
+</ul>
+<h4 id="312"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.1.1...3.1.2">3.1.2</a></h4>
+<blockquote>
+<p>15 August 2024</p>
+</blockquote>
+<ul>
+<li>gh #135 Corrected the kvp function to read number of indicators <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/136"><code>#136</code></a></li>
+<li>Bumped CHANGELOG.md - 3.1.2 <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/8d9864dc689a831a9e9910ac7d920a6c089e80bd"><code>8d9864d</code></a></li>
+<li>Merge tag '3.1.1' into develop <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/6a173147ff7c444c47598c77086361bd06137f09"><code>6a17314</code></a></li>
+</ul>
+<h4 id="311"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.1.0...3.1.1">3.1.1</a></h4>
+<blockquote>
+<p>14 August 2024</p>
+</blockquote>
+<ul>
+<li>gh #133 FIx Logic for setFPColor and getFP Color <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/134"><code>#134</code></a></li>
+<li>gh #133 Fixing logic for setFPColor and getFPColor <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/eafd91a7575b14407aad688e23bc8ba4ab7e3579"><code>eafd91a</code></a></li>
+<li>gh #133 setFPColor, getFPColor logic update <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/2dc5c1057a591c1e91107504302e6cee68c05ce0"><code>2dc5c10</code></a></li>
+<li>updated the l1,l2 and yaml files with the review comments <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/4f47564678e2136015428766cf630f469b1a26cd"><code>4f47564</code></a></li>
+</ul>
+<h4 id="310"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.0.1...3.1.0">3.1.0</a></h4>
+<blockquote>
+<p>13 August 2024</p>
+</blockquote>
+<ul>
+<li>gh #131 added run script &amp; Updated README.md <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/132"><code>#132</code></a></li>
+<li>gh #94 Wrong size for Profile file string parsing <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/95"><code>#95</code></a></li>
+<li>gh #112 code cleanup of dsFPD <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/130"><code>#130</code></a></li>
+<li>gh #110 Code Cleanup of dsHdmiIn <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/124"><code>#124</code></a></li>
+<li>gh #109 code clean up for audio <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/128"><code>#128</code></a></li>
+<li>gh #108 L1 videoport code cleanup <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/118"><code>#118</code></a></li>
+<li>gh #111 Code Cleanup of dsVideoDevice <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/125"><code>#125</code></a></li>
+<li>gh #105 host code cleanup <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/119"><code>#119</code></a></li>
+<li>gh #106 Code Cleanup of dsDisplay <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/123"><code>#123</code></a></li>
+<li>gh #126 Updating source yaml file for display <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/127"><code>#127</code></a></li>
+<li>gh #107 Code Cleanup of CompositeIn <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/122"><code>#122</code></a></li>
+<li>gh #67 Test profile changes for dsFPD <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/113"><code>#113</code></a></li>
+<li>gh #64 Test profile changes for HdmiIn <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/73"><code>#73</code></a></li>
+<li>gh #63 Audio test profile modifications  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/114"><code>#114</code></a></li>
+<li>gh #120 Feature/gh120 kvp issue <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/121"><code>#121</code></a></li>
+<li>gh #65 Test profile changes for VideoDevice <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/104"><code>#104</code></a></li>
+<li>gh #60 Test profile changes for dsDisplay <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/74"><code>#74</code></a></li>
+<li>gh #61 Test profile changes for dsCompositeIn <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/80"><code>#80</code></a></li>
+<li>gh #89 dsFPD interface updates <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/92"><code>#92</code></a></li>
+<li>gh #87 dshdmiIn interface updates <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/91"><code>#91</code></a></li>
+<li>gh #82 Modified Audio l1 test cases as per latest interface  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/93"><code>#93</code></a></li>
+<li>gh #51 dsFPD : Enhanced error macro implementation  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/59"><code>#59</code></a></li>
+<li>gh #83 L1 videoport updated interface changes <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/90"><code>#90</code></a></li>
+<li>gh #84 L1 dsVideoDevice updated interface changes <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/96"><code>#96</code></a></li>
+<li>gh #50 dsCompositeIn: Enhanced error code macro implementation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/97"><code>#97</code></a></li>
+<li>gh #109 audio module review comments addressal <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/db343ed68118644f9bc980fecd2a9afac2d0adf5"><code>db343ed</code></a></li>
+<li>gh #110 Code Cleanup of  dsHdmin <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/249750fd7557a579ec0d31168b3a9cf36e829ff0"><code>249750f</code></a></li>
+<li>gh #110 Code Cleanup of  dsHdmin <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/e774ee096850e7918c798758b2123801f04a9c7c"><code>e774ee0</code></a></li>
+</ul>
+<h4 id="301"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/3.0.0...3.0.1">3.0.1</a></h4>
+<blockquote>
+<p>28 June 2024</p>
+</blockquote>
+<ul>
+<li>gh #78 update flag for source and sink <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/79"><code>#79</code></a></li>
+<li>Bumped CHANGELOG.md - 3.0.1 <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/234c77c5123bceabbd7f333e11b05f55b8beef40"><code>234c77c</code></a></li>
+<li>Merge tag '3.0.0' into develop <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/1f2255673e2020d6aa1e433c576144e55bd89e3b"><code>1f22556</code></a></li>
+</ul>
+<h3 id="300"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/2.1.0...3.0.0">3.0.0</a></h3>
+<blockquote>
+<p>28 June 2024</p>
+</blockquote>
+<ul>
+<li>gh #76 Updated L2 code, README.md,doxygen <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/77"><code>#77</code></a></li>
+<li>gh #23 ds fp test spec &amp; L2 code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/33"><code>#33</code></a></li>
+<li>gh #14 dsVideoPort High Level Test Spec &amp; L2 Code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/15"><code>#15</code></a></li>
+<li>gh #18 dsVideoDevice High Level Test Specification Documentation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/20"><code>#20</code></a></li>
+<li>gh #24 High Level spec &amp; L2 for Device Settings HDMI input &amp; L2 code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/32"><code>#32</code></a></li>
+<li>gh #11 DS Display HL changes and YAML changes <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/48"><code>#48</code></a></li>
+<li>gh #7 updating the dsHost test specification and the code <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/9"><code>#9</code></a></li>
+<li>gh #10 L2 code &amp; test spec  <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/47"><code>#47</code></a></li>
+<li>gh #29  dsAudio - L2 Low level Specification and test implementation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/71"><code>#71</code></a></li>
+<li>gh #29: dsAudio - L2 Low level Specification and test implementation <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/20382e25c6c7781e915549c4b33419fc5c3e6f10"><code>20382e2</code></a></li>
+<li>gh #14 Update the L2 code and file names &amp; updated ut version <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/d86fc04552dcfff6a71a0f63f8becece4f05bd13"><code>d86fc04</code></a></li>
+<li>gh #18 Updated Specification document and test cases <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/e681b8061ce22fa7e62e2f1cc3029316d2468a81"><code>e681b80</code></a></li>
+</ul>
+<h4 id="210"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/2.0.0...2.1.0">2.1.0</a></h4>
+<blockquote>
+<p>5 June 2024</p>
+</blockquote>
+<ul>
+<li>gh #43 deviceSettings: Enhanced Error code for device settings <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/45"><code>#45</code></a></li>
+<li>Updated with enhanced error code disabled checked in test_l1_dsAudio.c <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/46"><code>#46</code></a></li>
+<li>updating the dsDisplay test spec <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/13"><code>#13</code></a></li>
+<li>Adding testing scope changes for composite test spec <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/16"><code>#16</code></a></li>
+<li>revert previous commit <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/b33cd0829396c87ad89d39d551e265830425ed5d"><code>b33cd08</code></a></li>
+<li>gh #43 remove DS_ASSERT_AUTO_TERM_NUMERICAL <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/098807153c12c0183acf9d9aa1a40c2c5d418c4f"><code>0988071</code></a></li>
+<li>Enhanced Error code moved to kvp profiler <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/52242e000375f66206950208e5a1823ef093f273"><code>52242e0</code></a></li>
+</ul>
+<h3 id="200"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/1.0.3...2.0.0">2.0.0</a></h3>
+<blockquote>
+<p>22 March 2024</p>
+</blockquote>
+<ul>
+<li>gh #21 L1 TCs for dsSetAudioMixerLevels API <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/pull/22"><code>#22</code></a></li>
+<li>gh #21 Replaced DS_ASSERT with UT_ASSERT and review comment addressal <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/63cee4ed3e0d64d3f2db43d4bfd5b09430ef80ff"><code>63cee4e</code></a></li>
+<li>gh #21 NULL(Global handle) check moved to positive test <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/c390284d1211b0980d16197f7920ae5a9b84a4bb"><code>c390284</code></a></li>
+<li>Update test_l1_dsAudio.c <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/7f1db527e01ba801d0be28e7f4de21c969946cf6"><code>7f1db52</code></a></li>
+</ul>
+<h4 id="103"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/1.0.2...1.0.3">1.0.3</a></h4>
+<blockquote>
+<p>12 December 2023</p>
+</blockquote>
+<ul>
+<li>Updated HAL and HALTEST supported version in README.md <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/8738deba9c0939782adbd700ccdef879d3010bb8"><code>8738deb</code></a></li>
+<li>Bumped CHANGELOG.md - 1.0.3 <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/ef904b6995a10d24b551e541d68db0cab855f2a5"><code>ef904b6</code></a></li>
+<li>Merge tag '1.0.2' into develop <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/8d6a5f5aaa642423a85a9a1d3fb6ba898a44943e"><code>8d6a5f5</code></a></li>
+</ul>
+<h4 id="102"><a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/1.0.1...1.0.2">1.0.2</a></h4>
+<blockquote>
+<p>11 December 2023</p>
+</blockquote>
+<ul>
+<li>Fixed reference to License in src files <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/afa23b17437b6d78cd7d1d21be92a956c1ec2ea2"><code>afa23b1</code></a></li>
+<li>Bumped CHANGELOG.md - 1.0.2 <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/ad7231561c0107a5cb0a082c8d0168b0c4771678"><code>ad72315</code></a></li>
+<li>Merge tag '1.0.1' into develop <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/66b92d502146e13328d790fbc86b719772ebe6f9"><code>66b92d5</code></a></li>
+</ul>
+<h4 id="101">1.0.1</h4>
+<blockquote>
+<p>11 December 2023</p>
+</blockquote>
+<ul>
+<li>baseline version <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/d0dca2e005396a6ea8a9a7c277d6c2388dd5ec56"><code>d0dca2e</code></a></li>
+<li>Added CHANGELOG.md - 1.0.1 <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/c5a4cfb9514877e33a38de5d754b71dd856af0a9"><code>c5a4cfb</code></a></li>
+<li>added profiles/include <a href="https://github.com/rdkcentral/rdk-halif-test-device_settings/commit/69760449a2fcdcc3057f39d155bbeaf43e8f9b18"><code>6976044</code></a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.footer", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "toc.follow", "content.code.copy", "content.code.annotate", "content.tooltips", "content.print.stylesheet", "search.highlight", "search.suggest", "search.share", "header.autohide", "announce.dismiss"], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.f13b1293.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+      
+        <script src="../../../javascript/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

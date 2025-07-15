@@ -1,0 +1,6 @@
+rmfaudiocapture:
+  features:
+    extendedEnumsSupported: false
+    auxsupport: false
+  supportedformats: [racFormat_e16BitStereo]
+  supportedsamplerates: [48000]

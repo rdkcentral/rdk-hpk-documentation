@@ -1,0 +1,3108 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/rdkcentral/rdk-hpk-documentation/staging/external_content/hdmi_cec_test/docs/pages/hdmi-cec-L3_TestProcedure/">
+      
+      
+        <link rel="prev" href="../hdmi-cec-L3-Low-Level_TestSpec/">
+      
+      
+        <link rel="next" href="../hdmi-cec-sink_High-Level_TestSpec/">
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.2">
+    
+    
+      
+        <title>L3_TestProcedure - RDK HPK Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.d7758b05.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hdmi-cec-hal-l3-python-test-procedure" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="RDK HPK Documentation" class="md-header__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RDK HPK Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              L3_TestProcedure
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="RDK HPK Documentation" class="md-nav__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RDK HPK Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    RMF Audio Capture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            RMF Audio Capture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture/index.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture/docs/pages/rmf-audio-capture_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L2-Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Power Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Power Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../power_manager/docs/pages/power-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../power_manager_test/docs/pages/power-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../power_manager_test/docs/pages/power-manager_L2-Low-Level_TestSpecification.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Deep Sleep Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Deep Sleep Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager/docs/pages/deepsleep-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Device Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Device Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-audio_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-composite-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-composite-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-front-panel-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-hdmi-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-host_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-video-device_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-video-port_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-Low-Level-TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display-high-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-Hdmi-In_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_L3_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    HDMI CEC
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            HDMI CEC
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../hdmi_cec/docs/pages/hdmi-cec_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acronyms-terms-and-abbreviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acronyms, Terms and Abbreviations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-test-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting Up Test Environment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting Up Test Environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulse-eight-cec-adaptor-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pulse-Eight CEC Adaptor tool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pulse-Eight CEC Adaptor tool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation Instructions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-cec-client-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example cec-client Commands
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-configuration-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update Configuration Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update Configuration Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rack-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rack Configuration File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device Configuration File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-test-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run Test Cases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Cases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hdmicec_l3_runallpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      hdmiCEC_L3_Runall.py
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hdmicec_test01_transmitceccommandspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      hdmiCEC_test01_TransmitCECCommands.py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="hdmiCEC_test01_TransmitCECCommands.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-support-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Platform Support - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-input-required-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Input Required - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acceptance-criteria-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acceptance Criteria - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expected-results-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Results - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-steps-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Steps - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-logs-and-artifacts-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Logs and Artifacts - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-conclusion-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Conclusion - test01
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hdmicec_test02_receivececcommandspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      hdmiCEC_test02_ReceiveCECCommands.py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="hdmiCEC_test02_ReceiveCECCommands.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-support-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Platform Support - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-input-required-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Input Required - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acceptance-criteria-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acceptance Criteria - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expected-results-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Results - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-steps-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Steps - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-logs-and-artifacts-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Logs and Artifacts - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-conclusion-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Conclusion - test02
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-sink_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-sink_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-source_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-source_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi_cec_VirtualComponent_ControlPlaneCommands/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    VirtualComponent_ControlPlaneCommands
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi_cec_virtual_component_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual_component_design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    TV Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            TV Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tvsettings/docs/pages/tv-settings_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acronyms-terms-and-abbreviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acronyms, Terms and Abbreviations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-test-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting Up Test Environment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting Up Test Environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulse-eight-cec-adaptor-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pulse-Eight CEC Adaptor tool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pulse-Eight CEC Adaptor tool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation Instructions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-cec-client-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example cec-client Commands
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-configuration-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update Configuration Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update Configuration Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rack-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rack Configuration File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device Configuration File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-test-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run Test Cases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Cases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hdmicec_l3_runallpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      hdmiCEC_L3_Runall.py
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hdmicec_test01_transmitceccommandspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      hdmiCEC_test01_TransmitCECCommands.py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="hdmiCEC_test01_TransmitCECCommands.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-support-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Platform Support - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-input-required-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Input Required - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acceptance-criteria-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acceptance Criteria - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expected-results-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Results - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-steps-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Steps - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-logs-and-artifacts-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Logs and Artifacts - test01
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-conclusion-test01" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Conclusion - test01
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hdmicec_test02_receivececcommandspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      hdmiCEC_test02_ReceiveCECCommands.py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="hdmiCEC_test02_ReceiveCECCommands.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-support-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Platform Support - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-input-required-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Input Required - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acceptance-criteria-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acceptance Criteria - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expected-results-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Results - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-steps-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Steps - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-logs-and-artifacts-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Logs and Artifacts - test02
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-conclusion-test02" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Conclusion - test02
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="hdmi-cec-hal-l3-python-test-procedure">HDMI CEC HAL L3 Python Test Procedure</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#acronyms-terms-and-abbreviations">Acronyms, Terms and Abbreviations</a></li>
+<li><a href="#setting-up-test-environment">Setting Up Test Environment</a></li>
+<li><a href="#test-cases">Test Cases</a></li>
+<li><a href="#hdmicec_l3_runallpy">hdmiCEC_L3_Runall.py</a></li>
+<li><a href="#hdmicec_test01_transmitceccommandspy">hdmiCEC_test01_TransmitCECCommands.py</a></li>
+<li><a href="#hdmicec_test02_receivececcommandspy">hdmiCEC_test02_ReceiveCECCommands.py</a></li>
+</ul>
+<h2 id="acronyms-terms-and-abbreviations">Acronyms, Terms and Abbreviations</h2>
+<ul>
+<li><code>HAL</code>    - Hardware Abstraction Layer</li>
+<li><code>L3</code>     - Level 3 Testing</li>
+<li><code>DUT</code>    - Device Under Test</li>
+<li><code>RAFT</code>   - Rapid Automation Framework for Testing</li>
+<li><code>YAML</code>   - YAML Ain't Markup Language</li>
+<li><code>HDMI</code>   -  High Definition Multimedia Interface</li>
+<li><code>API</code>    -  Application Program Interface</li>
+<li><code>SoC</code>    -  System on Chip</li>
+<li><code>DUT</code>    -  Device Under Test</li>
+<li><code>LA</code>     -  Logical Address</li>
+<li><code>PA</code>     -  Physical Address</li>
+</ul>
+<h2 id="setting-up-test-environment">Setting Up Test Environment</h2>
+<p>The picture below depicts the HDMI CEC L3 Test Functionality Setup. This simple setup has an HDMI CEC Pulse-eight USB adaptor, which acts as a source device and can send the required commands (using libcec tool commands) and respond to the received CEC Commands.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Ensure all devices in the test setup support the <code>HDMI</code> <code>CEC</code> feature for the test duration.</li>
+<li>HDMI drivers must be properly installed and active on the platform before initiating the test.</li>
+</ul>
+<pre class="mermaid"><code>graph TB
+C[PC] &lt;--&gt; |USB| A
+A[Pulse-Eight CEC Adaptor ] &lt;--&gt; |HDMI| B[DUT]
+A[Pulse-Eight CEC Adaptor ] &lt;--&gt; |HDMI| D[Other Test Device]</code></pre>
+<h3 id="pulse-eight-cec-adaptor-tool">Pulse-Eight CEC Adaptor tool</h3>
+<p>The Pulse-Eight CEC adaptor is used to frame and send commands to the DUT. It utilizes the libCEC library for HDMI CEC activities, and the cec-client tool plays a key role in test automation within RAFT.</p>
+<ul>
+<li>Adaptor Details: <a href="https://www.pulse-eight.com/p/104/usb-hdmi-cec-adapter">Pulse Eight</a></li>
+</ul>
+<h4 id="installation-instructions">Installation Instructions</h4>
+<ul>
+<li>Linux</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>sudo<span class="w"> </span>apt<span class="w"> </span>upgrade
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>cec-utils
+</span></code></pre></div>
+<ul>
+<li>Windows</li>
+</ul>
+<p>Download the <a href="https://www.pulse-eight.com/Download/Get/51">libcec Tool</a> and follow installation steps.</p>
+<h4 id="example-cec-client-commands">Example <code>cec-client</code> Commands</h4>
+<ul>
+<li>List Device Details:</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cec-client<span class="w"> </span>-l
+</span></code></pre></div>
+<ul>
+<li>Scan for Connected Devices:</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;scan&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cec-client<span class="w"> </span>-s<span class="w"> </span>-d<span class="w"> </span><span class="m">1</span>
+</span></code></pre></div>
+<ul>
+<li>Send CEC Commands:</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;tx 10:8F&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cec-client<span class="w"> </span>-s<span class="w"> </span>-d<span class="w"> </span><span class="m">1</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Command<span class="w"> </span>Format:
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>tx<span class="w"> </span>&lt;<span class="nb">source</span><span class="w"> </span>Logical<span class="w"> </span>address&gt;&lt;Destination<span class="w"> </span>logical<span class="w"> </span>Address&gt;:&lt;Opcode&gt;:&lt;Payload<span class="w"> </span>bytes&gt;
+</span></code></pre></div>
+<h3 id="python-environment">Python Environment</h3>
+<p>To execute <code>HAL</code> <code>L3</code> Python test cases, need a Python environment. Follow these steps mentioned in <a href="https://github.com/rdkcentral/rdk-hpk-documentation/blob/main/README.md">HPK Public Documentation</a></p>
+<h3 id="update-configuration-files">Update Configuration Files</h3>
+<h4 id="rack-configuration-file">Rack Configuration File</h4>
+<p>Example Rack configuration File: <a href="../../../host/tests/configs/example_rack_config.yml">example_rack_config.yml</a></p>
+<p>Refer to the following resources for more details:</p>
+<ul>
+<li><a href="https://github.com/rdkcentral/python_raft/blob/1.0.0/README.md">RAFT</a></li>
+<li><a href="https://github.com/rdkcentral/python_raft/blob/1.0.0/examples/configs/example_rack_config.yml">example_rack_config.yml</a></li>
+</ul>
+<p>Update the configuration to define the console sessions for the DUT, cec-client details, and outbound settings.</p>
+<h5 id="console-sessions">Console Sessions</h5>
+<table>
+<thead>
+<tr>
+<th>Console Session</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td>Downloads the bins required for test cases</td>
+</tr>
+<tr>
+<td>ssh_hal_test</td>
+<td>Executes the <code>HAL</code> binary for the test case</td>
+</tr>
+</tbody>
+</table>
+<h5 id="cec-controller">CEC Controller</h5>
+<p><code>RAFT</code> supports two types of cec controllers:</p>
+<h6 id="remote-controller">Remote controller</h6>
+<p>For adaptors connected to a remote server, use the configuration below:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="w">      </span><span class="nt">hdmiCECController</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">remote-cec-client</span><span class="w">    </span><span class="c1"># Use remote cec controller</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span><span class="nt">adaptor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/dev/ttyACM0</span><span class="w">      </span><span class="c1"># Adaptor port</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">XXX.XXX.XXX.XXX</span><span class="w">   </span><span class="c1"># IP address of the server</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span><span class="w">             </span><span class="c1"># Login username</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;</span><span class="nv"> </span><span class="s">&#39;</span><span class="w">              </span><span class="c1"># Login password</span>
+</span></code></pre></div>
+<h6 id="local-controller">Local controller</h6>
+<p>For adaptors connected directly to the server running the tests, use the configuration below:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="w">      </span><span class="nt">hdmiCECController</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cec-client</span><span class="w">           </span><span class="c1"># Use local cec controller</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="nt">adaptor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/dev/ttyACM0</span><span class="w">      </span><span class="c1"># adaptor port</span>
+</span></code></pre></div>
+<h5 id="example-rack-configuration">Example Rack Configuration</h5>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">rackConfig</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dut</span><span class="p">:</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;XXX.XXX.XXX.XXX&quot;</span><span class="w">  </span><span class="c1"># IP Address of the device</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;stb</span><span class="nv"> </span><span class="s">device</span><span class="nv"> </span><span class="s">under</span><span class="nv"> </span><span class="s">test&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">      </span><span class="nt">platform</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;stb&quot;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">      </span><span class="nt">consoles</span><span class="p">:</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">default</span><span class="p">:</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">            </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ssh&quot;</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">            </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10022</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">            </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;root&quot;</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">            </span><span class="nt">ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;XXX.XXX.XXX&quot;</span><span class="w"> </span><span class="c1"># IP address of the device</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">            </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;</span><span class="nv"> </span><span class="s">&#39;</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ssh_hal_test</span><span class="p">:</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">            </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ssh&quot;</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">            </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10022</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">            </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;root&quot;</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">            </span><span class="nt">ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;XXX.XXX.XXX&quot;</span><span class="w"> </span><span class="c1"># IP address of the device</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">            </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;</span><span class="nv"> </span><span class="s">&#39;</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">      </span><span class="nt">outbound</span><span class="p">:</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">        </span><span class="nt">download_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:8000/&quot;</span><span class="w">    </span><span class="c1"># download location for the CPE device</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">        </span><span class="nt">httpProxy</span><span class="p">:</span><span class="w">   </span><span class="c1"># Local Proxy if required</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">        </span><span class="nt">workspaceDirectory</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;./logs/workspace&#39;</span><span class="w">   </span><span class="c1"># Local working directory</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">      </span><span class="nt">hdmiCECController</span><span class="p">:</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">remote-cec-client</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">        </span><span class="nt">adaptor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/dev/ttyACM0</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">        </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">XXX.XXX.XXX.XXX</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;</span><span class="nv"> </span><span class="s">&#39;</span>
+</span></code></pre></div>
+<h4 id="device-configuration-file">Device Configuration File</h4>
+<p>Example Device configuration File: <a href="../../../host/tests/configs/deviceConfig.yml">deviceConfig.yml</a></p>
+<p>Refer to the following resources for more details:</p>
+<ul>
+<li><a href="https://github.com/rdkcentral/python_raft/blob/1.0.0/README.md">RAFT</a></li>
+<li><a href="https://github.com/rdkcentral/python_raft/blob/1.0.0/examples/configs/example_device_config.yml">example_device_config.yml</a></li>
+</ul>
+<p>Update the following fields:</p>
+<ul>
+<li><strong>Target Directory</strong>: Specify the <code>target_directory</code> path where HAL binaries will be copied.</li>
+<li><strong>Device Profile</strong>: Provide the path and profile file for the <code>test/profile</code>.</li>
+<li><strong>Platform</strong>: Ensure the platform matches the <code>dut</code> platform in the <a href="#rack-configuration-file">Rack Configuration</a></li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">deviceConfig</span><span class="p">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nt">cpe1</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">        </span><span class="nt">platform</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tv&quot;</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;uk&quot;</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="nt">soc_vendor</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;soc&quot;</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">        </span><span class="nt">target_directory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/tmp/&quot;</span><span class="w">  </span><span class="c1"># Target Directory on device</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="nt">prompt</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="nt">test</span><span class="p">:</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">            </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;../../../profiles/sink/sink_hdmiCEC.yml&quot;</span>
+</span></code></pre></div>
+<h4 id="test-configuration">Test Configuration</h4>
+<p>Example Test Setup configuration File: <a href="../../../host/tests/classes/hdmiCEC_testConfig.yml">hdmiCEC_testConfig.yml</a></p>
+<p>Specify the command to run the HAL binary within this file.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;hdmi</span><span class="nv"> </span><span class="s">CEC</span><span class="nv"> </span><span class="s">testing</span><span class="nv"> </span><span class="s">profile</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">menu</span><span class="nv"> </span><span class="s">system</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">UT&quot;</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">test</span><span class="p">:</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">        </span><span class="nt">artifacts</span><span class="p">:</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span><span class="c1">#List of artifacts folders, test class copies the content of folder to the target device workspace</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;../../../bin/&quot;</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">        </span><span class="c1"># exectute command, this will appended with the target device workspace path</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="nt">execute</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;run.sh&quot;</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">UT-C</span><span class="w"> </span><span class="c1"># C (UT-C Cunit) / C++ (UT-G (g++ ut-core gtest backend))</span>
+</span></code></pre></div>
+<h2 id="run-test-cases">Run Test Cases</h2>
+<p>Once the environment is set up, you can execute the test cases with the following command</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>&lt;TestCaseName.py&gt;<span class="w"> </span>--config<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/example_rack_config.yml<span class="w"> </span>--deviceConfig<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/deviceConfig.yml
+</span></code></pre></div>
+<h2 id="test-cases">Test Cases</h2>
+<h3 id="hdmicec_l3_runallpy">hdmiCEC_L3_Runall.py</h3>
+<p>This python file runs all the tests</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python<span class="w"> </span>hdmiCEC_L3_Runall.py<span class="w"> </span>--config<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/example_rack_config.yml<span class="w"> </span>--deviceConfig<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/deviceConfig.yml
+</span></code></pre></div>
+<h3 id="hdmicec_test01_transmitceccommandspy">hdmiCEC_test01_TransmitCECCommands.py</h3>
+<h4 id="platform-support-test01">Platform Support - test01</h4>
+<ul>
+<li>Source</li>
+<li>Sink</li>
+</ul>
+<h4 id="user-input-required-test01">User Input Required - test01</h4>
+<p>No - (This is a automated case)</p>
+<h4 id="acceptance-criteria-test01">Acceptance Criteria - test01</h4>
+<ul>
+<li>The test verifies that the device under test (DUT) can successfully transmit HDMI-CEC commands to connected devices as defined in the test profile.</li>
+<li>Transmission should be correctly initiated and logged by the HDMI-CEC controller.</li>
+</ul>
+<h4 id="expected-results-test01">Expected Results - test01</h4>
+<p>The test is considered successful if:</p>
+<ul>
+<li>All HDMI-CEC commands listed in the <code>YAML</code> profile are transmitted without errors.</li>
+<li>The test script validates that the transmission is initiated and logged correctly by the HDMI-CEC controller.</li>
+</ul>
+<h4 id="test-steps-test01">Test Steps - test01</h4>
+<p>Preparation:</p>
+<ul>
+<li>Ensure the <code>DUT</code> is connected to the HDMI-CEC controller devices via HDMI cables.</li>
+<li>Verify that configuration files for the test environment are correctly set up.</li>
+</ul>
+<p>Execution:</p>
+<p>Run the Python script with the following command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>hdmiCEC_test01_TransmitCECCommands.py<span class="w"> </span>--config<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/example_rack_config.yml<span class="w"> </span>--deviceConfig<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/deviceConfig.yml
+</span></code></pre></div>
+<p>Functionality:</p>
+<ul>
+<li>The script initializes the HDMI-CEC controller session.</li>
+<li>It transmits HDMI-CEC commands from the DUT to the connected devices.</li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li>The script checks if the HDMI-CEC controller logs confirm the transmission of each command.</li>
+<li>Transmission status is logged with details such as source, destination, opcode, and payload.</li>
+</ul>
+<h4 id="test-logs-and-artifacts-test01">Test Logs and Artifacts - test01</h4>
+<p>Summary Logs:</p>
+<ul>
+<li>A comprehensive log file is generated, detailing the execution status of each command.</li>
+<li>
+<p>Log file path: &lt;"PATH"&gt;/ut/logs/rack&lt;#&gt;/slot&lt;#&gt;/&lt;"DATE-TIME"&gt;/test_summary.log.</p>
+</li>
+<li>
+<p>Transmission Status:</p>
+</li>
+<li>Logs include information about the success or failure of each transmitted command.</li>
+</ul>
+<h4 id="test-conclusion-test01">Test Conclusion - test01</h4>
+<p>The test script will display a final PASS/FAIL result based on the following conditions:</p>
+<ul>
+<li>PASS: All CEC commands are successfully transmitted as listed in the YAML profile, and transmission logs confirm initiation by the HDMI-CEC controller.</li>
+<li>FAIL: Any transmission error or failure to initiate commands.</li>
+</ul>
+<p>Summary logs are saved for further review and debugging.</p>
+<h3 id="hdmicec_test02_receivececcommandspy">hdmiCEC_test02_ReceiveCECCommands.py</h3>
+<h4 id="platform-support-test02">Platform Support - test02</h4>
+<ul>
+<li>Source</li>
+<li>Sink</li>
+</ul>
+<h4 id="user-input-required-test02">User Input Required - test02</h4>
+<p>No -  (This is a automated case)</p>
+<h4 id="acceptance-criteria-test02">Acceptance Criteria - test02</h4>
+<ul>
+<li>The test verifies whether the device under test (DUT) can reliably receive HDMI-CEC commands.</li>
+<li>The received callback data must match the expected values, including:</li>
+<li>Source logical address</li>
+<li>Destination logical address</li>
+<li>Opcode</li>
+<li>Payload</li>
+</ul>
+<h4 id="expected-results-test02">Expected Results - test02</h4>
+<p>The test is considered successful if:</p>
+<ul>
+<li>All transmitted HDMI-CEC commands are successfully received by the DUT.</li>
+<li>The callback data accurately reflects the transmitted command parameters (source, destination, opcode, and payload).</li>
+</ul>
+<h4 id="test-steps-test02">Test Steps - test02</h4>
+<p>Preparation:</p>
+<ul>
+<li>Ensure the DUT is powered on and connected to the HDMI-CEC controller.</li>
+<li>Verify the configuration files for the test environment are properly set up.</li>
+</ul>
+<p>Execution:</p>
+<p>Run the Python script with the following command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>hdmiCEC_test02_ReceiveCECCommands.py<span class="w"> </span>--config<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/example_rack_config.yml<span class="w"> </span>--deviceConfig<span class="w"> </span>&lt;/PATH&gt;/ut/host/tests/configs/deviceConfig.yml
+</span></code></pre></div>
+<p>Functionality:</p>
+<ul>
+<li>The script initializes the HDMI-CEC controller.</li>
+<li>It sends HDMI-CEC commands to the DUT's logical address, including directed and broadcast messages.</li>
+<li>The DUT processes these commands, and the script reads the callback data.</li>
+</ul>
+<p>Verification:</p>
+<ul>
+<li>The script validates the callback data received by the DUT against the transmitted parameters (source, destination, opcode, payload).</li>
+</ul>
+<h4 id="test-logs-and-artifacts-test02">Test Logs and Artifacts - test02</h4>
+<p>Summary Logs:</p>
+<ul>
+<li>The script generates a detailed log file summarizing the test execution.</li>
+<li>Log file path: &lt;"PATH"&gt;/ut/logs/rack&lt;#&gt;/slot&lt;#&gt;/&lt;"DATE-TIME"&gt;/test_summary.log</li>
+<li>Logs include information on received commands, validation results, and any discrepancies.</li>
+</ul>
+<h4 id="test-conclusion-test02">Test Conclusion - test02</h4>
+<p>The test script will display a final PASS/FAIL result based on the following conditions:</p>
+<ul>
+<li>PASS: All received HDMI-CEC commands and callback data match the expected values.</li>
+<li>FAIL: Any mismatch in the callback data or failure to receive commands.</li>
+</ul>
+<p>Summary logs are saved for review and troubleshooting</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../hdmi-cec-L3-Low-Level_TestSpec/" class="md-footer__link md-footer__link--prev" aria-label="Previous: L3_Low-Level_TestSpec">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                L3_Low-Level_TestSpec
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../hdmi-cec-sink_High-Level_TestSpec/" class="md-footer__link md-footer__link--next" aria-label="Next: Sink_High-Level_TestSpec">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Sink_High-Level_TestSpec
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.footer", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "toc.follow", "content.code.copy", "content.code.annotate", "content.tooltips", "content.print.stylesheet", "search.highlight", "search.suggest", "search.share", "header.autohide", "announce.dismiss"], "search": "../../../../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.f13b1293.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+      
+        <script src="../../../../../javascript/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

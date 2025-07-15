@@ -1,0 +1,4308 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/rdkcentral/rdk-hpk-documentation/staging/external_content/hdmi_cec_test/docs/pages/hdmi_cec_VirtualComponent_ControlPlaneCommands/">
+      
+      
+        <link rel="prev" href="../hdmi-cec-source_L2_Low-Level_TestSpec/">
+      
+      
+        <link rel="next" href="../hdmi_cec_virtual_component_design/">
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.2">
+    
+    
+      
+        <title>VirtualComponent_ControlPlaneCommands - RDK HPK Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.d7758b05.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#overview-of-hdmi-cec-virtual-component-control-plane-commands" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="RDK HPK Documentation" class="md-header__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RDK HPK Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              VirtualComponent_ControlPlaneCommands
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="RDK HPK Documentation" class="md-nav__button md-logo" aria-label="RDK HPK Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RDK HPK Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rdkcentral/rdk-hpk-documentation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rdkcentral/rdk-hpk-documentation
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    RMF Audio Capture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            RMF Audio Capture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture/index.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture/docs/pages/rmf-audio-capture_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L2-Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../rmf_audio_capture_test/docs/pages/rmf-audio-capture_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Power Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Power Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../power_manager/docs/pages/power-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../power_manager_test/docs/pages/power-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../power_manager_test/docs/pages/power-manager_L2-Low-Level_TestSpecification.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Deep Sleep Manager
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Deep Sleep Manager
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager/docs/pages/deepsleep-manager_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../deepsleep_manager_test/docs/pages/deep-sleep-manager_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Device Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Device Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-audio_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-composite-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-composite-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-front-panel-display_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-hdmi-in_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-host_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-video-device_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings/docs/pages/ds-video-port_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_halSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsAudio/ds-audio_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-audio_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-Low-Level-TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsCompositeIn/ds-compositeIn-L3-TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-compositeIn_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display-high-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsDisplay/ds-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsFPD/ds-front-panel-display_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-front-panel-display_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-Hdmi-In_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in-L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHDMIIn/ds-hdmi-in_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-hdmi-in_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_High-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_High-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_L3_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsHost/ds-host_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-host_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L2-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L2-Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoDevice/ds-video-device_L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-device_L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L2_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L2_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Low-Level_TestSpecification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Low-Level_TestSpecification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_settings_test/docs/pages/dsVideoPort/ds-video-port_L3_Test-Procedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DS-video-port_L3_Test-Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    HDMI CEC
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            HDMI CEC
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../hdmi_cec/docs/pages/hdmi-cec_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-L3-Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-L3_TestProcedure/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    L3_TestProcedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-sink_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-sink_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sink_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-source_High-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_High-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi-cec-source_L2_Low-Level_TestSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Source_L2_Low-Level_TestSpec
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    VirtualComponent_ControlPlaneCommands
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    VirtualComponent_ControlPlaneCommands
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-hdmi-cec-virtual-component-control-plane-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview of HDMI-CEC Virtual Component Control Plane Commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview of HDMI-CEC Virtual Component Control Plane Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-cec-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML CEC Command
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-event" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Event
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Event">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-event" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Event
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Config
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Config">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-config-change-trigger" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example config change trigger
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. State
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. State">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-printstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for PrintStatus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-state-trigger-to-add-a-new-device-to-a-parent-port" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example state trigger to add a new device to a parent port.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-state-trigger-to-print-status-of-devices-connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example state trigger to print status of devices connected
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anatomy-of-the-yaml-cec-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anatomy of the YAML CEC Command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anatomy of the YAML CEC Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components-of-the-yaml-cec-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Components of the YAML CEC Command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Components of the YAML CEC Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#root-element-hdmicec" class="md-nav__link">
+    <span class="md-ellipsis">
+      Root Element (hdmicec):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initiator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initiator:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destination" class="md-nav__link">
+    <span class="md-ellipsis">
+      Destination:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-parameters-section-in-different-cec-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using the Parameters Section in Different CEC Commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the Parameters Section in Different CEC Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-setosdname" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 1: SetOsdName
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-activesource" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2: ActiveSource
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-usercontrolpressed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 3: UserControlPressed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hdmi-cec-command-categories-based-on-end-user-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      HDMI-CEC Command Categories Based on End User Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HDMI-CEC Command Categories Based on End User Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-one-touch-play" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. One Touch Play
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. One Touch Play">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-one-touch-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. One Touch Record
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. One Touch Record">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-recordon" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for RecordOn
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-recordstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for RecordStatus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-routing-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Routing Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Routing Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-deck-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Deck Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Deck Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-deckcontrol" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for DeckControl
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#possible-values-for-status_request" class="md-nav__link">
+    <span class="md-ellipsis">
+      Possible Values for status_request
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-play" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for Play
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-deckstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for DeckStatus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-osd-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. OSD Display
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. OSD Display">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-device-menu-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Device Menu Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Device Menu Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-remote-control-passthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Remote Control Passthrough
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Remote Control Passthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-power-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Power Status
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Power Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-system-audio-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. System Audio Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. System Audio Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-system-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. System Information
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. System Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hdmi_cec_virtual_component_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual_component_design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    TV Settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            TV Settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../tvsettings/docs/pages/tv-settings_halSpec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hal_Specification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-hdmi-cec-virtual-component-control-plane-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview of HDMI-CEC Virtual Component Control Plane Commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview of HDMI-CEC Virtual Component Control Plane Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-cec-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML CEC Command
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-event" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Event
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Event">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-event" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Event
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Config
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Config">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-config-change-trigger" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example config change trigger
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. State
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. State">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-printstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for PrintStatus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-state-trigger-to-add-a-new-device-to-a-parent-port" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example state trigger to add a new device to a parent port.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-state-trigger-to-print-status-of-devices-connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example state trigger to print status of devices connected
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anatomy-of-the-yaml-cec-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anatomy of the YAML CEC Command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anatomy of the YAML CEC Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components-of-the-yaml-cec-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Components of the YAML CEC Command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Components of the YAML CEC Command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#root-element-hdmicec" class="md-nav__link">
+    <span class="md-ellipsis">
+      Root Element (hdmicec):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initiator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initiator:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destination" class="md-nav__link">
+    <span class="md-ellipsis">
+      Destination:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-parameters-section-in-different-cec-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using the Parameters Section in Different CEC Commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the Parameters Section in Different CEC Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-setosdname" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 1: SetOsdName
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-activesource" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2: ActiveSource
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-usercontrolpressed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 3: UserControlPressed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hdmi-cec-command-categories-based-on-end-user-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      HDMI-CEC Command Categories Based on End User Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HDMI-CEC Command Categories Based on End User Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-one-touch-play" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. One Touch Play
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. One Touch Play">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-one-touch-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. One Touch Record
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. One Touch Record">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-recordon" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for RecordOn
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-recordstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for RecordStatus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-routing-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Routing Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Routing Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-deck-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Deck Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Deck Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-deckcontrol" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for DeckControl
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#possible-values-for-status_request" class="md-nav__link">
+    <span class="md-ellipsis">
+      Possible Values for status_request
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-play" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for Play
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-deckstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters for DeckStatus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-osd-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. OSD Display
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. OSD Display">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-device-menu-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Device Menu Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Device Menu Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-remote-control-passthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Remote Control Passthrough
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Remote Control Passthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-power-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Power Status
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Power Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-system-audio-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. System Audio Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. System Audio Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-system-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. System Information
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. System Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-yaml-payloads_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example YAML Payloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>VirtualComponent_ControlPlaneCommands</h1>
+
+<h2 id="overview-of-hdmi-cec-virtual-component-control-plane-commands">Overview of HDMI-CEC Virtual Component Control Plane Commands</h2>
+<p>The HDMI-CEC virtual component enables comprehensive testing of HDMI-CEC functionalities through the control plane. Testers can interact with the virtual component using four primary types of commands, each serving a distinct purpose:</p>
+<p><strong>Command</strong>: Directly trigger specific HDMI-CEC commands between devices, simulating real-world user interactions.</p>
+<p><strong>Event</strong>: Simulate HDMI-CEC events like hotplug (device connection/disconnection) to test how devices react.</p>
+<p><strong>Config</strong>: Modify the virtual CEC network configuration, changing device types, connections, and capabilities.</p>
+<p><strong>State</strong>: Dynamically add or remove devices during testing and print the current status for debugging.</p>
+<p>Each command type is structured as a YAML payload, which is outlined in detail in the following sections. These payloads allow testers to precisely control the virtual HDMI-CEC environment, replicating various scenarios and edge cases.</p>
+<h3 id="1-command">1. <strong>Command</strong></h3>
+<p>HDMI Consumer Electronics Control (CEC) commands are designed to allow control of multiple devices through a single remote control and enable devices to communicate with each other. These commands are categorized based on their functionalities and the end-user features they support.</p>
+<h4 id="example-yaml-cec-command">Example YAML CEC Command</h4>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nn">---</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SetOsdName</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">initiator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Sony HomeTheatre</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">osd_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span></code></pre></div>
+<h3 id="2-event">2. <strong>Event</strong></h3>
+<p>This category of messages allow the test user to trigger changes in the virtual component state machine.</p>
+<h4 id="example-event">Example Event</h4>
+<p>Command to trigger a hotplug event from device connected in Port 2:
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hotplug</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">connected</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span></code></pre></div></p>
+<h3 id="3-config">3. <strong>Config</strong></h3>
+<p>Test user can also trigger a re-configuration of the initial profile with which the emulator state machine was set up, like the device type (Sink or Source) and the list of devices in the network etc.</p>
+<h4 id="example-config-change-trigger">Example config change trigger</h4>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nn">---</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">config</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">emulated_device</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">number_ports</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">out</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="nt">cec_supported</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="nt">arc_supported</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">number_devices</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nt">device_map</span><span class="p">:</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Sony TV</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TV</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">        </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">        </span><span class="nt">active_source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">        </span><span class="nt">vendor_info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SONY</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="nt">pwr_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">on</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">        </span><span class="nt">number_chlidren</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">        </span><span class="nt">children</span><span class="p">:</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">         </span><span class="p p-Indicator">-</span><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">            </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PlaybackDevice</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">            </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w"> </span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">            </span><span class="nt">active_source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">            </span><span class="nt">vendor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TEST_VENDOR</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">            </span><span class="nt">pwr_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">on</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">            </span><span class="nt">port_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">            </span><span class="nt">num_children</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">         </span><span class="p p-Indicator">-</span><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Chromecast</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">            </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PlaybackDevice</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">            </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">            </span><span class="nt">active_source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">            </span><span class="nt">vendor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GOOGLE</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">            </span><span class="nt">pwr_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">on</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">            </span><span class="nt">port_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">            </span><span class="nt">num_children</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span></code></pre></div>
+<h3 id="4-state">4. <strong>State</strong></h3>
+<p>Test user can trigger state changes by dynamically adding or removing device(s). Debug printing of the current status of virtual component in logs can also be triggered.</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>YAML Payload</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AddDevice</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  state: AddDevice&#13;  parameters:&#13;    parent: TV&#13;   name: TestDevice&#13;    type: PlaybackDevice&#13;    version: 4&#13;    active_source: false&#13;    vendor: TEST_VENDOR&#13;    pwr_status: on&#13;    port_id: 2&#13;    number_children: 0</pre></td>
+<td>Adds the new device as a child to given parent</td>
+</tr>
+<tr>
+<td><code>RemoveDevice</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  state: RemoveDevice&#13;  parameters:&#13;    name: TestDevice&#13;</pre></td>
+<td>Removes a device and its children from the Virtual Component state.</td>
+</tr>
+<tr>
+<td><code>PrintStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  state: PrintStatus&#13;  parameters:&#13;    status: Devices</pre></td>
+<td>Prints the current network of devices</td>
+</tr>
+</tbody>
+</table>
+<h4 id="parameters-for-printstatus">Parameters for <code>PrintStatus</code></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status</code></td>
+<td>Specific status</td>
+<td><code>Devices</code>, <code>Ports</code>, <code>General</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-state-trigger-to-add-a-new-device-to-a-parent-port">Example state trigger to add a new device to a parent port.</h4>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AddDevice</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">prameters</span><span class="p">:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">       </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TV</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">       </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TestDevice</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">       </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PlaybackDevice</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">       </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">       </span><span class="nt">active_source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">       </span><span class="nt">vendor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TEST_VENDOR</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">       </span><span class="nt">pwr_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">on</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">       </span><span class="nt">port_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">       </span><span class="nt">number_children</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span></code></pre></div>
+<h4 id="example-state-trigger-to-print-status-of-devices-connected">Example state trigger to print status of devices connected</h4>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PrintStatus</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">       </span><span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Devices</span>
+</span></code></pre></div>
+<h2 id="anatomy-of-the-yaml-cec-command">Anatomy of the YAML CEC Command</h2>
+<p>The YAML representation of CEC commands provides a structured and human-readable format for defining and triggering HDMI-CEC commands.
+These YAML commands closely follow the CEC specifications but are more descriptive in nature.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nn">---</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="c1"># The CEC command to be executed (e.g., SetOsdName, ActiveSource, UserControlPressed, etc.)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">initiator</span><span class="p">:</span><span class="w"> </span><span class="c1"># The device sending the command (e.g., Sony HomeTheatre, IPSTB, TV, etc.)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="c1"># The device receiving the command (e.g., TV, IPSTB, Broadcast, etc.)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span><span class="w"> </span><span class="c1"># Optional: Additional parameters required for the command</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="c1"># Add specific parameters below as needed for the command</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nt">osd_name</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example: OSD name to be set (for SetOsdName command)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="nt">device_name</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example: Physical address of the device (for ActiveSource or ReportPhysicalAddress commands)</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="nt">ui_command</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example: User interface command (for UserControlPressed command)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="nt">device_type</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example: Device type (for ReportPhysicalAddress command)</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="nt">deck_info</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example: Deck status information (for DeckStatus command)</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="nt">tuner_info</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example: Tuner status information</span>
+</span></code></pre></div>
+<h3 id="components-of-the-yaml-cec-command">Components of the YAML CEC Command</h3>
+<h4 id="root-element-hdmicec">Root Element (hdmicec):</h4>
+<p>The root element of the YAML file, indicating that this is a CEC command.</p>
+<h4 id="command">Command:</h4>
+<p>The command key specifies the CEC command to be executed.
+Example: SetOsdName is the command to set the On-Screen Display name of a device.</p>
+<h4 id="initiator">Initiator:</h4>
+<p>The initiator key indicates the device that is sending the command. All devices are identified by its unique name that is configured in the profile YAML. The virtual component
+takes care of converting the device names into physical and logical addresses internaly.</p>
+<p>Example: Sony HomeTheatre is the device initiating the command.</p>
+<h4 id="destination">Destination:</h4>
+<p>The destination key specifies the target device that will receive the command.
+Example: IPSTB is the device receiving the command.</p>
+<h4 id="parameters">Parameters:</h4>
+<p>The parameters key holds a dictionary of additional data required for the command.
+Example: For the SetOsdName command, the parameters section includes an osd_name key with the value IPSTB.</p>
+<h3 id="using-the-parameters-section-in-different-cec-commands">Using the Parameters Section in Different CEC Commands</h3>
+<p>The <code>parameters</code> section in the YAML CEC command is used to provide additional data required for executing specific CEC commands. The parameters vary depending on the command being issued. Below are examples and descriptions of how the <code>parameters</code> section can be used in different CEC commands.</p>
+<h4 id="example-1-setosdname">Example 1: SetOsdName</h4>
+<p>The <code>SetOsdName</code> command sets the On-Screen Display (OSD) name for a device. This command requires an <code>osd_name</code> parameter to specify the name to be set.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nn">---</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SetOsdName</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">initiator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Sony HomeTheatre</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nt">osd_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span></code></pre></div>
+<h4 id="example-2-activesource">Example 2: ActiveSource</h4>
+<p>The ActiveSource command is used to indicate which device is currently the active source. This command requires a physical_address parameter.
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nn">---</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ActiveSource</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">initiator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TV</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="nt">physical_address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0x1000</span>
+</span></code></pre></div></p>
+<h4 id="example-3-usercontrolpressed">Example 3: UserControlPressed</h4>
+<p>The UserControlPressed command simulates a button press on the remote control. This command requires a ui_command parameter to specify the user interface command.
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nn">---</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">hdmicec</span><span class="p">:</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">UserControlPressed</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">initiator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TV</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPSTB</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nt">ui_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Select</span>
+</span></code></pre></div></p>
+<h2 id="hdmi-cec-command-categories-based-on-end-user-features">HDMI-CEC Command Categories Based on End User Features</h2>
+<p>HDMI CEC commands are categorized based on their functionalities and the end-user features they support.</p>
+<p>Below are some of the commonly used categories of CEC commands:</p>
+<h3 id="1-one-touch-play">1. One Touch Play</h3>
+<p>Commands in this category are used to turn on devices and switch them to the correct input automatically.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ActiveSource</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "ActiveSource"&#13;  initiator: "IPSTB"&#13;  destination: "Broadcast"&#13;  parameters:&#13;    device_name: "TV"</pre></td>
+<td>Announces that the initiator is the active source</td>
+<td>Automatically triggered when a device becomes active</td>
+</tr>
+<tr>
+<td><code>ImageViewOn</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "ImageViewOn"&#13;  initiator: "DVD Player"&#13;  destination: "TV"</pre></td>
+<td>Switches the TV to the initiator's input</td>
+<td>Using a DVD player remote control to turn on the TV</td>
+</tr>
+<tr>
+<td><code>TextViewOn</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "TextViewOn"&#13;  initiator: "DVD Player"&#13;  destination: "TV"</pre></td>
+<td>Switches the TV to the initiator's input with text display</td>
+<td>Using a DVD player remote control to turn on the TV</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads">Example YAML Payloads</h4>
+<p><strong>Active Source:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "ActiveSource"
+  initiator: "IPSTB"
+  destination: "Broadcast"
+  parameters:
+    device_name: "TV"
+</pre>
+
+<p><strong>Image View On:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "ImageViewOn"
+  initiator: "DVD Player"
+  destination: "TV"
+</pre>
+
+<p><strong>Text View On:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "TextViewOn"
+  initiator: "DVD Player"
+  destination: "TV"
+</pre>
+
+<h3 id="2-one-touch-record">2. One Touch Record</h3>
+<p>Allows whatever is shown on the TV screen to be recorded on a selected Recording Device.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RecordOn</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: RecordOn&#13;  initiator: TV&#13;  destination: RecordingDevice&#13;  parameters:&#13;    source: Tuner</pre></td>
+<td>Starts recording on the specified recording device</td>
+<td>Using a TV remote control to start recording on a DVR</td>
+</tr>
+<tr>
+<td><code>RecordOff</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: RecordOff&#13;  initiator: TV&#13;  destination: RecordingDevice</pre></td>
+<td>Stops recording on the specified recording device</td>
+<td>Using a TV remote control to stop recording on a DVR</td>
+</tr>
+<tr>
+<td><code>RecordStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: RecordStatus&#13;  initiator: RecordingDevice&#13;  destination: TV&#13;  parameters:&#13;    status: Recording</pre></td>
+<td>Reports the current recording status of the device</td>
+<td>Automatically triggered by the recording device to inform status</td>
+</tr>
+</tbody>
+</table>
+<h4 id="parameters-for-recordon">Parameters for <code>RecordOn</code></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source</code></td>
+<td>Source of the recording</td>
+<td><code>Tuner</code>, <code>ExternalInput</code>, <code>Auxiliary</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="parameters-for-recordstatus">Parameters for <code>RecordStatus</code></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status</code></td>
+<td>Indicates the current recording status</td>
+<td><code>Recording</code>, <code>NoRecording</code>, <code>InsufficientSpace</code>, <code>AlreadyRecording</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_1">Example YAML Payloads</h4>
+<p><strong>Record On - Tuner Source:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: RecordOn
+  initiator: TV
+  destination: RecordingDevice
+  parameters:
+    source: Tuner
+</pre>
+
+<p><strong>Record Off:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: RecordOff
+  initiator: TV
+  destination: RecordingDevice
+</pre>
+
+<p><strong>Record Status - Recording:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: RecordStatus
+  initiator: RecordingDevice
+  destination: TV
+  parameters:
+    status: Recording
+</pre>
+
+<h3 id="3-routing-control">3. Routing Control</h3>
+<p>These commands manage the routing of signals between devices, ensuring the correct source is displayed on the TV.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RoutingChange</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "RoutingChange"&#13;  initiator: "AV Receiver"&#13;  destination: "Broadcast"&#13;  parameters:&#13;    from_device: "DVD Player"&#13;    to_device: "TV"</pre></td>
+<td>Notifies that the source device has changed from one to another</td>
+<td>Automatically triggered when the AV Receiver changes the input source</td>
+</tr>
+<tr>
+<td><code>RoutingInformation</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "RoutingInformation"&#13;  initiator: "AV Receiver"&#13;  destination: "Broadcast"&#13;  parameters:&#13;    device_name: "TV"</pre></td>
+<td>Provides information about the current routing path</td>
+<td>Automatically triggered to inform the routing path change</td>
+</tr>
+<tr>
+<td><code>RequestActiveSource</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "RequestActiveSource"&#13;  initiator: "TV"&#13;  destination: "Broadcast"</pre></td>
+<td>Requests the active source device to identify itself</td>
+<td>Using a TV remote control to switch inputs</td>
+</tr>
+<tr>
+<td><code>SetStreamPath</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "SetStreamPath"&#13;  initiator: "TV"&#13;  destination: "Broadcast"&#13;  parameters:&#13;    device_name: "AV Receiver"</pre></td>
+<td>Sets the stream path to the specified device</td>
+<td>Using a TV remote control to select the AV Receiver</td>
+</tr>
+<tr>
+<td><code>InactiveSource</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "InactiveSource"&#13;  initiator: "DVD Player"&#13;  destination: "TV"</pre></td>
+<td>Notifies that the initiator device is no longer the active source</td>
+<td>Automatically triggered when the DVD Player is turned off</td>
+</tr>
+<tr>
+<td><code>ReportPhysicalAddress</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "ReportPhysicalAddress"&#13;  initiator: "AV Receiver"&#13;  destination: "Broadcast"&#13;  parameters:&#13;    device_name: "TV"</pre></td>
+<td>Provides the physical address of the device</td>
+<td>Automatically triggered when a device is connected</td>
+</tr>
+<tr>
+<td><code>GivePhysicalAddress</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "GivePhysicalAddress"&#13;  initiator: "TV"&#13;  destination: "AV Receiver"</pre></td>
+<td>Requests the physical address of the destination device</td>
+<td>Using a TV remote control to identify the AV Receiver</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_2">Example YAML Payloads</h4>
+<p><strong>Routing Change:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "RoutingChange"
+  initiator: "AV Receiver"
+  destination: "Broadcast"
+  parameters:
+    from_device: "DVD Player"
+    to_device: "TV"
+</pre>
+
+<p><strong>Routing Information:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "RoutingInformation"
+  initiator: "AV Receiver"
+  destination: "Broadcast"
+  parameters:
+    device_name: "TV"
+</pre>
+
+<p><strong>Request Active Source:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "RequestActiveSource"
+  initiator: "TV"
+  destination: "Broadcast"
+</pre>
+
+<p><strong>Set Stream Path:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "SetStreamPath"
+  initiator: "TV"
+  destination: "Broadcast"
+  parameters:
+    device_name: "AV Receiver"
+</pre>
+
+<p><strong>Inactive Source:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "InactiveSource"
+  initiator: "DVD Player"
+  destination: "TV"
+</pre>
+
+<h3 id="4-deck-control">4. Deck Control</h3>
+<p>These commands control the playback devices, such as recorders and players.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DeckControl</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: DeckControl&#13;  initiator: TV&#13;  destination: PlaybackDevice1&#13;  parameters:&#13;    deck_info: Play</pre></td>
+<td>Controls deck functions such as play, pause, etc.</td>
+<td>Using a TV remote control to control playback functions</td>
+</tr>
+<tr>
+<td><code>GiveDeckStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: GiveDeckStatus&#13;  initiator: TV&#13;  destination: PlaybackDevice1&#13;  parameters:&#13;    status_request: On</pre></td>
+<td>Requests the current status of the playback device</td>
+<td>Automatically triggered by TV to get the status of the playback device</td>
+</tr>
+<tr>
+<td><code>Play</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: Play&#13;  initiator: TV&#13;  destination: PlaybackDevice1&#13;  parameters:&#13;    play_mode: PlayForward</pre></td>
+<td>Starts playback on the specified playback device</td>
+<td>Using a TV remote control to play content</td>
+</tr>
+<tr>
+<td><code>DeckStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: DeckStatus&#13;  initiator: PlaybackDevice1&#13;  destination: TV&#13;  parameters:&#13;    deck_info: Play</pre></td>
+<td>Reports the current status of the playback device</td>
+<td>Automatically triggered by the playback device to inform its status</td>
+</tr>
+</tbody>
+</table>
+<h4 id="parameters-for-deckcontrol">Parameters for <code>DeckControl</code></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>deck_info</code></td>
+<td>Indicates the deck control mode</td>
+<td><code>Play</code>, <code>Pause</code>, <code>Stop</code>, <code>Rewind</code>, <code>FastForward</code>, <code>Eject</code>, <code>Seek</code></td>
+</tr>
+<tr>
+<td><code>seek_time</code></td>
+<td>Time to seek to in milliseconds</td>
+<td><code>0</code> to <code>n</code> (where <code>n</code> is the duration of the content in ms)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="possible-values-for-status_request">Possible Values for <code>status_request</code></h4>
+<table>
+<thead>
+<tr>
+<th>Prameter</th>
+<th>Possible Values</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status_request</code></td>
+<td><code>"On"</code>, <code>"Off"</code>, <code>"Once"</code></td>
+<td>Requests status information from the device. "On" requests continuous updates, "Off" stops updates, "Once" requests a single update.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="parameters-for-play">Parameters for <code>Play</code></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>play_mode</code></td>
+<td>Indicates the play mode</td>
+<td><code>PlayForward</code>, <code>PlayReverse</code>, <code>Still</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="parameters-for-deckstatus">Parameters for <code>DeckStatus</code></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>deck_info</code></td>
+<td>Indicates the current status of the deck</td>
+<td><code>Play</code>, <code>Pause</code>, <code>Stop</code>, <code>Rewind</code>, <code>FastForward</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_3">Example YAML Payloads</h4>
+<p><strong>Deck Control - Play Command:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: DeckControl
+  initiator: TV
+  destination: PlaybackDevice1
+  parameters:
+    deck_info: Play
+</pre>
+
+<p><strong>Give Deck Status Command:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: GiveDeckStatus
+  initiator: TV
+  destination: PlaybackDevice1
+  parameters:
+    status_request: 1
+</pre>
+
+<p><strong>Play Command:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: Play
+  initiator: TV
+  destination: PlaybackDevice1
+  parameters:
+    play_mode: PlayForward
+</pre>
+
+<p><strong>Deck Status - Playing:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: DeckStatus
+  initiator: PlaybackDevice1
+  destination: TV
+  parameters:
+    deck_info: Play
+</pre>
+
+<h3 id="5-osd-display">5. OSD Display</h3>
+<p>These commands manage the On-Screen Display settings and information.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SetOsdString</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "SetOsdString"&#13;  initiator: "PlaybackDevice1"&#13;  destination: "TV"&#13;  parameters:&#13;    osd_string: "IPSTB"</pre></td>
+<td>Sets the OSD (On-Screen Display) string on the TV</td>
+<td>Automatically triggered when the playback device sets the OSD string</td>
+</tr>
+<tr>
+<td><code>SetOsdName</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "SetOsdName"&#13;  initiator: "TV"&#13;  destination: "Broadcast"&#13;  parameters:&#13;    osd_name: "IPSTB"</pre></td>
+<td>Sets the OSD (On-Screen Display) name on all devices</td>
+<td>Automatically triggered when the TV sets the OSD name</td>
+</tr>
+<tr>
+<td><code>GiveOSDName</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "GiveOSDName"&#13;  initiator: "TV"&#13;  destination: "Broadcast"</pre></td>
+<td>Requests the OSD (On-Screen Display) name from all devices</td>
+<td>Using a TV remote control to request OSD name from all devices</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_4">Example YAML Payloads</h4>
+<p><strong>Set OSD String ("IPSTB") on TV:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "SetOsdString"
+  initiator: "PlaybackDevice1"
+  destination: "TV"
+  parameters:
+    osd_string: "IPSTB"
+</pre>
+
+<p><strong>Set OSD Name ("IPSTB") on all devices:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "SetOsdName"
+  initiator: "TV"
+  destination: "Broadcast"
+  parameters:
+    osd_name: "IPSTB"
+</pre>
+
+<p><strong>Give OSD Name (Request from TV):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "GiveOSDName"
+  initiator: "TV"
+  destination: "Broadcast"
+</pre>
+
+<h3 id="6-device-menu-control">6. Device Menu Control</h3>
+<p>Commands to control the device's menu interface, enabling navigation and selection of menu items.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MenuRequest</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "MenuRequest"&#13;  initiator: "TV"&#13;  destination: "PlaybackDevice1"</pre></td>
+<td>Requests the menu from the playback device</td>
+<td>Using a TV remote control to request the menu from the device</td>
+</tr>
+<tr>
+<td><code>MenuStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "MenuStatus"&#13;  initiator: "PlaybackDevice1"&#13;  destination: "TV"&#13;  parameters:&#13;    status: "activated"</pre></td>
+<td>Provides the status of the menu</td>
+<td>Automatically triggered to inform the TV of the menu status</td>
+</tr>
+<tr>
+<td><code>UserControlPressed</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "UserControlPressed"&#13;  initiator: "TV"&#13;  destination: "PlaybackDevice1"&#13;  parameters:&#13;    ui_command: "Select"</pre></td>
+<td>Sends a user control command (Select) to the playback device</td>
+<td>Using a TV remote control to send a select command to the device</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_5">Example YAML Payloads</h4>
+<p><strong>Menu Request:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "MenuRequest"
+  initiator: "TV"
+  destination: "PlaybackDevice1"
+</pre>
+
+<p><strong>Menu Status:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "MenuStatus"
+  initiator: "PlaybackDevice1"
+  destination: "TV"
+  parameters:
+    status: "activated"
+</pre>
+
+<p><strong>User Control Pressed (Select):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "UserControlPressed"
+  initiator: "TV"
+  destination: "PlaybackDevice1"
+  parameters:
+    ui_command: "Select"
+</pre>
+
+<h3 id="7-remote-control-passthrough">7. Remote Control Passthrough</h3>
+<p>Allows remote control commands to be sent directly to devices.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UserControlPressed</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "UserControlPressed"&#13;  initiator: "TV"&#13;  destination: "PlaybackDevice1"&#13;  parameters:&#13;    ui_command: "Play"</pre></td>
+<td>Sends a user control command (Play) to the playback device</td>
+<td>Using a TV remote control to send a play command to the device</td>
+</tr>
+<tr>
+<td><code>UserControlReleased</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "UserControlReleased"&#13;  initiator: "TV"&#13;  destination: "PlaybackDevice1"&#13;  parameters:&#13;    ui_command: "Play"</pre></td>
+<td>Sends a user control command (Play release) to the playback device</td>
+<td>Using a TV remote control to release the play command on the device</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_6">Example YAML Payloads</h4>
+<p><strong>User Control Pressed (Play):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "UserControlPressed"
+  initiator: "TV"
+  destination: "PlaybackDevice1"
+  parameters:
+    ui_command: "Play"
+</pre>
+
+<p><strong>User Control Released (Play):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "UserControlReleased"
+  initiator: "TV"
+  destination: "PlaybackDevice1"
+  parameters:
+    ui_command: "Play"
+</pre>
+
+<h3 id="8-power-status">8. Power Status</h3>
+<p>These commands manage the power state of devices, such as putting them into standby mode.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GiveDevicePowerStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "GiveDevicePowerStatus"&#13;  initiator: "TV"&#13;  destination: "AudioSystem"</pre></td>
+<td>Requests the power status of the audio system</td>
+<td>Using a TV remote control to request power status from the audio system</td>
+</tr>
+<tr>
+<td><code>ReportPowerStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "ReportPowerStatus"&#13;  initiator: "AudioSystem"&#13;  destination: "TV"&#13;  parameters:&#13;    power_status: "on"</pre></td>
+<td>Provides the power status of the audio system</td>
+<td>Automatically triggered to inform the TV of the audio system power status</td>
+</tr>
+<tr>
+<td><code>Standby</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "Standby"&#13;  initiator: "TV"&#13;  destination: "AudioSystem"</pre></td>
+<td>Puts the audio system into standby mode</td>
+<td>Using a TV remote control to send a standby command to the audio system</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_7">Example YAML Payloads</h4>
+<p><strong>Give Device Power Status:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "GiveDevicePowerStatus"
+  initiator: "TV"
+  destination: "AudioSystem"
+</pre>
+
+<p><strong>Report Power Status (On):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "ReportPowerStatus"
+  initiator: "AudioSystem"
+  destination: "TV"
+  parameters:
+    power_status: "on"
+</pre>
+
+<p><strong>Standby:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "Standby"
+  initiator: "TV"
+  destination: "AudioSystem"
+</pre>
+
+<h3 id="9-system-audio-control">9. System Audio Control</h3>
+<p>When an Audio Amplifier / Receiver is connected with the TV, functionality like volume can be controlled using any of the remote controls of any cec enabled devices in the system.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GiveAudioStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "GiveAudioStatus"&#13;  initiator: "TV"&#13;  destination: "AudioSystem"</pre></td>
+<td>Requests the audio system status</td>
+<td>Using a TV remote control to get the status of the audio system</td>
+</tr>
+<tr>
+<td><code>GiveSystemAudioModeStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "GiveSystemAudioModeStatus"&#13;  initiator: "TV"&#13;  destination: "AudioSystem"</pre></td>
+<td>Requests the audio system mode status</td>
+<td>Using a TV remote control to get the current audio system mode</td>
+</tr>
+<tr>
+<td><code>ReportAudioStatus</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "ReportAudioStatus"&#13;  initiator: "AudioSystem"&#13;  destination: "TV"</pre></td>
+<td>Provides the audio system status</td>
+<td>Automatically triggered to inform the TV of the audio system status</td>
+</tr>
+<tr>
+<td><code>ReportShortAudioDescriptor</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "ReportShortAudioDescriptor"&#13;  initiator: "AudioSystem"&#13;  destination: "TV"</pre></td>
+<td>Provides the audio capabilities of the audio system</td>
+<td>Automatically triggered to inform the TV of the audio capabilities</td>
+</tr>
+<tr>
+<td><code>RequestAudioDescriptor</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "RequestAudioDescriptor"&#13;  initiator: "TV"&#13;  destination: "AudioSystem"</pre></td>
+<td>Requests the audio capabilities from the audio system</td>
+<td>Using a TV remote control to request audio capabilities from the audio system</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_8">Example YAML Payloads</h4>
+<p><strong>Give Audio Status:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "GiveAudioStatus"
+  initiator: "TV"
+  destination: "AudioSystem"
+</pre>
+
+<p><strong>Give System Audio Mode Status:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "GiveSystemAudioModeStatus"
+  initiator: "TV"
+  destination: "AudioSystem"
+</pre>
+
+<p><strong>Report Audio Status:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "ReportAudioStatus"
+  initiator: "AudioSystem"
+  destination: "TV"
+</pre>
+
+<p><strong>Report Short Audio Descriptor:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "ReportShortAudioDescriptor"
+  initiator: "AudioSystem"
+  destination: "TV"
+</pre>
+
+<p><strong>Request Audio Descriptor:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "RequestAudioDescriptor"
+  initiator: "TV"
+  destination: "AudioSystem"
+</pre>
+
+<h3 id="10-system-information">10. System Information</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>YAML Payload</th>
+<th>Action</th>
+<th>How to Trigger in Real Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GetCECVersion</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "GetCECVersion"&#13;  initiator: "TV"&#13;  destination: "Broadcast"</pre></td>
+<td>Requests the CEC version from all devices</td>
+<td>Automatically triggered to get the CEC version</td>
+</tr>
+<tr>
+<td><code>GetMenuLanguage</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "GetMenuLanguage"&#13;  initiator: "TV"&#13;  destination: "AudioSystem"</pre></td>
+<td>Requests the menu language from the audio system</td>
+<td>Using TV remote control to request menu language from audio system</td>
+</tr>
+<tr>
+<td><code>SetMenuLanguage</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "SetMenuLanguage"&#13;  initiator: "TV"&#13;  destination: "AudioSystem"&#13;  parameters:&#13;    menu_language: "ENG"</pre></td>
+<td>Sets the menu language on the audio system</td>
+<td>Automatically triggered to set the menu language on the audio system</td>
+</tr>
+<tr>
+<td><code>ReportPhysicalAddress</code></td>
+<td><pre lang="yaml">---&#13;hdmicec:&#13;  command: "ReportPhysicalAddress"&#13;  initiator: "AudioSystem"&#13;  destination: "TV"&#13;  parameters:&#13;    physical_address: [16, 0]</pre></td>
+<td>Reports the physical address of the audio system to the TV</td>
+<td>Automatically triggered to report physical address to the TV</td>
+</tr>
+</tbody>
+</table>
+<h4 id="example-yaml-payloads_9">Example YAML Payloads</h4>
+<p><strong>Get CEC Version (Request from TV):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "GetCECVersion"
+  initiator: "TV"
+  destination: "Broadcast"
+</pre>
+
+<p><strong>Get Menu Language (Request from TV):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "GetMenuLanguage"
+  initiator: "TV"
+  destination: "AudioSystem"
+</pre>
+
+<p><strong>Set Menu Language ("ENG") on AudioSystem:</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "SetMenuLanguage"
+  initiator: "TV"
+  destination: "AudioSystem"
+  parameters:
+    menu_language: "ENG"
+</pre>
+
+<p><strong>Report Physical Address (AudioSystem to TV):</strong></p>
+<pre lang="yaml">
+---
+hdmicec:
+  command: "ReportPhysicalAddress"
+  initiator: "AudioSystem"
+  destination: "TV"
+  parameters:
+    physical_address: [16, 0]
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../hdmi-cec-source_L2_Low-Level_TestSpec/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Source_L2_Low-Level_TestSpec">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Source_L2_Low-Level_TestSpec
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../hdmi_cec_virtual_component_design/" class="md-footer__link md-footer__link--next" aria-label="Next: Virtual_component_design">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Virtual_component_design
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.footer", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "toc.follow", "content.code.copy", "content.code.annotate", "content.tooltips", "content.print.stylesheet", "search.highlight", "search.suggest", "search.share", "header.autohide", "announce.dismiss"], "search": "../../../../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.f13b1293.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+      
+        <script src="../../../../../javascript/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

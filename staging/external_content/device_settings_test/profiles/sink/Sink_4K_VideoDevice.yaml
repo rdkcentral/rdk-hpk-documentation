@@ -1,0 +1,44 @@
+dsVideoDevice:
+  Type: sink
+  Name: TV
+  NumVideoDevices: 1
+  features:
+    extendedEnumsSupported: false
+  Device:
+    1:
+      #dsVIDEO_ZOOM_UNKNOWN           = -1        /*!< Unknown mode */
+      #dsVIDEO_ZOOM_NONE              = 0         /*!< Decoder format conversion is inactive */
+      #dsVIDEO_ZOOM_FULL              = 1         /*!< Full screen (16:9 video is streched to fit 4:3 frame) */
+      #dsVIDEO_ZOOM_LB_16_9           = 2         /*!< 16:9 Letterbox (16:9 video is placed in a 4:3 frame with a full letterbox effect) *
+      #dsVIDEO_ZOOM_LB_14_9           = 3         /*!< 14:9 Letterbox (16:9 video is transferred into a 4:3 frame with 14:9 */
+      #dsVIDEO_ZOOM_CCO               = 4         /*!< Center Cut-out (16:9 video is cut to fill 4:3 frame with its center part) */
+      #dsVIDEO_ZOOM_PAN_SCAN          = 5         /*!< Pan & Scan (16:9 is cut and panned to fille 4:3 frame, following MPEG pan & scan vectors) */
+      #dsVIDEO_ZOOM_LB_2_21_1_ON_4_3  = 6         /*!< 2.21:1 Letterbox on 4:3 (video is transferred into 4:3 frame with a 2.21:1 letterbox effect) */
+      #dsVIDEO_ZOOM_LB_2_21_1_ON_16_9 = 7         /*!< 2.21:1 Letterbox on 16:9 (video is transferred into 16:9 frame with a 2.21:1 letterbox effect) */
+      #dsVIDEO_ZOOM_PLATFORM          = 8         /*!< Control over the decoder format conversions is managed by the platform  */
+      #dsVIDEO_ZOOM_16_9_ZOOM         = 9         /*!< 16:9 Zoom (4:3 video is zoomed to fill 16:9 frame) */
+      #dsVIDEO_ZOOM_PILLARBOX_4_3     = 10        /*!< Pillarbox 4:3 (4:3 video is placed in a 16:9 frame with a pillarbox effect) */
+      #dsVIDEO_ZOOM_WIDE_4_3          = 11        /*!< Wide 4:3 (4:3 video is stretched to fill 16:9 frame) */
+      SupportedDFCs: 0 #Not supported
+      DefaultDFC: 0 #Not supported
+      #dsHDRSTANDARD_NONE              = 0x0,   ///< When No video format is decoded
+      #dsHDRSTANDARD_HDR10             = 0x01,  ///< Video Format HDR
+      #dsHDRSTANDARD_HLG               = 0x02,  ///< Video Format HLG
+      #dsHDRSTANDARD_DolbyVision       = 0x04,  ///< Video Format Dolby Vision
+      #dsHDRSTANDARD_TechnicolorPrime  = 0x08,  ///< Video Format Techinicolor Prime
+      #dsHDRSTANDARD_HDR10PLUS         = 0x10,  ///< Video Format HDRPlus
+      #dsHDRSTANDARD_SDR               = 0x20,  ///< Video Format SDR
+      #dsHDRSTANDARD_Invalid           = 0x80   ///< When invalid value observed
+      HDRCapabilities: 0x17 # OR-ed value of SDR | HDR10 | HDR10PLUS | DolbyVision
+      #dsVIDEO_CODEC_MPEGHPART2  = (0x01 << 0)    /*!< Also known HEVC, H.265 */
+      #dsVIDEO_CODEC_MPEG4PART10 = (0x01 << 1)    /*!< Also known as H.264, MPEG4 AVC */
+      #dsVIDEO_CODEC_MPEG2       = (0x01 << 2)    /*!< Also known as H.222/H.262 */
+      #dsVIDEO_CODEC_MAX         = (0x01 << 3)    /*!< Out of range */
+      SupportedVideoCodingFormats: 0x06  #dsVIDEO_CODEC_MPEG2|dsVIDEO_CODEC_MPEG4PART10
+      SupportedDisplayFramerate:
+        - "3840x2160px47"
+        - "3840x2160px48"
+        - "3840x2160px50"
+        - "3840x2160px59"
+        - "3840x2160px60"
+      VideoCodecInfo: 0 #Not supported
