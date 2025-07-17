@@ -1,4 +1,0 @@
-hdmicec:
-  state: RemoveDevice
-  parameters:
-    name: TestDevice
