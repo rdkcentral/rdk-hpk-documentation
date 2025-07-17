@@ -7,6 +7,7 @@ site_dir: site
 
 nav:
   - Home: index.md
+  - Release: release.md
   - Components:
     - RMF Audio Capture:
       - API: external_content/rmf_audio_capture/docs/pages/rmf-audio-capture_halSpec.md
