@@ -1,0 +1,13 @@
+dsHost:
+    Type: source
+    Name: Host_Output
+    features:
+        extendedEnumsSupported: false
+    #soc ID
+    socID: "ABC32343"
+    #cpu temperatures in centigrade [min, max]
+    cpuTemperature: [30, 100]
+    # edid bytes data
+    edidBytes:
+    # length of the edid bytes
+    edidbytesLength: 0
