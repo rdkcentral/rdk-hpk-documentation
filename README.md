@@ -100,7 +100,7 @@ build_ut.sh TARGET=arm
 - Run script files to download the python environment
 - For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
 - More information about the Python installation and requirement refer [RAFT](https://github.com/rdkcentral/python_raft/?tab=readme-ov-file#installation)
-- For detailed instructions on how to run the `L1` & `L2` automation tests for a specific HPK component, please refer to the `doc` folder within the corresponding test repository.
+- For detailed instructions on how to run the `L1` , `L2` & `L3` automation tests for a specific HPK component, please refer to the `doc` folder within the corresponding test repository.
 
 ### Executing `L1` and `L2` test suites manually on the target
 
