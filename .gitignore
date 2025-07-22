@@ -1,0 +1,6 @@
+# Ignore the external_content folder
+external_content/
+
+# Ignore the python_venv folder
+python_venv/
+
