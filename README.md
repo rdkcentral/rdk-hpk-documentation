@@ -6,10 +6,9 @@
 - [Description](#description)
 - [Hardware Porting Kit](#hardware-porting-kit)
 - [How to build the test suite](#how-to-build-the-test-suite)
-  - [Levels of Test for Vendor Layer](#levels-of-test-for-vendor-layer)
-  - [Installing the Python Environment for `L3` Testing Suite](#installing-the-python-environment-for-l3-testing-suite)
-  - [`L1` and `L2` test suites are being executed manually on the target](#l1-and-l2-test-suites-are-being-executed-manually-on-the-target)
-  - [Executing the L1 L2 test suite via automation on the target](#executing-the-l1-l2-test-suite-via-automation-on-the-target)
+- [Levels of Test for Vendor Layer](#levels-of-test-for-vendor-layer)
+- [Executing the `L1` `L2` and `L3` test suites via automation on the target](#executing-the-l1-l2-and-l3-test-suites-via-automation-on-the-target)
+- [Executing `L1` and `L2` test suites manually on the target](#executing-l1-and-l2-test-suites-manually-on-the-target)
 - [Release History](#release-history)
 - [Reference](#reference)
 
@@ -95,14 +94,15 @@ build_ut.sh TARGET=arm
 
 - Details regarding the levels of testing can be found on the linked page [Levels](https://github.com/rdkcentral/ut-core/wiki/3.-Standards:-Levels-of-Test-for-Vendor-Layer)
 
-### Installing the Python Environment for `L3` Testing Suite
+### Executing the `L1` `L2` and `L3` test suites via automation on the target
 
 - Goto `ut/host` folder. This folder contains the script files required for installing python
 - Run script files to download the python environment
 - For more details refer [Guide-for-Setting-up-the-Python-RAFT-Testing-Suite](https://github.com/rdkcentral/ut-raft/wiki/Guide-for-Setting-up-the-Python-RAFT-Testing-Suite)
 - More information about the Python installation and requirement refer [RAFT](https://github.com/rdkcentral/python_raft/?tab=readme-ov-file#installation)
+- For detailed instructions on how to run the `L1` & `L2` automation tests for a specific HPK component, please refer to the `doc` folder within the corresponding test repository.
 
-### `L1` and `L2` test suites are being executed manually on the target
+### Executing `L1` and `L2` test suites manually on the target
 
 Copy files from `bin/*` to the target.
 
@@ -137,11 +137,6 @@ Help
 1. Console Mode - will open the interactive console
 2. Automated Mode - will output in xUnit form as a .xml file
 3. Basic Mode - All tests will be ran and the output redirected to the shell
-
-### Executing the L1 L2 test suite via automation on the target
-
-- To run the `L1` & `L2` via automation please install [Python Environment](#installing-the-python-environment-for-l3-testing-suite)
-- For detailed instructions on how to run the `L1` & `L2` automation tests for a specific HPK component, please refer to the `doc` folder within the corresponding test repository.
 
 ## Release History
 
