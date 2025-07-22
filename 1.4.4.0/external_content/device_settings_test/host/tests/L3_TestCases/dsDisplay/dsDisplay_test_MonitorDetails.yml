@@ -1,0 +1,13 @@
+Monitor:
+  - Product: LG
+    manufacturerId: GSM
+    monitorName: LG TV
+  - Product: Philips
+    manufacturerId: PHL
+    monitorName: PHILIPS FTV
+  - Product: Sony
+    manufacturerId: SNY
+    monitorName: SONY TV
+  - Product: Samsung
+    manufacturerId: SAM
+    monitorName: SAMSUNG

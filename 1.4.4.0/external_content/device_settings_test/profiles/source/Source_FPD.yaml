@@ -1,0 +1,51 @@
+dsFPD:
+  Type: source
+  Name: STB_FPD_1_Indicator
+  features:
+    extendedEnumsSupported: false
+  Number_of_Indicators: 1
+  SupportedFPDIndicators :
+    1: #dsFPD_INDICATOR_POWER
+      #dsFPD_INDICATOR_MESSAGE          = 0x00,  ///< Message/Mail LED
+      #dsFPD_INDICATOR_POWER            = 0x01,    ///< Power LED
+      #dsFPD_INDICATOR_RECORD           = 0x02,   ///< Record LED
+      #dsFPD_INDICATOR_REMOTE           = 0x03,   ///< Remote LED
+      #dsFPD_INDICATOR_RFBYPASS         = 0x04, ///< RF Bypass LED
+      Indicator_Type : 0x01 #dsFPD_INDICATOR_POWER
+      MAX_BRIGHTNESS : 100            # Maximum brightness value of FPD LEDs
+      MIN_BRIGHTNESS : 0              # Minimum brightness value of FPD LEDs
+      DEFAULT_LEVELS : 1              # Default Brightness level for the FP text display
+      MAX_CYCLERATE : 2               # Maximum Rate at which LED is rotating during scrolling
+      DEFAULT_COLOR_MODE : 1          # Color Mode of LED (Single(0) or Multicolored(1))
+      #dsFPD_COLOR_BLUE   0x0000FF///< Blue color LED
+      #dsFPD_COLOR_GREEN  0x00FF00///< Green color LED
+      #dsFPD_COLOR_RED    0xFF0000///< Red color LED
+      #dsFPD_COLOR_YELLOW 0xFFFFE0///< Yellow color LED
+      #dsFPD_COLOR_ORANGE 0xFF8C00///< Orange color LED
+      #dsFPD_COLOR_WHITE  0xFFFFFF///< White color LED
+      supportedColors :
+        - 0x00FF00                    # dsFPD_COLOR_GREEN
+        - 0xFF0000                    # dsFPD_COLOR_RED
+        - 0xFF8C00                    # dsFPD_COLOR_ORANGE
+        - 0xFFFFFF                    # dsFPD_COLOR_WHITE
+#dsFPD_LED_DEVICE_NONE                    = 0x00,                    ///< Default state
+#dsFPD_LED_DEVICE_ACTIVE                  = 0x01,                  ///< Device is active
+#dsFPD_LED_DEVICE_STANDBY                 = 0x02,                 ///< Device is in standby mode
+#dsFPD_LED_DEVICE_WPS_CONNECTING          = 0x03,          ///< Device connecting to WPS
+#dsFPD_LED_DEVICE_WPS_CONNECTED           = 0x04,           ///< Device connected to WPS
+#dsFPD_LED_DEVICE_WPS_ERROR               = 0x05,               ///< Error when trying to connect to WPS
+#dsFPD_LED_DEVICE_FACTORY_RESET           = 0x06,           ///< Reset Device to factory base
+#dsFPD_LED_DEVICE_USB_UPGRADE             = 0x07,             ///< Updating from USB drive
+#dsFPD_LED_DEVICE_SOFTWARE_DOWNLOAD_ERROR = 0x08, ///< Error in downloading new software update
+  SupportedLEDStates: 0x1FE
+  #dsFPD_LED_DEVICE_NONE,                      ///< Default state
+  #dsFPD_LED_DEVICE_ACTIVE,                    ///< Device is active
+  #dsFPD_LED_DEVICE_STANDBY,                   ///< Device is in standby mode
+  #dsFPD_LED_DEVICE_WPS_CONNECTING,            ///< Device connecting to WPS
+  #dsFPD_LED_DEVICE_WPS_CONNECTED,             ///< Device connected to WPS
+  #dsFPD_LED_DEVICE_WPS_ERROR,                 ///< Error when trying to connect to WPS
+  #dsFPD_LED_DEVICE_FACTORY_RESET,             ///< Reset Device to factory base
+  #dsFPD_LED_DEVICE_USB_UPGRADE,               ///< Updating from USB drive
+  #dsFPD_LED_DEVICE_SOFTWARE_DOWNLOAD_ERROR,   ///< Error in downloading new software update
+  #dsFPD_LED_DEVICE_MAX                        ///< Out of range
+  7segement_display_Support : false
