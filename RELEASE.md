@@ -40,7 +40,7 @@
 ## Release History
 
 
-### 3.0.0
+## 3.0.0
 
 **Release date (YYYY-MM-DD)** : `2025-07-22`  
 **Release Version**: `3.0.0`  
@@ -79,7 +79,7 @@
     
   **More information is available in the ChangeInfo section of the table above**
 
-### 2.1.0
+## 2.1.0
 
 **Release date (YYYY-MM-DD)** : `2025-05-19`  
 **Release Version**: `2.1.0`  
@@ -129,7 +129,7 @@
 
 
 
-### 2.0.0
+## 2.0.0
 
 **Release date (YYYY-MM-DD)** : `2025-04-09`  
 **Release Version**: `2.0.0`  
@@ -168,7 +168,7 @@ Limitation:
 
 - VTS Level 3 test for ALLM mode is not included in this release and will be provided in a future update.
 
-### 1.4.5
+## 1.4.5
 
 **Release date (YYYY-MM-DD)** : `2025-02-17`  
 **Release Version**: `1.4.5`  
@@ -194,7 +194,7 @@ Limitation:
 - Validated updates with the latest interface descriptions and `VTS` bug fixes.
 - Currently, there are limitations when setting and retrieving ALLM mode on source devices, but these will be resolved in the upcoming version.
 
-### 1.4.4
+## 1.4.4
 
 **Release date (YYYY-MM-DD)** : `2025-01-16`  
 **Release Version**: `1.4.4`  
@@ -220,7 +220,7 @@ Limitation:
 - Added support for up to 5 `HDMI` inputs in the HDMIIn `DS` module.
 - The `HDMI` `CEC` enhanced test case will be updated in the next HPK release.
 
-### 1.4.3
+## 1.4.3
 
 **Release date (YYYY-MM-DD)** : `2025-01-02`  
 **Release Version**: `1.4.3`  
@@ -246,7 +246,7 @@ Limitation:
 - `VTS` `L3` test cases have been added for the `HDMI` `CEC` module.
 - `VTS` `L1` , `L2` & `L3` bug fixes.
 
-### 1.4.2
+## 1.4.2
 
 **Release date (YYYY-MM-DD)** : `2024-12-02`  
 **Release Version**: `1.4.2`  
@@ -273,7 +273,7 @@ Limitation:
 - Enhance Test suites for Device Settings and TV Settings `VTS` `L3` Modules
 - `VTS` `L1` & `L2` bug fixes
 
-### 1.4.1
+## 1.4.1
 
 **Release date (YYYY-MM-DD)** : `2024-11-08`  
 **Release Version**: `1.4.1`  
@@ -302,7 +302,7 @@ Limitation:
 
 - The L3 test suites for the TVSettings module currently support only the IP video source and are implemented with GStreamer for playback. Other video sources and playback methods are not covered in this version of the test suite.
 
-### 1.4.0
+## 1.4.0
 
 **Release date (YYYY-MM-DD)** : `2024-10-16`  
 **Release Version**: `1.4.0`  
@@ -327,7 +327,7 @@ Limitation:
 - `L3` test suites are available for dsAudio Port and dsVideo Port.
 - `L1` & `L2` bug fixes
 
-### 1.3.0
+## 1.3.0
 
 **Release date (YYYY-MM-DD)** : `2024-08-15`  
 **Release Version**: `1.3.0`  
@@ -352,7 +352,7 @@ Limitation:
 
 - Updated `L1` test suites with profile configurations.
 
-### 1.2.1
+## 1.2.1
 
 **Release date (YYYY-MM-DD)** : `2024-07-15`  
 **Release Version**: `1.2.1`  
@@ -380,7 +380,7 @@ Limitation:
 - Added High level test specification & `L2` low level specification documentation.
 - Introduced `L2` test suites with profile configurations.
 
-### 1.2.0
+## 1.2.0
 
 **Release date (YYYY-MM-DD)** : `2024-06-28`  
 **Release Version**: `1.2.0`  
@@ -399,7 +399,7 @@ Limitation:
 |9|[AvSync](https://github.com/rdkcentral/rdk-halif-avsync)|[1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0)|`NYA`|
 |10|[v4l2](https://github.com/rdkcentral/rdk-halif-v4l2)|[`1.0.0`](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.0)|`NYA`|
 
-### 1.1.0
+## 1.1.0
 
 **Release date (YYYY-MM-DD)** : `2024-02-20`  
 **Release Version**: `1.1.0`  
@@ -417,7 +417,7 @@ Limitation:
 |8|[LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm)|[1.0.0](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.0)|`NYA`|
 |9|[AvSync](https://github.com/rdkcentral/rdk-halif-avsync)|[1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0)|`NYA`|
 
-### 1.0.0
+## 1.0.0
 
 **Release date (YYYY-MM-DD)** : `2023-12-12`  
 **Release Version**: `1.0.0`  
