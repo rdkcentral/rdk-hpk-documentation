@@ -4,6 +4,7 @@
 
 - [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
 - [Release History](#release-history)
+  - [3.0.0](#300)
   - [2.1.0](#210)
   - [2.0.0](#200)
   - [1.4.5](#145)
@@ -37,7 +38,48 @@
 - `VRR` - Variable Refresh Rate
 
 ## Release History
-### 2.1.0
+
+
+## 3.0.0
+
+**Release date (YYYY-MM-DD)** : `2025-07-22`  
+**Release Version**: `3.0.0`  
+**Previous Version**: `2.1.0`  
+
+| #  | Component Name | HAL Interface Version ||              | HAL Testing Suite Version | |            |
+| --- | ------------- | ------------          |-|-------------| ------------------------- |-| ----------- |
+|     |                | **Current**          |**ChangeInfo**| **Previous**| **Current**|**ChangeInfo**   | **Previous**|
+| 1   | [Deep Sleep Manager](https://github.com/rdkcentral/rdk-halif-deepsleep_manager) | `No change` || [1.0.4](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/tree/1.0.4) |[`1.4.2`](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/tree/1.4.2)| [1.4.1...1.4.2](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/compare/1.4.1...1.4.2) |[1.4.1](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/tree/1.4.1) |
+| 2   | [Power Manager](https://github.com/rdkcentral/rdk-halif-power_manager) | `No change` | | [1.0.3](https://github.com/rdkcentral/rdk-halif-power_manager/tree/1.0.3) | [`1.5.3`](https://github.com/rdkcentral/rdk-halif-test-power_manager/tree/1.5.3)| [1.5.2...1.5.3](https://github.com/rdkcentral/rdk-halif-test-power_manager/compare/1.5.2...1.5.3)|[1.5.2](https://github.com/rdkcentral/rdk-halif-test-power_manager/tree/1.5.2) |
+| 3   | [Device Settings](https://github.com/rdkcentral/rdk-halif-device_settings/) |[`6.0.0`](https://github.com/rdkcentral/rdk-halif-device_settings/tree/6.0.0)|[5.1.0...6.0.0](https://github.com/rdkcentral/rdk-halif-device_settings/compare/5.1.0...6.0.0)|[5.1.0](https://github.com/rdkcentral/rdk-halif-device_settings/tree/5.1.0) |[`6.0.0`](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/6.0.0)| [5.1.0...6.0.0](https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/5.1.0...6.0.0)| [5.1.0](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/5.1.0) |
+| 4   | [HDMI CEC](https://github.com/rdkcentral/rdk-halif-hdmi_cec) | `No change` | |[1.3.11](https://github.com/rdkcentral/rdk-halif-hdmi_cec/tree/1.3.11) |[`1.6.0`](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.6.0)|[1.5.2...1.6.0](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.5.2...1.6.0)|[1.5.2](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.5.2) |
+| 5   | [RMF Audio Capture](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture) | `No change` | |[1.0.5](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/tree/1.0.5) | [`1.5.4`](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/tree/1.5.4)|[1.5.3...1.5.4](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/compare/1.5.3...1.5.4) |[1.5.3](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/tree/1.5.3) |
+| 6   | [`RDK-V` TVSettings](https://github.com/rdkcentral/rdkv-halif-tvsettings) |[`2.4.0`](https://github.com/rdkcentral/rdkv-halif-tvsettings/tree/2.4.0)|[2.3.0...2.4.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/compare/2.3.0...2.4.0)|[2.3.0](https://github.com/rdkcentral/rdkv-halif-tvsettings/tree/2.3.0)|[`2.3.2`](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/tree/2.3.2)|[2.3.1...2.3.2](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/compare/2.3.1...2.3.2)|[2.3.1](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/tree/2.3.1)|
+| 7   | [`RDK-V` WiFi](https://github.com/rdkcentral/rdkv-halif-wifi) [^1] | `No change`| | [2.0.0](https://github.com/rdkcentral/rdkv-halif-wifi/blob/2.0.0) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdkv-halif-test-wifi/blob/1.0.0) |
+| 8   | [LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm) |  `No change` || [1.0.1](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.1) | `NYA` | ||
+| 9  | [AvSync](https://github.com/rdkcentral/rdk-halif-avsync) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0) | `NYA` | ||
+| 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) |  `No change` ||[1.0.1](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.1) | `NYA` | ||
+
+
+**Summary of Current Release**
+---
+
+**L1 to L3:**
+- **VRR Interface Enhancements**: Incorporated the latest updates to support Variable Refresh Rate (**VRR**).
+- **Module Improvements**: Applied enhancements across key modules – dsHDMI-In, dsAudio, dsVideoDevice, dsVideoPort, and TVSettings.
+- **VTS Issue Fixes**: Resolved test suite issues related to the HDMI CEC and TVSettings modules.
+- **Documentation update**: HAL documents were updated and provisioned for the mkdocs. 
+---
+**L4:**
+
+- App search now supports space key and special characters.
+- AS/Thunder command support extended to Network, HDMI Source, HDMI Audio, FFV, Motion, LED, and DTT test suites.
+- CPU usage, power consumption, and free RAM are now logged during linear playback, app switching, and app launch scenarios.
+- In certain test cases, apps were not reset correctly at the end of execution — this has been resolved to ensure proper cleanup during test closure.
+    
+  **More information is available in the ChangeInfo section of the table above**
+
+## 2.1.0
 
 **Release date (YYYY-MM-DD)** : `2025-05-19`  
 **Release Version**: `2.1.0`  
@@ -87,7 +129,7 @@
 
 
 
-### 2.0.0
+## 2.0.0
 
 **Release date (YYYY-MM-DD)** : `2025-04-09`  
 **Release Version**: `2.0.0`  
@@ -126,7 +168,7 @@ Limitation:
 
 - VTS Level 3 test for ALLM mode is not included in this release and will be provided in a future update.
 
-### 1.4.5
+## 1.4.5
 
 **Release date (YYYY-MM-DD)** : `2025-02-17`  
 **Release Version**: `1.4.5`  
@@ -152,7 +194,7 @@ Limitation:
 - Validated updates with the latest interface descriptions and `VTS` bug fixes.
 - Currently, there are limitations when setting and retrieving ALLM mode on source devices, but these will be resolved in the upcoming version.
 
-### 1.4.4
+## 1.4.4
 
 **Release date (YYYY-MM-DD)** : `2025-01-16`  
 **Release Version**: `1.4.4`  
@@ -178,7 +220,7 @@ Limitation:
 - Added support for up to 5 `HDMI` inputs in the HDMIIn `DS` module.
 - The `HDMI` `CEC` enhanced test case will be updated in the next HPK release.
 
-### 1.4.3
+## 1.4.3
 
 **Release date (YYYY-MM-DD)** : `2025-01-02`  
 **Release Version**: `1.4.3`  
@@ -204,7 +246,7 @@ Limitation:
 - `VTS` `L3` test cases have been added for the `HDMI` `CEC` module.
 - `VTS` `L1` , `L2` & `L3` bug fixes.
 
-### 1.4.2
+## 1.4.2
 
 **Release date (YYYY-MM-DD)** : `2024-12-02`  
 **Release Version**: `1.4.2`  
@@ -231,7 +273,7 @@ Limitation:
 - Enhance Test suites for Device Settings and TV Settings `VTS` `L3` Modules
 - `VTS` `L1` & `L2` bug fixes
 
-### 1.4.1
+## 1.4.1
 
 **Release date (YYYY-MM-DD)** : `2024-11-08`  
 **Release Version**: `1.4.1`  
@@ -260,7 +302,7 @@ Limitation:
 
 - The L3 test suites for the TVSettings module currently support only the IP video source and are implemented with GStreamer for playback. Other video sources and playback methods are not covered in this version of the test suite.
 
-### 1.4.0
+## 1.4.0
 
 **Release date (YYYY-MM-DD)** : `2024-10-16`  
 **Release Version**: `1.4.0`  
@@ -285,7 +327,7 @@ Limitation:
 - `L3` test suites are available for dsAudio Port and dsVideo Port.
 - `L1` & `L2` bug fixes
 
-### 1.3.0
+## 1.3.0
 
 **Release date (YYYY-MM-DD)** : `2024-08-15`  
 **Release Version**: `1.3.0`  
@@ -310,7 +352,7 @@ Limitation:
 
 - Updated `L1` test suites with profile configurations.
 
-### 1.2.1
+## 1.2.1
 
 **Release date (YYYY-MM-DD)** : `2024-07-15`  
 **Release Version**: `1.2.1`  
@@ -338,7 +380,7 @@ Limitation:
 - Added High level test specification & `L2` low level specification documentation.
 - Introduced `L2` test suites with profile configurations.
 
-### 1.2.0
+## 1.2.0
 
 **Release date (YYYY-MM-DD)** : `2024-06-28`  
 **Release Version**: `1.2.0`  
@@ -357,7 +399,7 @@ Limitation:
 |9|[AvSync](https://github.com/rdkcentral/rdk-halif-avsync)|[1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0)|`NYA`|
 |10|[v4l2](https://github.com/rdkcentral/rdk-halif-v4l2)|[`1.0.0`](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.0)|`NYA`|
 
-### 1.1.0
+## 1.1.0
 
 **Release date (YYYY-MM-DD)** : `2024-02-20`  
 **Release Version**: `1.1.0`  
@@ -375,7 +417,7 @@ Limitation:
 |8|[LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm)|[1.0.0](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.0)|`NYA`|
 |9|[AvSync](https://github.com/rdkcentral/rdk-halif-avsync)|[1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0)|`NYA`|
 
-### 1.0.0
+## 1.0.0
 
 **Release date (YYYY-MM-DD)** : `2023-12-12`  
 **Release Version**: `1.0.0`  
