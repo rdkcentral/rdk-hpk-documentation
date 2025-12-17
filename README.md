@@ -141,7 +141,7 @@ Help
 
 ## HPK HFP Configuration
 
-For information about Hardware Feature Profile (HFP) configuration files for audio and video decoder capabilities, including schema standardization and validation procedures, please refer to [HPK HFP Configuration](./hfp/hpk-hfp-configuration.md).
+For information about Hardware Feature Profile (HFP) configuration files for audio and video decoder capabilities, including schema standardization and validation procedures, please refer to [HPK HFP Configuration](./hfp-reference/hpk-hfp-configuration.md).
 
 ## Release History
 
