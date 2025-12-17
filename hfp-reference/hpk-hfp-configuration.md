@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes how the RDK Hardware Porting Kit (HPK) uses HAL Feature Profile (HFP) configuration files to declare hardware capabilities, with a current focus on audio and video decoder features.
+This document describes how the RDK Hardware Porting Kit (HPK) uses Hardware Abstraction Layer (HAL) Feature Profile (HFP) configuration files to declare hardware capabilities, with a current focus on audio and video decoder features.
 
 In RDK, a HAL Feature Profile is a YAML-based declaration provided by OEMs to describe the capabilities of their vendor-layer HAL implementation (for example, codec support, resource limits and mandatory/optional components). For the full conceptual description of HFPs, including schema examples and versioning, see the [HAL Feature Profiles documentation](https://rdkcentral.github.io/rdk-halif-aidl/0.12.0/halif/key_concepts/hal/hal_feature_profiles/).
 
