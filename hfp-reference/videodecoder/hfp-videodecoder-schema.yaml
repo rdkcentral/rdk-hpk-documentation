@@ -1,5 +1,6 @@
 # Pykwalify schema for video decoder capabilities
 # Enforces codec-to-profile and profile-to-level mappings
+# Schema Version: 1.0.0
 
 type: map
 mapping:
@@ -8,6 +9,11 @@ mapping:
     required: true
     mapping:
       interfaceVersion:
+        type: str
+        required: true
+        pattern: '^\d+\.\d+\.\d+$'
+
+      schemaVersion:
         type: str
         required: true
         pattern: '^\d+\.\d+\.\d+$'
