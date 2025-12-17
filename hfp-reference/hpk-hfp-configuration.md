@@ -1,4 +1,4 @@
-# HPK HFP Configuration - Reference Implementation
+# HPK - Hardware Feature Profile Configuration
 
 ## Overview
 
