@@ -16,8 +16,8 @@ The HFP configuration is organized into the following directories:
 
 | Module | HFP | HFP Schema |
 |--------|-----|------------|
-| audiodecoder | [hfp-audiodecoder.yaml](./hfp-reference/audiodecoder/hfp-audiodecoder.yaml) | [hfp-audiodecoder-schema.yaml](./hfp-reference/audiodecoder/hfp-audiodecoder-schema.yaml) |
-| videodecoder | [hfp-videodecoder.yaml](./hfp-reference/videodecoder/hfp-videodecoder.yaml) | [hfp-videodecoder-schema.yaml](./hfp-reference/videodecoder/hfp-videodecoder-schema.yaml) |
+| audiodecoder | [hfp-audiodecoder.yaml](./audiodecoder/hfp-audiodecoder.yaml) | [hfp-audiodecoder-schema.yaml](./audiodecoder/hfp-audiodecoder-schema.yaml) |
+| videodecoder | [hfp-videodecoder.yaml](./videodecoder/hfp-videodecoder.yaml) | [hfp-videodecoder-schema.yaml](./videodecoder/hfp-videodecoder-schema.yaml) |
 
 ## Schema Purpose
 
