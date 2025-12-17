@@ -27,7 +27,7 @@ The schema files are designed to standardize the YAML configuration format acros
 
 A formal schema definition ensures consistency in configuration file structure and attributes. The schema provides:
 
-- **Cross-vendor Accessibility**: Schema is accessible across the vendor layer to be used as documentation and for test infrastructure
+- **Cross-vendor Accessibility**: Schema files are available to all vendors across the vendor layer for use in documentation and test infrastructure
 - **Validation**: Enables automated validation of configuration files to ensure compliance with the expected format
 - **Version Management**: Configuration files include an `interfaceVersion` field to support configuration evolution across releases
 - **Extensibility**: Schema can be updated to accommodate new additions and changes to configuration YAMLs
