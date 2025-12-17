@@ -340,8 +340,10 @@ mapping:
                                                 AV1_LEVEL_4_1,
                                                 AV1_LEVEL_5_0,
                                                 AV1_LEVEL_5_1,
+                                                AV1_LEVEL_5_2,
                                                 AV1_LEVEL_6_0,
                                                 AV1_LEVEL_6_1,
+                                                AV1_LEVEL_6_2,
                                               ]
                                           maxBitrateInBps:
                                             type: number

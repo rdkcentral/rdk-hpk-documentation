@@ -45,7 +45,7 @@ pip install pykwalify
 
 **Audio Decoder Validation:**
 ```bash
-pykwalify -d ./hfp-audiodecoder.yaml -s ./hfp-audiodecoder-schema.yaml
+pykwalify -d hfp-audiodecoder.yaml -s hfp-audiodecoder-schema.yaml
 ```
 
 Expected output:
