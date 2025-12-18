@@ -1,6 +1,6 @@
 videodecoder:
-  interfaceVersion: "1.0.0"
-  schemaVersion: "1.0.0"
+  interfaceVersion: "current"
+  schemaVersion: "0.1.0"
   Capabilities:
     - 0:
         codecCapabilities:

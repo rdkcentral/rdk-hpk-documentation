@@ -1,6 +1,6 @@
 # Pykwalify schema for audio decoder capabilities
 # Enforces codec-specific profile validation
-# Schema Version: 1.0.0
+# Schema Version: 0.1.0
 
 type: map
 mapping:
@@ -11,7 +11,6 @@ mapping:
       interfaceVersion:
         type: str
         required: true
-        pattern: '^\d+\.\d+\.\d+$'
 
       schemaVersion:
         type: str
