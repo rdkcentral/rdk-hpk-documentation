@@ -10,6 +10,14 @@ Within HPK, these HFP files are consumed to expose decoder capabilities (such as
 
 **Important:** The HFP files provided here are reference implementations demonstrating maximum capabilities and proper schema structure. While the schema files are used to validate all HFP configurations across platforms, the actual HFP files are platform-specific and must be defined by OEMs/vendors based on their platform's hardware capabilities and requirements. Each platform's HFP files should be created and maintained according to the specific decoder capabilities available on that platform.
 
+### Version Fields
+
+HFP configuration files include two important version fields:
+
+- **`interfaceVersion`**: Denotes the [rdk-halif-aidl](https://github.com/rdkcentral/rdk-halif-aidl) version that defines the HAL interface specification. This version should match the HAL interface version your platform implements.
+
+- **`schemaVersion`**: Indicates the version of the HFP schema used for validation and allows for schema evolution.
+
 ## Configuration Files
 
 The HFP configuration is organized into the following directories:
