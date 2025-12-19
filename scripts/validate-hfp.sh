@@ -24,17 +24,17 @@ while getopts "t:v:f:h" opt; do
     v) VERSION="$OPTARG" ;;
     f) YAML_FILE="$OPTARG" ;;
     h)
-      echo "Usage: $0 -t <audio|video> -v <version> -f <yaml-file>"
+      echo "Usage: validate-hfp.sh -t <audio|video> -v <version> -f <yaml-file>"
       echo ""
       echo "Options:"
       echo "  -t: Type of decoder (audio or video)"
-      echo "  -v: HPK release version/tag (e.g., 3.1.0, main, develop)"
+      echo "  -v: HPK release version/tag (e.g., 3.1.0, main)"
       echo "  -f: Path to your YAML file to validate"
       echo "  -h: Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0 -t audio -v 3.1.0 -f my-audio-decoder.yaml"
-      echo "  $0 -t video -v main -f platform-video-decoder.yaml"
+      echo "  validate-hfp.sh -t audio -v 3.1.0 -f my-audio-decoder.yaml"
+      echo "  validate-hfp.sh -t video -v main -f platform-video-decoder.yaml"
       exit 0
       ;;
     *) 
@@ -57,7 +57,7 @@ fi
 
 if [ -z "$VERSION" ]; then
   echo -e "${RED}Error: Version (-v) is required${NC}" >&2
-  echo -e "${YELLOW}Specify a release version/tag (e.g., -v 3.1.0, -v main, -v develop)${NC}" >&2
+  echo -e "${YELLOW}Specify a release version/tag (e.g., -v 3.1.0, -v main)${NC}" >&2
   exit 1
 fi
 

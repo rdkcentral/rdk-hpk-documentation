@@ -48,19 +48,25 @@ You can validate your configuration files against their respective schemas using
 
 The HPK repository provides a validation script that automatically downloads the appropriate schema version and validates your YAML file.
 
-**Usage:**
+**Download and Run:**
 ```bash
+# Download the script
+curl -fsSL https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/main/scripts/validate-hfp.sh -o validate-hfp.sh
+chmod +x validate-hfp.sh
+
 # Validate against a specific release version
-./scripts/validate-hfp.sh -t audio -v 3.1.0 -f my-audio-decoder.yaml
-./scripts/validate-hfp.sh -t video -v 3.1.0 -f my-video-decoder.yaml
+./validate-hfp.sh -t audio -v 3.1.0 -f my-audio-decoder.yaml
+./validate-hfp.sh -t video -v 3.1.0 -f my-video-decoder.yaml
 
 # Validate against a branch
-./scripts/validate-hfp.sh -t audio -v main -f my-audio-decoder.yaml
-./scripts/validate-hfp.sh -t video -v develop -f my-video-decoder.yaml
+./validate-hfp.sh -t audio -v main -f my-audio-decoder.yaml
+./validate-hfp.sh -t video -v develop -f my-video-decoder.yaml
 ```
 
-**Remote Execution:**
-You can also run the script directly via curl without cloning the repository:
+**Note:** For security, always review scripts before execution, especially from remote sources.
+
+**Direct Execution (Use with Caution):**
+For quick validation in trusted environments, you can pipe directly to bash:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/main/scripts/validate-hfp.sh | \
   bash -s -- -t audio -v 3.1.0 -f my-audio-decoder.yaml
