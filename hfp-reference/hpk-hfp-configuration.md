@@ -42,35 +42,33 @@ A formal schema definition ensures consistency in configuration file structure a
 
 ## Testing Configuration Files
 
-You can validate your configuration files against their respective schemas using `pykwalify`, a Python-based YAML/JSON schema validator.
+You can validate your configuration files against their respective schemas using the automated validation script.
 
-### Installation
+### Using the Validation Script
 
+The HPK repository provides a validation script that automatically downloads the appropriate schema version and validates your YAML file.
+
+**Usage:**
 ```bash
-pip install pykwalify
+# Validate against a specific release version
+./scripts/validate-hfp.sh -t audio -v 3.1.0 -f my-audio-decoder.yaml
+./scripts/validate-hfp.sh -t video -v 3.1.0 -f my-video-decoder.yaml
+
+# Validate against a branch
+./scripts/validate-hfp.sh -t audio -v main -f my-audio-decoder.yaml
+./scripts/validate-hfp.sh -t video -v develop -f my-video-decoder.yaml
 ```
 
-### Validation Examples
-
-**Audio Decoder Validation:**
+**Remote Execution:**
+You can also run the script directly via curl without cloning the repository:
 ```bash
-pykwalify -d hfp-audiodecoder.yaml -s hfp-audiodecoder-schema.yaml
+curl -fsSL https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/main/scripts/validate-hfp.sh | \
+  bash -s -- -t audio -v 3.1.0 -f my-audio-decoder.yaml
 ```
 
-Expected output:
-```
-INFO - validation.valid
-```
-
-**Video Decoder Validation:**
-```bash
-pykwalify -d hfp-videodecoder.yaml -s hfp-videodecoder-schema.yaml
-```
-
-Expected output:
-```
-INFO - validation.valid
-```
+**Requirements:**
+- `pykwalify` must be installed: `pip install pykwalify`
+- Network access to download schemas
 
 ### Validation Best Practices
 
