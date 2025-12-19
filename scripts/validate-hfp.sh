@@ -7,7 +7,7 @@ set -e
 
 # Default values
 TYPE=""
-VERSION="main"
+VERSION=""
 YAML_FILE=""
 BASE_URL="https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation"
 
@@ -28,7 +28,7 @@ while getopts "t:v:f:h" opt; do
       echo ""
       echo "Options:"
       echo "  -t: Type of decoder (audio or video)"
-      echo "  -v: HPK release version/tag (e.g., 3.1.0, main) [default: main]"
+      echo "  -v: HPK release version/tag (e.g., 3.1.0, main, develop)"
       echo "  -f: Path to your YAML file to validate"
       echo "  -h: Show this help message"
       echo ""
@@ -52,6 +52,12 @@ fi
 
 if [ "$TYPE" != "audio" ] && [ "$TYPE" != "video" ]; then
   echo -e "${RED}Error: Type must be 'audio' or 'video'${NC}" >&2
+  exit 1
+fi
+
+if [ -z "$VERSION" ]; then
+  echo -e "${RED}Error: Version (-v) is required${NC}" >&2
+  echo -e "${YELLOW}Specify a release version/tag (e.g., -v 3.1.0, -v main, -v develop)${NC}" >&2
   exit 1
 fi
 
