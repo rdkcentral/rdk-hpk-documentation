@@ -9,6 +9,7 @@
 - [Levels of Test for Vendor Layer](#levels-of-test-for-vendor-layer)
 - [Executing the `L1` `L2` and `L3` test suites via automation on the target](#executing-the-l1-l2-and-l3-test-suites-via-automation-on-the-target)
 - [Executing `L1` and `L2` test suites manually on the target](#executing-l1-and-l2-test-suites-manually-on-the-target)
+- [HPK HFP Configuration](#hpk-hfp-configuration)
 - [Release History](#release-history)
 - [Reference](#reference)
 
@@ -137,6 +138,10 @@ Help
 1. Console Mode - will open the interactive console
 2. Automated Mode - will output in xUnit form as a .xml file
 3. Basic Mode - All tests will be ran and the output redirected to the shell
+
+## HPK HFP Configuration
+
+For information about Hardware Feature Profile (HFP) configuration files for audio and video decoder capabilities, including schema standardization and validation procedures, please refer to [HPK HFP Configuration](./hfp-reference/hpk-hfp-configuration.md).
 
 ## Release History
 
