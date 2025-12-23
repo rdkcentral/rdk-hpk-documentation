@@ -53,3 +53,79 @@ For detailed instructions on setting up the validation environment and using the
 - Ensure schema files are updated when adding new configuration attributes
 - Run validation as part of your CI/CD pipeline to catch configuration errors early
 - Keep the `interfaceVersion` in sync between configuration files and schema definitions
+
+## Updating an Existing Schema
+
+If you are an architect updating an existing HFP schema (for example, adding new fields, modifying validation rules, or aligning with a new HAL interface version), follow this process:
+
+### 1. Update the Schema File
+
+Modify the schema file to reflect the required changes:
+
+- Edit `hfp-<module>-schema.yaml` in the module directory (e.g., `hfp-reference/audiodecoder/`)
+- Add new fields, update validation rules, or modify constraints as needed
+- Increment the `schemaVersion` in the schema file to reflect the change
+- Ensure `schemaVersion` aligns with the `interfaceVersion` from the corresponding [rdk-halif-aidl](https://github.com/rdkcentral/rdk-halif-aidl) release
+- Document changes with comments explaining new fields or modified behavior
+
+### 2. Update Reference YAML Files
+
+Update the reference implementation to match the new schema:
+
+- Edit `hfp-<module>.yaml` in the same directory
+- Add values for any new required fields
+- Update existing values if field definitions have changed
+- Ensure `schemaVersion` and `interfaceVersion` match the schema file
+- Add comments explaining new fields for vendor guidance
+
+### 3. Validate the Changes
+
+Test your updated schema and reference YAML using the validation script:
+
+```bash
+# From the repository root
+./scripts/validate-hfp.sh hfp-reference/<module>/hfp-<module>.yaml hfp-reference/<module>/hfp-<module>-schema.yaml
+```
+
+Resolve any validation errors. See the [HFP Validation Setup Guide](./hfp-validation-setup.md) for detailed validation instructions.
+
+### 4. Update Documentation
+
+Update relevant documentation to reflect the schema changes:
+
+- Update this file if new modules or significant structural changes were made
+- Document breaking changes and migration guidance for vendors
+- Update version information in the Version Fields section if needed
+
+### 5. Update Release History
+
+Prepare release documentation:
+
+- Update `CHANGELOG.md` with detailed description of schema changes, new fields added, modified validation rules, and breaking changes (if any)
+- Update `RELEASE.md` with new version number, release date, and summary of changes
+- Include migration instructions for vendors if schema changes require updates to existing HFP files
+
+### 6. Release and Tag
+
+Publish the updated schema:
+
+- Commit all changes with descriptive commit message referencing the HAL interface version
+- Tag the repository with semantic version (e.g., `v1.2.0`) following the versioning strategy
+- Create a GitHub release with release notes highlighting schema changes and version alignment
+- Reference the corresponding `rdk-halif-aidl` version in release notes
+
+### 7. Notify Stakeholders
+
+Communicate the schema update:
+
+- Notify vendor teams about the schema update and any required actions
+- Highlight breaking changes that require vendor HFP file updates
+- Share validation script location and updated schema files
+- Provide timeline for vendors to migrate to new schema version (if applicable)
+
+### Key Considerations
+
+- **Version Alignment**: Always ensure `schemaVersion` aligns with the `interfaceVersion` from the HAL interface specification
+- **Backward Compatibility**: Avoid breaking changes when possible; if unavoidable, provide clear migration path
+- **Validation Required**: Never commit schema changes without successful validation of reference YAMLs
+- **Vendor Impact**: Consider the impact on vendors - breaking changes require vendor coordination and migration time
