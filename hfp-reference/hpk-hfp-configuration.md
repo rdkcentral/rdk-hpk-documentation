@@ -42,43 +42,14 @@ A formal schema definition ensures consistency in configuration file structure a
 
 ## Testing Configuration Files
 
-You can validate your configuration files against their respective schemas using the automated validation script.
+You can validate your configuration files against their respective schemas using the automated validation script provided in the repository.
 
-### Using the Validation Script
-
-The HPK repository provides a validation script that automatically downloads the appropriate schema version and validates your YAML file.
-
-**Download and Run:**
-```bash
-# Download the script
-curl -fsSL https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/main/scripts/validate-hfp.sh -o validate-hfp.sh
-chmod +x validate-hfp.sh
-
-# Validate against a specific release version
-./validate-hfp.sh -t audio -v 3.1.0 -f my-audio-decoder.yaml
-./validate-hfp.sh -t video -v 3.1.0 -f my-video-decoder.yaml
-
-# Validate against a branch
-./validate-hfp.sh -t audio -v main -f my-audio-decoder.yaml
-./validate-hfp.sh -t video -v develop -f my-video-decoder.yaml
-```
-
-**Note:** For security, always review scripts before execution, especially from remote sources.
-
-**Direct Execution (Use with Caution):**
-For quick validation in trusted environments, you can pipe directly to bash:
-```bash
-curl -fsSL https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/main/scripts/validate-hfp.sh | \
-  bash -s -- -t audio -v 3.1.0 -f my-audio-decoder.yaml
-```
-
-**Requirements:**
-- `pykwalify` must be installed: `pip install pykwalify`
-- Network access to download schemas
+For detailed instructions on setting up the validation environment and using the validation script, please refer to the [HFP Validation Setup Guide](./hfp-validation-setup.md).
 
 ### Validation Best Practices
 
 - Always validate configuration files before committing changes
+- Set up pre-commit hooks to validate HFP files
 - Ensure schema files are updated when adding new configuration attributes
 - Run validation as part of your CI/CD pipeline to catch configuration errors early
 - Keep the `interfaceVersion` in sync between configuration files and schema definitions

@@ -33,8 +33,8 @@ while getopts "t:v:f:h" opt; do
       echo "  -h: Show this help message"
       echo ""
       echo "Examples:"
-      echo "  validate-hfp.sh -t audio -v 3.1.0 -f my-audio-decoder.yaml"
-      echo "  validate-hfp.sh -t video -v main -f platform-video-decoder.yaml"
+      echo "  validate-hfp.sh -t audio -v 3.1.0 -f hfp-audiodecoder.yaml"
+      echo "  validate-hfp.sh -t video -v main -f hfp-videodecoder.yaml.yaml"
       exit 0
       ;;
     *) 
