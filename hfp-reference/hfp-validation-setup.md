@@ -153,8 +153,6 @@ curl -fsSL https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/ma
   bash -s -- -t audio -v 3.1.0 -f hfp-audiodecoder.yaml
 ```
 
-**Warning:** This method executes the script without allowing you to review it first. Only use in trusted environments.
-
 ## Script Usage
 
 The validation script accepts the following parameters:
