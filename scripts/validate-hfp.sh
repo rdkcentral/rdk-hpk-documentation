@@ -34,7 +34,7 @@ while getopts "t:v:f:h" opt; do
       echo ""
       echo "Examples:"
       echo "  validate-hfp.sh -t audio -v 3.1.0 -f hfp-audiodecoder.yaml"
-      echo "  validate-hfp.sh -t video -v main -f hfp-videodecoder.yaml.yaml"
+      echo "  validate-hfp.sh -t video -v main -f hfp-videodecoder.yaml"
       exit 0
       ;;
     *) 
