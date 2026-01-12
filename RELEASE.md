@@ -58,9 +58,21 @@
 | 8   | [LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm) |  `No change` || [1.0.1](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.1) | `NYA` | ||
 | 9  | [AvSync](https://github.com/rdkcentral/rdk-halif-avsync) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0) | `NYA` | ||
 | 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) |  `No change` ||[1.0.1](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.1) | `NYA` | ||
-| 11  | [Initial Setup](https://github.com/rdkcentral/rdk-halif-test-initial-setup) |  `NA` ||NA | [1.0.1](https://github.com/rdkcentral/rdk-halif-test-initial-setup/tree/1.0.1) | |`No change`|
+| 11  | [Initial Setup](https://github.com/rdkcentral/rdk-halif-test-initial-setup) |  `NA` ||NA | [1.0.1](https://github.com/rdkcentral/rdk-halif-test-initial-setup/tree/1.0.1) | |`New Repo`|
+
 
 **Summary of Current Release**
+---
+
+**L1 to L3:**
+
+- **Interface Improvements**: Interface update additions in HDMI-CEC and documentation updates on Deepsleep, Powermanager and RMF Audio Capture.
+- **HPK HFP Documentation** : Documentation added for Hardware Feature Profile (HFP) configuration files that expose audio and video decoder capabilities in the rdk-hpk-documentation repo.
+- **HFP Validation Script**: Validation script is added that enables OEMs and vendors to validate their platform-specific HFP (Hardware Feature Profile) YAML files against official schemas from any HPK release version.
+- **VTS Issue Resolutions**: Fixed test suite issues affecting the DeviceSettings.
+- **VTS Python Improvements** : VTS Python updates with bug fixes and variable alignment in DeepSleep and Power Manager modules.
+- **Documentation Updates**: Updated HAL documentation to align with the RDK 7 release.
+- **New Repository Added**: Introduced a new repository, **rdk-halif-test-initial-setup**, dedicated to hosting tests that validate the initial setup environment after a vendor build is flashed.
 ---
 
 ## 3.0.0
