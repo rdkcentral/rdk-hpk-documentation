@@ -9,6 +9,7 @@
 - [Levels of Test for Vendor Layer](#levels-of-test-for-vendor-layer)
 - [Executing the `L1` `L2` and `L3` test suites via automation on the target](#executing-the-l1-l2-and-l3-test-suites-via-automation-on-the-target)
 - [Executing `L1` and `L2` test suites manually on the target](#executing-l1-and-l2-test-suites-manually-on-the-target)
+- [HPK HFP Configuration](#hpk-hfp-configuration)
 - [Release History](#release-history)
 - [Reference](#reference)
 
@@ -33,17 +34,17 @@ The components and their respective repositories are listed below:
 
 | #  | Component Name | Repositories |
 | ---| ---------------| -------------|
-| 1|Deep Sleep Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-deepsleep_manager)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager)|
-| 2|Power Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-power_manager)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-power_manager)|
-| 3|Device Settings|[HALInterface](https://github.com/rdkcentral/rdk-halif-device_settings)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-device_settings)|
-| 4|HDMI CEC|[HAL Interface](https://github.com/rdkcentral/rdk-halif-hdmi_cec)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec)|
-| 5|RMF Audio Capture|[HAL Interface](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture)|
-| 6|`RDK-V` TVSettings|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-tvsettings)/[Test Suit](https://github.com/rdkcentral/rdkv-halif-test-tvsettings)|
-| 7|`RDK-V` WiFi|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-wifi)/[Test Suit](https://github.com/rdkcentral/rdkv-halif-test-wifi)|
+| 1|Deep Sleep Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-deepsleep_manager)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager)|
+| 2|Power Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-power_manager)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-power_manager)|
+| 3|Device Settings|[HALInterface](https://github.com/rdkcentral/rdk-halif-device_settings)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-device_settings)|
+| 4|HDMI CEC|[HAL Interface](https://github.com/rdkcentral/rdk-halif-hdmi_cec)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec)|
+| 5|RMF Audio Capture|[HAL Interface](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture)|
+| 6|`RDK-V` TVSettings|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-tvsettings)/[Test Suite](https://github.com/rdkcentral/rdkv-halif-test-tvsettings)|
+| 7|`RDK-V` WiFi|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-wifi)/[Test Suite](https://github.com/rdkcentral/rdkv-halif-test-wifi)|
 | 8|LibDRM|[HAL Interface](https://github.com/rdkcentral/rdk-halif-libdrm)/Test Suit NA|
 | 9|AvSync|[HAL Interface](https://github.com/rdkcentral/rdk-halif-avsync)/Test Suit NA|
 |10|V4L2|[HAL Interface](https://github.com/rdkcentral/rdk-halif-v4l2)/Test Suit NA|
-
+|11|Initial Setup|HAL Interface NA/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-initial-setup)|
 ## How to build the test suite
 
 In order to build the test suits, there is a requirement to supply the toolchain, either as a vendor independent toolchain, an SDK, or an RDK toolchain.
@@ -137,6 +138,10 @@ Help
 1. Console Mode - will open the interactive console
 2. Automated Mode - will output in xUnit form as a .xml file
 3. Basic Mode - All tests will be ran and the output redirected to the shell
+
+## HPK HFP Configuration
+
+For information about Hardware Feature Profile (HFP) configuration files for audio and video decoder capabilities, including schema standardization and validation procedures, please refer to [HPK HFP Configuration](./hfp-reference/hpk-hfp-configuration.md).
 
 ## Release History
 
