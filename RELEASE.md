@@ -4,6 +4,7 @@
 
 - [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
 - [Release History](#release-history)
+  - [3.1.0](#310)
   - [3.0.0](#300)
   - [2.1.0](#210)
   - [2.0.0](#200)
@@ -38,7 +39,29 @@
 - `VRR` - Variable Refresh Rate
 
 ## Release History
+## 3.1.0
 
+**Release date (YYYY-MM-DD)** : `2026-01-12`  
+**Release Version**: `3.1.0`  
+**Previous Version**: `3.0.0`  
+
+| #  | Component Name | HAL Interface Version ||              | HAL Testing Suite Version | |            |
+| --- | ------------- | ------------          |-|-------------| ------------------------- |-| ----------- |
+|     |                | **Current**          |**ChangeInfo**| **Previous**| **Current**|**ChangeInfo**   | **Previous**|
+| 1   |  [Deep Sleep Manager](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/) |[`1.0.5`](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/tree/1.0.5)|[1.0.4...1.0.5](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/compare/1.0.4...1.0.5)|[1.0.4](https://github.com/rdkcentral/rdk-halif-deepsleep_manager/tree/1.0.4) |[`1.4.3`](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/tree/1.4.3)| [1.4.2...1.4.3](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/compare/1.4.2...1.4.3) |[1.4.2](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager/tree/1.4.2) |
+| 2   | [Power Manager](https://github.com/rdkcentral/rdk-halif-power_manager/) |[`1.0.4`](https://github.com/rdkcentral/rdk-halif-power_manager/tree/1.0.4)|[1.0.3...1.0.4](https://github.com/rdkcentral/rdk-halif-power_manager/compare/1.0.3...1.0.4)|[1.0.3](https://github.com/rdkcentral/rdk-halif-power_manager/tree/1.0.3)| [`1.5.4`](https://github.com/rdkcentral/rdk-halif-test-power_manager/tree/1.5.4)| [1.5.3...1.5.4](https://github.com/rdkcentral/rdk-halif-test-power_manager/compare/1.5.3...1.5.4)|[1.5.3](https://github.com/rdkcentral/rdk-halif-test-power_manager/tree/1.5.3) | |
+| 3   | [Device Settings](https://github.com/rdkcentral/rdk-halif-device_settings/) |[`6.0.1`](https://github.com/rdkcentral/rdk-halif-device_settings/tree/6.0.0)|[6.0.0...6.0.1](https://github.com/rdkcentral/rdk-halif-device_settings/compare/6.0.0...6.0.1)|[6.0.0](https://github.com/rdkcentral/rdk-halif-device_settings/tree/6.0.0) |[`6.0.1`](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/6.0.0)| [6.0.0...6.0.1](https://github.com/rdkcentral/rdk-halif-test-device_settings/compare/6.0.0...6.0.1)| [6.0.0](https://github.com/rdkcentral/rdk-halif-test-device_settings/tree/6.0.0) |
+| 4   | [HDMI CEC](https://github.com/rdkcentral/rdk-halif-hdmi_cec/) |[`1.4.0`](https://github.com/rdkcentral/rdk-halif-hdmi_cec/tree/1.4.0)|[1.3.11...1.4.0](https://github.com/rdkcentral/rdk-halif-hdmi_cec/compare/1.3.11...1.4.0)|[1.3.11](https://github.com/rdkcentral/rdk-halif-hdmi_cec/tree/1.3.11) | [`1.6.1`](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.6.1)|[1.6.0...1.6.1](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.6.0...1.6.1)|[1.6.0](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.6.0) |
+| 5   | [RMF Audio Capture](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/) |[`1.0.6`](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/tree/1.0.6)|[1.0.5...1.0.6](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/compare/1.0.5...1.0.6)|[1.0.5](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/tree/1.0.5) | `No change` | |[1.5.4](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/tree/1.5.4)  |
+| 6   | [`RDK-V` TVSettings](https://github.com/rdkcentral/rdkv-halif-tvsettings) |`No change` || [2.4.0](https://github.com/rdkcentral//rdkv-halif-tvsettings/tree/2.4.0) |`No change` | |[2.3.2](https://github.com/rdkcentral/rdkv-halif-tvsettings/tree/2.3.2) |
+| 7   | [`RDK-V` WiFi](https://github.com/rdkcentral/rdkv-halif-wifi) [^1] | `No change`| | [2.0.0](https://github.com/rdkcentral/rdkv-halif-wifi/blob/2.0.0) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdkv-halif-test-wifi/blob/1.0.0) |
+| 8   | [LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm) |  `No change` || [1.0.1](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.1) | `NYA` | ||
+| 9  | [AvSync](https://github.com/rdkcentral/rdk-halif-avsync) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0) | `NYA` | ||
+| 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) |  `No change` ||[1.0.1](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.1) | `NYA` | ||
+| 11  | [Initial Setup](https://github.com/rdkcentral/rdk-halif-test-initial-setup) |  `NA` ||NA | [1.0.1](https://github.com/rdkcentral/rdk-halif-test-initial-setup/tree/1.0.1) | |`No change`|
+
+**Summary of Current Release**
+---
 
 ## 3.0.0
 

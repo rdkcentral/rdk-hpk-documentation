@@ -34,17 +34,17 @@ The components and their respective repositories are listed below:
 
 | #  | Component Name | Repositories |
 | ---| ---------------| -------------|
-| 1|Deep Sleep Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-deepsleep_manager)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager)|
-| 2|Power Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-power_manager)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-power_manager)|
-| 3|Device Settings|[HALInterface](https://github.com/rdkcentral/rdk-halif-device_settings)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-device_settings)|
-| 4|HDMI CEC|[HAL Interface](https://github.com/rdkcentral/rdk-halif-hdmi_cec)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec)|
-| 5|RMF Audio Capture|[HAL Interface](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture)/[Test Suit](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture)|
-| 6|`RDK-V` TVSettings|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-tvsettings)/[Test Suit](https://github.com/rdkcentral/rdkv-halif-test-tvsettings)|
-| 7|`RDK-V` WiFi|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-wifi)/[Test Suit](https://github.com/rdkcentral/rdkv-halif-test-wifi)|
+| 1|Deep Sleep Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-deepsleep_manager)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-deepsleep_manager)|
+| 2|Power Manager|[HAL Interface](https://github.com/rdkcentral/rdk-halif-power_manager)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-power_manager)|
+| 3|Device Settings|[HALInterface](https://github.com/rdkcentral/rdk-halif-device_settings)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-device_settings)|
+| 4|HDMI CEC|[HAL Interface](https://github.com/rdkcentral/rdk-halif-hdmi_cec)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec)|
+| 5|RMF Audio Capture|[HAL Interface](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture)/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture)|
+| 6|`RDK-V` TVSettings|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-tvsettings)/[Test Suite](https://github.com/rdkcentral/rdkv-halif-test-tvsettings)|
+| 7|`RDK-V` WiFi|[HAL Interface](https://github.com/rdkcentral/rdkv-halif-wifi)/[Test Suite](https://github.com/rdkcentral/rdkv-halif-test-wifi)|
 | 8|LibDRM|[HAL Interface](https://github.com/rdkcentral/rdk-halif-libdrm)/Test Suit NA|
 | 9|AvSync|[HAL Interface](https://github.com/rdkcentral/rdk-halif-avsync)/Test Suit NA|
 |10|V4L2|[HAL Interface](https://github.com/rdkcentral/rdk-halif-v4l2)/Test Suit NA|
-
+|11|Initial Setup|HAL Interface NA/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-initial-setup)|
 ## How to build the test suite
 
 In order to build the test suits, there is a requirement to supply the toolchain, either as a vendor independent toolchain, an SDK, or an RDK toolchain.
