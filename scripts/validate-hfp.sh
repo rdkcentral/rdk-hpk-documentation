@@ -105,18 +105,15 @@ if ! curl -fsSL "$SCHEMA_URL" -o "$SCHEMA_FILE" 2>/dev/null; then
 fi
 
 echo "Schema downloaded successfully"
-echo "Validating $(basename "$YAML_FILE") against schema..."
 echo ""
 
-# Run validation and capture output
-if pykwalify -d "$YAML_FILE" -s "$SCHEMA_FILE" 2>&1; then
-  echo ""
-  echo -e "${GREEN}✓ Validation successful!${NC}"
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Use the generic validation script
+if "$SCRIPT_DIR/validate-yaml-for-schema.sh" -f "$YAML_FILE" -s "$SCHEMA_FILE"; then
   echo "Your HFP configuration is valid according to schema version: $VERSION"
   exit 0
 else
-  echo ""
-  echo -e "${RED}✗ Validation failed${NC}"
-  echo "Please check the errors above and fix your YAML file"
   exit 1
 fi
