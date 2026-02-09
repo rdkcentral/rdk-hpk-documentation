@@ -45,13 +45,13 @@ If you prefer to manage your own virtual environment or are working outside the 
 
 ```bash
 # Create a virtual environment
-python3 -m venv hfp-validation-env
+python3 -m venv validation-env
 
 # Activate the virtual environment
 # On macOS/Linux:
-source hfp-validation-env/bin/activate
+source validation-env/bin/activate
 # On Windows:
-# hfp-validation-env\Scripts\activate
+# validation-env\Scripts\activate
 
 # Install pykwalify
 pip install pykwalify
