@@ -21,7 +21,7 @@
 # *
 #* ******************************************************************************
 
-# Activation script for HFP validation environment
+# Activation script for validation environment
 # This script must be sourced, not executed
 
 # Check if the script is sourced
@@ -40,13 +40,13 @@ else
     SCRIPTS_DIR="$(pwd)"
 fi
 
-VENV_NAME="hfp-validation-env"
+VENV_NAME="validation-env"
 VENV_DIR="${SCRIPTS_DIR}/${VENV_NAME}"
 
 # Check if virtual environment exists
 if [[ ! -d "$VENV_DIR" ]]; then
     echo "ERROR: Virtual environment not found at: $VENV_DIR"
-    echo "Please run setup-hfp-validation.sh first to create the environment."
+    echo "Please run setup-validation.sh first to create the environment."
     return 1
 fi
 
@@ -55,10 +55,13 @@ source "$VENV_DIR/bin/activate"
 
 # Verify pykwalify is installed
 if command -v pykwalify &> /dev/null; then
-    echo "HFP validation environment activated."
+    echo "Validation environment activated."
     echo "pykwalify version: $(pykwalify --version 2>&1 | head -1)"
     echo ""
-    echo "You can now run: ./validate-hfp.sh -t <audio|video> -v <version> -f <file>"
+    echo "Available validation scripts:"
+    echo "  ./validate-hfp.sh -t <audio|video> -v <version> -f <file>"
+    echo "  ./validate-yaml-for-schema.sh -f <yaml-file> -s <schema-file>"
+    echo ""
     echo "To deactivate: deactivate"
 else
     echo "WARNING: pykwalify not found in virtual environment."
