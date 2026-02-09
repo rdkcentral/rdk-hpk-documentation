@@ -26,8 +26,8 @@
 
 set -e
 
-MY_PATH="$(realpath ${BASH_SOURCE[0]})"
-SCRIPTS_DIR="$(dirname ${MY_PATH})"
+MY_PATH="$(realpath "${BASH_SOURCE[0]}")"
+SCRIPTS_DIR="$(dirname "${MY_PATH}")"
 VENV_NAME="validation-env"
 VENV_DIR="${SCRIPTS_DIR}/${VENV_NAME}"
 REQUIREMENTS_FILE="${SCRIPTS_DIR}/requirements.txt"
