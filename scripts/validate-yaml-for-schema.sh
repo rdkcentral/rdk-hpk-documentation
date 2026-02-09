@@ -71,7 +71,7 @@ fi
 echo "Validating $(basename "$YAML_FILE") against $(basename "$SCHEMA_FILE")..."
 echo ""
 
-# Run validation and capture output
+# Run validation and forward all output
 if pykwalify -d "$YAML_FILE" -s "$SCHEMA_FILE" 2>&1; then
   echo ""
   echo -e "${GREEN}✓ Validation successful!${NC}"
