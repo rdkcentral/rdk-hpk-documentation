@@ -147,8 +147,8 @@ echo -e "${YELLOW}Note: Testing specific version tags...${NC}"
 echo "If version tags don't exist yet, these tests may fail (expected)"
 echo ""
 
-# Try to test against a version tag (adjust version as needed)
-VERSION_TAG="3.1.0"
+# Try to test against a version tag (can be overridden via VERSION_TAG env var)
+VERSION_TAG="${VERSION_TAG:-3.1.0}"
 if curl -fsSL --max-time 5 "https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/$VERSION_TAG/hfp-reference/audiodecoder/hfp-audiodecoder-schema.yaml" > /dev/null 2>&1; then
   run_test "Audio Decoder (version $VERSION_TAG)" "audio" "$VERSION_TAG" "$AUDIO_YAML"
   run_test "Video Decoder (version $VERSION_TAG)" "video" "$VERSION_TAG" "$VIDEO_YAML"
