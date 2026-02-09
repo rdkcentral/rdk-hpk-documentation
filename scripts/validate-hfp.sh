@@ -110,8 +110,16 @@ echo ""
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Use the generic validation script
-if "$SCRIPT_DIR/validate-yaml-for-schema.sh" -f "$YAML_FILE" -s "$SCHEMA_FILE"; then
+# Check if the validation script exists
+VALIDATION_SCRIPT="$SCRIPT_DIR/validate-yaml-for-schema.sh"
+if [ ! -f "$VALIDATION_SCRIPT" ]; then
+  echo -e "${RED}Error: validate-yaml-for-schema.sh not found in $SCRIPT_DIR${NC}" >&2
+  echo "Please ensure the script is in the same directory as validate-hfp.sh" >&2
+  exit 1
+fi
+
+# Use the generic validation script (invoke via bash to avoid permission issues)
+if bash "$VALIDATION_SCRIPT" -f "$YAML_FILE" -s "$SCHEMA_FILE"; then
   echo "Your HFP configuration is valid according to schema version: $VERSION"
   exit 0
 else

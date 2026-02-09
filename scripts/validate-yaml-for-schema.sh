@@ -3,7 +3,7 @@
 # validate-yaml-for-schema.sh - Generic YAML validation against a schema file
 # Usage: ./validate-yaml-for-schema.sh -f <yaml-file> -s <schema-file>
 
-set -e
+set -eu
 
 # Default values
 YAML_FILE=""
