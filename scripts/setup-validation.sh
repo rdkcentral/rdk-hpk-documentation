@@ -21,16 +21,16 @@
 # *
 #* ******************************************************************************
 
-# Setup script for HFP validation environment
+# Setup script for validation environment
 # Creates a virtual environment and installs pykwalify
 
 set -e
 
-MY_PATH="$(realpath ${BASH_SOURCE[0]})"
-SCRIPTS_DIR="$(dirname ${MY_PATH})"
-VENV_NAME="hfp-validation-env"
+MY_PATH="$(realpath "${BASH_SOURCE[0]}")"
+SCRIPTS_DIR="$(dirname "${MY_PATH}")"
+VENV_NAME="validation-env"
 VENV_DIR="${SCRIPTS_DIR}/${VENV_NAME}"
-REQUIREMENTS_FILE="${SCRIPTS_DIR}/hfp-requirements.txt"
+REQUIREMENTS_FILE="${SCRIPTS_DIR}/requirements.txt"
 
 # Colors
 NO_COLOR="\e[0m"
@@ -38,7 +38,7 @@ GREEN="\e[0;32m"
 YELLOW="\e[1;33m"
 CYAN="\e[0;36m"
 
-echo -e "${CYAN}Setting up HFP validation environment...${NO_COLOR}"
+echo -e "${CYAN}Setting up validation environment...${NO_COLOR}"
 
 # Check if virtual environment exists
 if [[ ! -d "$VENV_DIR" ]]; then
@@ -73,10 +73,11 @@ echo ""
 echo -e "${GREEN}✓ Setup complete!${NO_COLOR}"
 echo ""
 echo "To use the validation environment:"
-echo -e "  ${YELLOW}source ${SCRIPTS_DIR}/activate-hfp-env.sh${NO_COLOR}"
+echo -e "  ${YELLOW}source ${SCRIPTS_DIR}/activate-env.sh${NO_COLOR}"
 echo ""
 echo "After activation, you can run:"
 echo -e "  ${YELLOW}./validate-hfp.sh -t audio -v 3.1.0 -f your-file.yaml${NO_COLOR}"
+echo -e "  ${YELLOW}./validate-yaml-for-schema.sh -f your-file.yaml -s schema.yaml${NO_COLOR}"
 echo ""
 echo "To deactivate the environment when done:"
 echo -e "  ${YELLOW}deactivate${NO_COLOR}"

@@ -20,10 +20,10 @@ git clone https://github.com/rdkcentral/rdk-hpk-documentation.git
 cd rdk-hpk-documentation/scripts
 
 # Run the setup script to create virtual environment and install pykwalify
-./setup-hfp-validation.sh
+./setup-validation.sh
 
 # Activate the environment (must be sourced from the scripts directory)
-source ./activate-hfp-env.sh
+source ./activate-env.sh
 
 # Now you can run validation
 ./validate-hfp.sh -t audio -v 3.1.0 -f ../path/to/your-file.yaml
@@ -45,13 +45,13 @@ If you prefer to manage your own virtual environment or are working outside the 
 
 ```bash
 # Create a virtual environment
-python3 -m venv hfp-validation-env
+python3 -m venv validation-env
 
 # Activate the virtual environment
 # On macOS/Linux:
-source hfp-validation-env/bin/activate
+source validation-env/bin/activate
 # On Windows:
-# hfp-validation-env\Scripts\activate
+# validation-env\Scripts\activate
 
 # Install pykwalify
 pip install pykwalify
@@ -112,7 +112,7 @@ If you have the repository cloned:
 cd rdk-hpk-documentation/scripts
 
 # Activate the validation environment (if using Option 1)
-source ./activate-hfp-env.sh
+source ./activate-env.sh
 
 # Validate your file
 ./validate-hfp.sh -t audio -v 3.1.0 -f /path/to/hfp-audiodecoder.yaml
@@ -155,7 +155,9 @@ curl -fsSL https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/ma
 
 ## Script Usage
 
-The validation script accepts the following parameters:
+### validate-hfp.sh
+
+The main validation script that automatically downloads the appropriate schema version from the repository and validates your YAML file.
 
 ```bash
 ./validate-hfp.sh -t <audio|video> -v <version> -f <yaml-file>
@@ -179,6 +181,40 @@ The validation script accepts the following parameters:
 # Show help
 ./validate-hfp.sh -h
 ```
+
+### validate-yaml-for-schema.sh
+
+A generic validation script for validating any YAML file against any schema file. Useful when you have local schema files or need to validate against custom schemas.
+
+```bash
+./validate-yaml-for-schema.sh -f <yaml-file> -s <schema-file>
+```
+
+**Parameters:**
+- `-f`: Path to YAML file to validate (required)
+- `-s`: Path to schema file (required)
+- `-h`: Show help message
+
+**Examples:**
+
+```bash
+# Validate a YAML file against a local schema
+./validate-yaml-for-schema.sh -f config.yaml -s schema.yaml
+
+# Validate HFP file against local schema
+./validate-yaml-for-schema.sh \
+  -f ../hfp-reference/audiodecoder/hfp-audiodecoder.yaml \
+  -s ../hfp-reference/audiodecoder/hfp-audiodecoder-schema.yaml
+
+# Show help
+./validate-yaml-for-schema.sh -h
+```
+
+**Use cases:**
+- Validating against local/modified schema files
+- Offline validation when network access is unavailable
+- Testing schema changes before committing
+- Validating custom or non-HFP YAML files
 
 ## Requirements
 
@@ -204,7 +240,7 @@ If you see an error that pykwalify is not installed:
 
 ```bash
 # If using virtual environment, make sure it's activated
-source ./activate-hfp-env.sh  # or your venv activation path
+source ./activate-env.sh  # or your venv activation path
 
 # If not using venv, install pykwalify
 pip install pykwalify
@@ -233,10 +269,10 @@ If sourcing the activation script fails:
 
 ```bash
 # Make sure you're using 'source' or '.'
-source ./activate-hfp-env.sh
+source ./activate-env.sh
 
 # NOT this (will fail):
-# ./activate-hfp-env.sh
+# ./activate-env.sh
 ```
 
 ## Advanced Usage

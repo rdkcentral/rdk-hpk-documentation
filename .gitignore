@@ -1,0 +1,15 @@
+# Python virtual environments
+scripts/validation-env/
+**/venv/
+**/.venv/
+**/env/
+
+# Python compiled files
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# OS files
+.DS_Store
+Thumbs.db
