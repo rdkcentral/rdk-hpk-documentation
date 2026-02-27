@@ -131,7 +131,7 @@ run_negative_test() {
   echo "  Schema: $(basename "$schema_file")"
   echo ""
   
-  if bash "$VALIDATION_SCRIPT" -f "$yaml_file" -s "$schema_file" 2>&1; then
+  if bash "$VALIDATION_SCRIPT" -f "$yaml_file" -s "$schema_file"; then
     TESTS_FAILED=$((TESTS_FAILED + 1))
     echo -e "${RED}✗ Test failed - validation should have failed but passed${NC}"
   else
