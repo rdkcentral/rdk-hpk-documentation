@@ -118,12 +118,46 @@ run_test() {
   echo ""
 }
 
+# Function to run a negative test (expects validation to fail)
+run_negative_test() {
+  local test_name="$1"
+  local yaml_file="$2"
+  local schema_file="$3"
+  
+  TESTS_RUN=$((TESTS_RUN + 1))
+  
+  echo -e "${CYAN}Test $TESTS_RUN: $test_name (NEGATIVE TEST - expects failure)${NC}"
+  echo "  YAML:   $(basename "$yaml_file")"
+  echo "  Schema: $(basename "$schema_file")"
+  echo ""
+  
+  if bash "$VALIDATION_SCRIPT" -f "$yaml_file" -s "$schema_file" 2>&1; then
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    echo -e "${RED}✗ Test failed - validation should have failed but passed${NC}"
+  else
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    echo -e "${GREEN}✓ Test passed - validation correctly failed as expected${NC}"
+  fi
+  
+  echo ""
+  echo "---"
+  echo ""
+}
+
 # Run tests
 echo -e "${CYAN}Running validation tests...${NC}"
 echo ""
 
 run_test "Audio Decoder Validation" "$AUDIO_YAML" "$AUDIO_SCHEMA"
 run_test "Video Decoder Validation" "$VIDEO_YAML" "$VIDEO_SCHEMA"
+
+# Negative test: USAC with empty profiles (should fail)
+INVALID_USAC_YAML="$SCRIPT_DIR/test-invalid-usac-empty-profiles.yaml"
+if [ ! -f "$INVALID_USAC_YAML" ]; then
+  echo -e "${RED}✗ Error: Invalid USAC test file not found: $INVALID_USAC_YAML${NC}"
+  exit 1
+fi
+run_negative_test "Audio Decoder - USAC with empty profiles" "$INVALID_USAC_YAML" "$AUDIO_SCHEMA"
 
 # Summary
 echo -e "${CYAN}=== Test Summary ===${NC}"
