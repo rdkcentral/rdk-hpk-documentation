@@ -60,7 +60,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [LC, HE_V1, HE_V2, ELD, X_HE]
@@ -170,7 +172,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [STANDARD, PLUS, PLUS_JOC]
@@ -214,7 +218,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [V1, V2]
@@ -324,7 +330,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [STANDARD, PRO, LOSSLESS]
@@ -346,7 +354,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [RA8, RA10]
@@ -368,7 +378,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [BASELINE, EXTENDED_HE_AAC]
@@ -390,7 +402,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [CORE, HD_HRA, HD_MA]
@@ -412,7 +426,9 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
                                   - type: str
                                     enum: [AVS1_PART2, AVS2, AVS3]
