@@ -2,6 +2,7 @@
 
 # Test script for validate-hfp.sh
 # Tests validation against remote schemas from the repository
+# Usage: ./test-validate-hfp.sh [-b <branch>] [-v <version-tag>]
 
 set -e
 
@@ -12,10 +13,43 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# Default values
+TEST_BRANCH="${TEST_BRANCH:-main}"
+VERSION_TAG="${VERSION_TAG:-}"
+
+# Parse arguments
+while getopts "b:v:h" opt; do
+  case $opt in
+    b) TEST_BRANCH="$OPTARG" ;;
+    v) VERSION_TAG="$OPTARG" ;;
+    h)
+      echo "Usage: test-validate-hfp.sh [-b <branch>] [-v <version-tag>]"
+      echo ""
+      echo "Options:"
+      echo "  -b: Branch to test against (default: main)"
+      echo "  -v: Version tag to test (optional, no default)"
+      echo "  -h: Show this help message"
+      echo ""
+      echo "Examples:"
+      echo "  test-validate-hfp.sh                                    # Test against main branch only"
+      echo "  test-validate-hfp.sh -b feature/30-codec-dynamic-range  # Test against feature branch"
+      echo "  test-validate-hfp.sh -b main -v 3.1.0                   # Test main and version 3.1.0"
+      echo "  test-validate-hfp.sh -v 4.0.0                           # Test main and version 4.0.0"
+      exit 0
+      ;;
+    *) 
+      echo -e "${RED}Error: Invalid option. Use -h for help.${NC}" >&2
+      exit 1
+      ;;
+  esac
+done
+
 echo -e "${CYAN}=== Testing validate-hfp.sh ===${NC}"
 echo ""
 echo "This test validates HFP YAML files against schemas downloaded from GitHub."
 echo "It tests the complete workflow including schema download and validation."
+echo ""
+echo -e "${CYAN}Testing against branch: ${YELLOW}$TEST_BRANCH${NC}"
 echo ""
 
 # Get script directory
@@ -138,23 +172,24 @@ run_test() {
 echo -e "${CYAN}Running validation tests...${NC}"
 echo ""
 
-# Test against main branch (latest)
-run_test "Audio Decoder (main branch)" "audio" "main" "$AUDIO_YAML"
-run_test "Video Decoder (main branch)" "video" "main" "$VIDEO_YAML"
+# Test against specified branch
+run_test "Audio Decoder ($TEST_BRANCH branch)" "audio" "$TEST_BRANCH" "$AUDIO_YAML"
+run_test "Video Decoder ($TEST_BRANCH branch)" "video" "$TEST_BRANCH" "$VIDEO_YAML"
 
-# Test against specific version if tag exists (optional - will fail gracefully if tag doesn't exist)
-echo -e "${YELLOW}Note: Testing specific version tags...${NC}"
-echo "If version tags don't exist yet, these tests may fail (expected)"
-echo ""
-
-# Try to test against a version tag (can be overridden via VERSION_TAG env var)
-VERSION_TAG="${VERSION_TAG:-3.1.0}"
-if curl -fsSL --max-time 5 "https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/$VERSION_TAG/hfp-reference/audiodecoder/hfp-audiodecoder-schema.yaml" > /dev/null 2>&1; then
-  run_test "Audio Decoder (version $VERSION_TAG)" "audio" "$VERSION_TAG" "$AUDIO_YAML"
-  run_test "Video Decoder (version $VERSION_TAG)" "video" "$VERSION_TAG" "$VIDEO_YAML"
-else
-  echo -e "${YELLOW}Skipping version $VERSION_TAG tests (tag not found)${NC}"
+# Test against specific version tag if provided
+if [ -n "$VERSION_TAG" ]; then
+  echo -e "${YELLOW}Note: Testing specific version tag: $VERSION_TAG${NC}"
+  echo "If the version tag doesn't exist, these tests may fail"
   echo ""
+  
+  # Check if version tag exists on GitHub
+  if curl -fsSL --max-time 5 "https://raw.githubusercontent.com/rdkcentral/rdk-hpk-documentation/$VERSION_TAG/hfp-reference/audiodecoder/hfp-audiodecoder-schema.yaml" > /dev/null 2>&1; then
+    run_test "Audio Decoder (version $VERSION_TAG)" "audio" "$VERSION_TAG" "$AUDIO_YAML"
+    run_test "Video Decoder (version $VERSION_TAG)" "video" "$VERSION_TAG" "$VIDEO_YAML"
+  else
+    echo -e "${YELLOW}Skipping version $VERSION_TAG tests (tag not found on GitHub)${NC}"
+    echo ""
+  fi
 fi
 
 # Summary
