@@ -72,6 +72,13 @@ mapping:
                                           maxBitrateInBps:
                                             type: number
                                             required: true
+                              dynamicRange:
+                                type: seq
+                                required: true
+                                sequence:
+                                  - type: str
+                                    enum:
+                                      [SDR]
 
                           H264_AVC:
                             type: map
@@ -139,6 +146,13 @@ mapping:
                                           maxBitrateInBps:
                                             type: number
                                             required: true
+                              dynamicRange:
+                                type: seq
+                                required: true
+                                sequence:
+                                  - type: str
+                                    enum:
+                                      [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
 
                           H265_HEVC:
                             type: map
@@ -209,6 +223,13 @@ mapping:
                                           maxBitrateInBps:
                                             type: number
                                             required: true
+                              dynamicRange:
+                                type: seq
+                                required: true
+                                sequence:
+                                  - type: str
+                                    enum:
+                                      [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
 
                           VP9:
                             type: map
@@ -323,6 +344,13 @@ mapping:
                                           maxBitrateInBps:
                                             type: number
                                             required: true
+                              dynamicRange:
+                                type: seq
+                                required: true
+                                sequence:
+                                  - type: str
+                                    enum:
+                                      [SDR, HLG, HDR10, HDR10PLUS]
 
                           AV1:
                             type: map
@@ -373,10 +401,10 @@ mapping:
                                           maxBitrateInBps:
                                             type: number
                                             required: true
-
-                  dynamicRange:
-                    type: seq
-                    required: true
-                    sequence:
-                      - type: str
-                        enum: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+                              dynamicRange:
+                                type: seq
+                                required: true
+                                sequence:
+                                  - type: str
+                                    enum:
+                                      [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]

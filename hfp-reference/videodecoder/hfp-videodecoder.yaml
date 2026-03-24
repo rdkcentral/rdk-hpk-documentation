@@ -12,6 +12,7 @@ videodecoder:
                 - MPEG2_MAIN:
                     maxLevel: MPEG2_LEVEL_HIGH
                     maxBitrateInBps: 50000000
+              dynamicRange: [SDR]
 
           - H264_AVC:
               profiles:
@@ -24,6 +25,7 @@ videodecoder:
                 - H264_HIGH:
                     maxLevel: H264_LEVEL_5_2
                     maxBitrateInBps: 50000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
 
           - H265_HEVC:
               profiles:
@@ -36,6 +38,7 @@ videodecoder:
                 - H265_MAIN_10_HDR10:
                     maxLevel: H265_LEVEL_6_2
                     maxBitrateInBps: 150000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
 
           - VP9:
               profiles:
@@ -51,6 +54,7 @@ videodecoder:
                 - VP9_PROFILE_3:
                     maxLevel: VP9_LEVEL_6_2
                     maxBitrateInBps: 50000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
 
           - AV1:
               profiles:
@@ -60,10 +64,4 @@ videodecoder:
                 - AV1_HIGH:
                     maxLevel: AV1_LEVEL_6_2
                     maxBitrateInBps: 50000000
-
-        dynamicRange:
-          - SDR
-          - HLG
-          - HDR10
-          - HDR10PLUS
-          - DOLBY_VISION
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
