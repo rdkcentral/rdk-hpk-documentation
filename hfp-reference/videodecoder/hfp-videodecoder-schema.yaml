@@ -78,7 +78,7 @@ mapping:
                                 sequence:
                                   - type: str
                                     enum:
-                                      [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+                                      [SDR]
 
                           H264_AVC:
                             type: map
@@ -350,7 +350,7 @@ mapping:
                                 sequence:
                                   - type: str
                                     enum:
-                                      [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+                                      [SDR, HLG, HDR10, HDR10PLUS]
 
                           AV1:
                             type: map
