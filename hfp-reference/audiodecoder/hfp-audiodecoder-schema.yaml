@@ -223,7 +223,7 @@ mapping:
                                   min: 1
                                 sequence:
                                   - type: str
-                                    enum: [V1, V2]
+                                    enum: [V1, V2, V3, V4]
                               maxBitrateInBps:
                                 type: number
                                 required: false
