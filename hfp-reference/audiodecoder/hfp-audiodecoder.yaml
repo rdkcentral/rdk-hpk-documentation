@@ -72,6 +72,8 @@ audiodecoder:
               profiles:
                 - V1
                 - V2
+                - V3
+                - V4
               maxBitrateInBps: 18432000
               maxChannels: 16
               maxSampleRateInHz: 192000
