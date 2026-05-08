@@ -52,7 +52,7 @@ function ECHO()
 
 function DEBUG()
 {
-    # if set -x is in use debug messages are useless as whole stript will be shown
+    # if set -x is in use debug messages are useless as whole script will be shown
     if [[ "$-" =~ "x" ]]; then
         return
     fi

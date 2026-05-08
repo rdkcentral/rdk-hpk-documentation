@@ -21,7 +21,8 @@
 # *
 #* ******************************************************************************
 
-cd ..
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.." || exit 1
 
 # ----------------------------------------------------------------------------
 # Function to enhance echo
@@ -108,7 +109,6 @@ function main()
       ;;
 
     build)
-      ${PWD}/docs/scripts/sync_src.sh  --quiet
       echo "[INFO] Building MkDocs site..."
       mkdocs build 
       ;;
@@ -146,7 +146,7 @@ function main()
       ;;
 
     delete)
-      echo "[INFO] Delelting <$1> in gh-pages..."
+      echo "[INFO] Deleting <$1> in gh-pages..."
       # Check if the second argument (the version) is provided
       # "$#" is the number of positional parameters
       # If "$2" is empty, it means no version was provided after "deploy"
