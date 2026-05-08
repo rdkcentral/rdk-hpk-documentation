@@ -82,13 +82,13 @@ Options:
   -h, --help   Show this help message.
 
 Examples:
-  $0 serve          Serve your MkDocs site on localhost:8000
-  $0 serve -a 0.0.0.0:<port no>   Serve your MkDocs site on a server and bind to all interfaces
-  $0 build          Build your MkDocs site into the 'site' directory
-  $0 deploy         <version> - Deploy your MkDocs site to GitHub Pages
-  $0 set-default    <version> - Set the default version of the deployed docs
-  $0 delete         <version> - Delete a version of your MK Docs
-  $0 help           Show this help message
+  $0 serve                       Serve your MkDocs site on localhost:8000
+  $0 serve -a 0.0.0.0:<port no>  Serve your MkDocs site on a server and bind to all interfaces
+  $0 build                       Build your MkDocs site into the 'site' directory
+  $0 deploy                      <version> - Deploy your MkDocs site to GitHub Pages
+  $0 set-default                 <version> - Set the default version of the deployed docs
+  $0 delete                      <version> - Delete a version of your MK Docs
+  $0 help                        Show this help message
 EOF
 }
 

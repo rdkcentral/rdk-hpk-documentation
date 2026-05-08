@@ -13,11 +13,7 @@
 | 4   | [HDMI CEC](https://github.com/rdkcentral/rdk-halif-hdmi_cec/) |[`1.4.0`](https://github.com/rdkcentral/rdk-halif-hdmi_cec/tree/1.4.0)|[1.3.11...1.4.0](https://github.com/rdkcentral/rdk-halif-hdmi_cec/compare/1.3.11...1.4.0)|[1.3.11](https://github.com/rdkcentral/rdk-halif-hdmi_cec/tree/1.3.11) | [`1.6.1`](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.6.1)|[1.6.0...1.6.1](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/compare/1.6.0...1.6.1)|[1.6.0](https://github.com/rdkcentral/rdk-halif-test-hdmi_cec/tree/1.6.0) |
 | 5   | [RMF Audio Capture](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/) |[`1.0.6`](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/tree/1.0.6)|[1.0.5...1.0.6](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/compare/1.0.5...1.0.6)|[1.0.5](https://github.com/rdkcentral/rdk-halif-rmf_audio_capture/tree/1.0.5) | `No change` | |[1.5.4](https://github.com/rdkcentral/rdk-halif-test-rmf_audio_capture/tree/1.5.4)  |
 | 6   | [`RDK-V` TVSettings](https://github.com/rdkcentral/rdkv-halif-tvsettings) |`No change` || [2.4.0](https://github.com/rdkcentral//rdkv-halif-tvsettings/tree/2.4.0) |`No change` | |[2.3.2](https://github.com/rdkcentral/rdkv-halif-test-tvsettings/tree/2.3.2) |
-| 7   | [`RDK-V` WiFi](https://github.com/rdkcentral/rdkv-halif-wifi) [^1] | `No change`| | [2.0.0](https://github.com/rdkcentral/rdkv-halif-wifi/blob/2.0.0) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdkv-halif-test-wifi/blob/1.0.0) |
-| 8   | [LibDRM](https://github.com/rdkcentral/rdk-halif-libdrm) |  `No change` || [1.0.1](https://github.com/rdkcentral/rdk-halif-libdrm/blob/1.0.1) | `NYA` | ||
-| 9  | [AvSync](https://github.com/rdkcentral/rdk-halif-avsync) | `No change`| | [1.0.0](https://github.com/rdkcentral/rdk-halif-avsync/blob/1.0.0) | `NYA` | ||
-| 10  | [V4L2](https://github.com/rdkcentral/rdk-halif-v4l2) |  `No change` ||[1.0.1](https://github.com/rdkcentral/rdk-halif-v4l2/blob/1.0.1) | `NYA` | ||
-| 11  | [Initial Setup](https://github.com/rdkcentral/rdk-halif-test-initial-setup) |  `NA` ||NA | [1.0.1](https://github.com/rdkcentral/rdk-halif-test-initial-setup/tree/1.0.1) | |`New Repo`|
+| 7   | [Initial Setup](https://github.com/rdkcentral/rdk-halif-test-initial-setup) |  `NA` ||NA | [1.0.1](https://github.com/rdkcentral/rdk-halif-test-initial-setup/tree/1.0.1) | |`New Repo`|
 
 
 **Summary of Current Release**
