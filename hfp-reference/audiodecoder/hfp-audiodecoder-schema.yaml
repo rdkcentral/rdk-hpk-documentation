@@ -1,6 +1,6 @@
 # Pykwalify schema for audio decoder capabilities
 # Enforces codec-specific profile validation
-# Schema Version: 0.1.0
+# Schema Version: 1.0.0
 
 type: map
 mapping:
@@ -38,22 +38,28 @@ mapping:
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           AAC:
                             type: map
@@ -64,108 +70,136 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [LC, HE_V1, HE_V2, ELD, X_HE]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(LC|HE_V1|HE_V2|ELD|X_HE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           MPEG_AUDIO:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           MP3:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           ALAC:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           SBC:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           DOLBY_AC3:
                             type: map
@@ -176,42 +210,52 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [STANDARD, PLUS, PLUS_JOC]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(STANDARD|PLUS|PLUS_JOC)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           DOLBY_AC4:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           DOLBY_MAT:
                             type: map
@@ -222,108 +266,136 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [V1, V2, V3, V4]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(V1|V2|V3|V4)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           DOLBY_TRUEHD:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           FLAC:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           VORBIS:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           OPUS:
                             type: map
                             mapping:
                               profiles:
                                 type: seq
-                                required: false
+                                required: true
+                                range:
+                                  min: 1
                                 sequence:
-                                  - type: str
-                                    enum: []
-                              maxBitrateInBps:
-                                type: number
-                                required: true
-                              maxChannels:
-                                type: int
-                                required: true
-                              maxSampleRateInHz:
-                                type: int
-                                required: true
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASE)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           WMA:
                             type: map
@@ -334,20 +406,24 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [STANDARD, PRO, LOSSLESS]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(STANDARD|PRO|LOSSLESS)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           REALAUDIO:
                             type: map
@@ -358,20 +434,24 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [RA8, RA10]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(RA8|RA10)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           USAC:
                             type: map
@@ -382,20 +462,24 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [BASELINE, EXTENDED_HE_AAC]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(BASELINE|EXTENDED_HE_AAC)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           DTS:
                             type: map
@@ -406,20 +490,24 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [CORE, HD_HRA, HD_MA]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(CORE|HD_HRA|HD_MA)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
 
                           AVS:
                             type: map
@@ -430,17 +518,21 @@ mapping:
                                 range:
                                   min: 1
                                 sequence:
-                                  - type: str
-                                    enum: [AVS1_PART2, AVS2, AVS3]
-                              maxBitrateInBps:
-                                type: number
-                                required: false
-                              maxChannels:
-                                type: int
-                                required: false
-                              maxSampleRateInHz:
-                                type: int
-                                required: false
-                              maxBitDepth:
-                                type: int
-                                required: false
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(AVS1_PART2|AVS2|AVS3)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: false
