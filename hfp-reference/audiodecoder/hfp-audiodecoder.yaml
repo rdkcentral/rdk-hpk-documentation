@@ -98,29 +98,6 @@ audiodecoder:
                     maxSampleRateInHz: 48000
                     maxBitDepth: 24
 
-          - DOLBY_MAT:
-              profiles:
-                - V1:
-                    maxBitrateInBps: 18432000
-                    maxChannels: 16
-                    maxSampleRateInHz: 192000
-                    maxBitDepth: 24
-                - V2:
-                    maxBitrateInBps: 18432000
-                    maxChannels: 16
-                    maxSampleRateInHz: 192000
-                    maxBitDepth: 24
-                - V3:
-                    maxBitrateInBps: 18432000
-                    maxChannels: 16
-                    maxSampleRateInHz: 192000
-                    maxBitDepth: 24
-                - V4:
-                    maxBitrateInBps: 18432000
-                    maxChannels: 16
-                    maxSampleRateInHz: 192000
-                    maxBitDepth: 24
-
           - DOLBY_TRUEHD:
               profiles:
                 - BASE:

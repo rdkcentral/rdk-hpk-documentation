@@ -59,7 +59,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           AAC:
                             type: map
@@ -87,7 +87,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           MPEG_AUDIO:
                             type: map
@@ -115,7 +115,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           MP3:
                             type: map
@@ -143,7 +143,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           ALAC:
                             type: map
@@ -171,7 +171,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           SBC:
                             type: map
@@ -199,7 +199,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           DOLBY_AC3:
                             type: map
@@ -227,7 +227,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           DOLBY_AC4:
                             type: map
@@ -255,35 +255,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
-
-                          DOLBY_MAT:
-                            type: map
-                            mapping:
-                              profiles:
-                                type: seq
-                                required: true
-                                range:
-                                  min: 1
-                                sequence:
-                                  - type: map
-                                    matching: "any"
-                                    mapping:
-                                      regex;(^(V1|V2|V3|V4)$):
-                                        type: map
-                                        mapping:
-                                          maxBitrateInBps:
-                                            type: number
                                             required: true
-                                          maxChannels:
-                                            type: int
-                                            required: true
-                                          maxSampleRateInHz:
-                                            type: int
-                                            required: true
-                                          maxBitDepth:
-                                            type: int
-                                            required: false
 
                           DOLBY_TRUEHD:
                             type: map
@@ -311,7 +283,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           FLAC:
                             type: map
@@ -339,7 +311,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           VORBIS:
                             type: map
@@ -367,7 +339,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           OPUS:
                             type: map
@@ -395,7 +367,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           WMA:
                             type: map
@@ -423,7 +395,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           REALAUDIO:
                             type: map
@@ -451,7 +423,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           USAC:
                             type: map
@@ -479,7 +451,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           DTS:
                             type: map
@@ -507,7 +479,7 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
 
                           AVS:
                             type: map
@@ -535,4 +507,4 @@ mapping:
                                             required: true
                                           maxBitDepth:
                                             type: int
-                                            required: false
+                                            required: true
