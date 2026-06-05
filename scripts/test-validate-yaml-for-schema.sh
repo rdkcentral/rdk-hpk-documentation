@@ -152,7 +152,7 @@ run_test "Audio Decoder Validation" "$AUDIO_YAML" "$AUDIO_SCHEMA"
 run_test "Video Decoder Validation" "$VIDEO_YAML" "$VIDEO_SCHEMA"
 
 # Negative test: USAC with empty profiles (should fail)
-INVALID_USAC_YAML="$SCRIPT_DIR/test-invalid-usac-empty-profiles.yaml"
+INVALID_USAC_YAML="$SCRIPT_DIR/test-invalid-usac-bad-profiles.yaml"
 if [ ! -f "$INVALID_USAC_YAML" ]; then
   echo -e "${RED}✗ Error: Invalid USAC test file not found: $INVALID_USAC_YAML${NC}"
   exit 1
