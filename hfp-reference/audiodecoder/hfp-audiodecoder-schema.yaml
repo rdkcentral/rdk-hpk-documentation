@@ -101,7 +101,7 @@ mapping:
                                   - type: map
                                     matching: "any"
                                     mapping:
-                                      regex;(^(BASE)$):
+                                      regex;(^(LAYER_1|LAYER_2)$):
                                         type: map
                                         mapping:
                                           maxBitrateInBps:
@@ -213,7 +213,35 @@ mapping:
                                   - type: map
                                     matching: "any"
                                     mapping:
-                                      regex;(^(STANDARD|PLUS|PLUS_JOC)$):
+                                      regex;(^(STANDARD)$):
+                                        type: map
+                                        mapping:
+                                          maxBitrateInBps:
+                                            type: number
+                                            required: true
+                                          maxChannels:
+                                            type: int
+                                            required: true
+                                          maxSampleRateInHz:
+                                            type: int
+                                            required: true
+                                          maxBitDepth:
+                                            type: int
+                                            required: true
+
+                          DOLBY_EAC3:
+                            type: map
+                            mapping:
+                              profiles:
+                                type: seq
+                                required: true
+                                range:
+                                  min: 1
+                                sequence:
+                                  - type: map
+                                    matching: "any"
+                                    mapping:
+                                      regex;(^(PLUS|PLUS_JOC)$):
                                         type: map
                                         mapping:
                                           maxBitrateInBps:
@@ -354,34 +382,6 @@ mapping:
                                     matching: "any"
                                     mapping:
                                       regex;(^(BASE)$):
-                                        type: map
-                                        mapping:
-                                          maxBitrateInBps:
-                                            type: number
-                                            required: true
-                                          maxChannels:
-                                            type: int
-                                            required: true
-                                          maxSampleRateInHz:
-                                            type: int
-                                            required: true
-                                          maxBitDepth:
-                                            type: int
-                                            required: true
-
-                          WMA:
-                            type: map
-                            mapping:
-                              profiles:
-                                type: seq
-                                required: true
-                                range:
-                                  min: 1
-                                sequence:
-                                  - type: map
-                                    matching: "any"
-                                    mapping:
-                                      regex;(^(STANDARD|PRO|LOSSLESS)$):
                                         type: map
                                         mapping:
                                           maxBitrateInBps:

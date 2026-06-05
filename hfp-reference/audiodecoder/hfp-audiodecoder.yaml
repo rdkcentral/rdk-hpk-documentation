@@ -42,7 +42,7 @@ audiodecoder:
 
           - MPEG_AUDIO:
               profiles:
-                - BASE:
+                - LAYER_1:
                     maxBitrateInBps: 448000
                     maxChannels: 2
                     maxSampleRateInHz: 48000
@@ -79,6 +79,9 @@ audiodecoder:
                     maxChannels: 16
                     maxSampleRateInHz: 48000
                     maxBitDepth: 24
+
+          - DOLBY_EAC3:
+              profiles:
                 - PLUS:
                     maxBitrateInBps: 6144000
                     maxChannels: 16
@@ -128,24 +131,6 @@ audiodecoder:
                     maxBitrateInBps: 510000
                     maxChannels: 8
                     maxSampleRateInHz: 48000
-                    maxBitDepth: 24
-
-          - WMA:
-              profiles:
-                - STANDARD:
-                    maxBitrateInBps: 768000
-                    maxChannels: 8
-                    maxSampleRateInHz: 96000
-                    maxBitDepth: 24
-                - PRO:
-                    maxBitrateInBps: 768000
-                    maxChannels: 8
-                    maxSampleRateInHz: 96000
-                    maxBitDepth: 24
-                - LOSSLESS:
-                    maxBitrateInBps: 768000
-                    maxChannels: 8
-                    maxSampleRateInHz: 96000
                     maxBitDepth: 24
 
           - REALAUDIO:
