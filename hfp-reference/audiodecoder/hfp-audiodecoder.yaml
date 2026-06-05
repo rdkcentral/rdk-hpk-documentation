@@ -47,6 +47,11 @@ audiodecoder:
                     maxChannels: 2
                     maxSampleRateInHz: 48000
                     maxBitDepth: 16
+                - LAYER_2:
+                    maxBitrateInBps: 384000
+                    maxChannels: 2
+                    maxSampleRateInHz: 48000
+                    maxBitDepth: 16
 
           - MP3:
               profiles:
