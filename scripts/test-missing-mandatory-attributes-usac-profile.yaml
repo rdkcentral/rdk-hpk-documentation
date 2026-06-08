@@ -1,0 +1,12 @@
+audiodecoder:
+  interfaceVersion: "current"
+  schemaVersion: "1.0.0"
+  Capabilities:
+    - 0:
+        codecCapabilities:
+          - USAC:
+              profiles:
+                - BASELINE:
+                    maxBitrateInBps: 512000
+                    maxChannels: 8
+                    maxSampleRateInHz: 96000

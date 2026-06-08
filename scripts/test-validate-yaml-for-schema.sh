@@ -151,13 +151,30 @@ echo ""
 run_test "Audio Decoder Validation" "$AUDIO_YAML" "$AUDIO_SCHEMA"
 run_test "Video Decoder Validation" "$VIDEO_YAML" "$VIDEO_SCHEMA"
 
-# Negative test: USAC with empty profiles (should fail)
-INVALID_USAC_YAML="$SCRIPT_DIR/test-invalid-usac-bad-profiles.yaml"
-if [ ! -f "$INVALID_USAC_YAML" ]; then
-  echo -e "${RED}✗ Error: Invalid USAC test file not found: $INVALID_USAC_YAML${NC}"
+# Negative test: USAC with bad profiles (should fail)
+BAD_USAC_YAML="$SCRIPT_DIR/test-bad-usac-profile.yaml"
+if [ ! -f "$BAD_USAC_YAML" ]; then
+  echo -e "${RED}✗ Error: Bad USAC test file not found: $BAD_USAC_YAML${NC}"
   exit 1
 fi
-run_negative_test "Audio Decoder - USAC with empty profiles" "$INVALID_USAC_YAML" "$AUDIO_SCHEMA"
+run_negative_test "Audio Decoder - USAC with bad profiles" "$BAD_USAC_YAML" "$AUDIO_SCHEMA"
+
+# Negative test: USAC with invalid/missing mandatory attributes in profiles (should fail)
+MISSING_MANDATORY_ATTRIBUTES_USAC_YAML="$SCRIPT_DIR/test-missing-mandatory-attributes-usac-profile.yaml"
+if [ ! -f "$MISSING_MANDATORY_ATTRIBUTES_USAC_YAML" ]; then
+  echo -e "${RED}✗ Error: Missing mandatory attributes USAC test file not found: $MISSING_MANDATORY_ATTRIBUTES_USAC_YAML${NC}"
+  exit 1
+fi
+run_negative_test "Audio Decoder - USAC with missing mandatory attributes in profiles" "$MISSING_MANDATORY_ATTRIBUTES_USAC_YAML" "$AUDIO_SCHEMA"
+
+# Negative test: USAC with invalid format in profiles (should fail)
+INVALID_FORMAT_USAC_YAML="$SCRIPT_DIR/test-invalid-format-usac-profile.yaml"
+if [ ! -f "$INVALID_FORMAT_USAC_YAML" ]; then
+  echo -e "${RED}✗ Error: Invalid format - USAC test file not found: $INVALID_FORMAT_USAC_YAML${NC}"
+  exit 1
+fi
+run_negative_test "Audio Decoder - USAC with invalid format in profiles" "$INVALID_FORMAT_USAC_YAML" "$AUDIO_SCHEMA"
+
 
 # Summary
 echo -e "${CYAN}=== Test Summary ===${NC}"
