@@ -5,7 +5,7 @@ audiodecoder:
     - 0:
         codecCapabilities:
           - USAC:
-              profiles: []
+              profiles: [BASELINE]
               maxBitrateInBps: 512000
               maxChannels: 8
               maxSampleRateInHz: 96000
