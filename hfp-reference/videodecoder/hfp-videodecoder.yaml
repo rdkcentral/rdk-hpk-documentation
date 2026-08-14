@@ -1,15 +1,17 @@
 videodecoder:
   interfaceVersion: "current"
-  schemaVersion: "0.1.0"
+  schemaVersion: "1.0.0"
   Capabilities:
     - 0:
         codecCapabilities:
           - MPEG2_VIDEO:
               profiles:
                 - MPEG2_SIMPLE:
+                    nodeId: d0_mpeg2_simple
                     maxLevel: MPEG2_LEVEL_HIGH
                     maxBitrateInBps: 50000000
                 - MPEG2_MAIN:
+                    nodeId: d0_mpeg2_main
                     maxLevel: MPEG2_LEVEL_HIGH
                     maxBitrateInBps: 50000000
               dynamicRange: [SDR]
@@ -17,12 +19,15 @@ videodecoder:
           - H264_AVC:
               profiles:
                 - H264_BASELINE:
+                    nodeId: d0_h264_baseline
                     maxLevel: H264_LEVEL_5_2
                     maxBitrateInBps: 50000000
                 - H264_MAIN:
+                    nodeId: d0_h264_main
                     maxLevel: H264_LEVEL_5_2
                     maxBitrateInBps: 50000000
                 - H264_HIGH:
+                    nodeId: d0_h264_high
                     maxLevel: H264_LEVEL_5_2
                     maxBitrateInBps: 50000000
               dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
@@ -30,12 +35,15 @@ videodecoder:
           - H265_HEVC:
               profiles:
                 - H265_MAIN:
+                    nodeId: d0_h265_main
                     maxLevel: H265_LEVEL_6_2
                     maxBitrateInBps: 150000000
                 - H265_MAIN_10:
+                    nodeId: d0_h265_main_10
                     maxLevel: H265_LEVEL_6_2
                     maxBitrateInBps: 150000000
                 - H265_MAIN_10_HDR10:
+                    nodeId: d0_h265_main_10_hdr10
                     maxLevel: H265_LEVEL_6_2
                     maxBitrateInBps: 150000000
               dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
@@ -43,15 +51,19 @@ videodecoder:
           - VP9:
               profiles:
                 - VP9_PROFILE_0:
+                    nodeId: d0_vp9_profile_0
                     maxLevel: VP9_LEVEL_6_2
                     maxBitrateInBps: 50000000
                 - VP9_PROFILE_1:
+                    nodeId: d0_vp9_profile_1
                     maxLevel: VP9_LEVEL_6_2
                     maxBitrateInBps: 50000000
                 - VP9_PROFILE_2:
+                    nodeId: d0_vp9_profile_2
                     maxLevel: VP9_LEVEL_6_2
                     maxBitrateInBps: 50000000
                 - VP9_PROFILE_3:
+                    nodeId: d0_vp9_profile_3
                     maxLevel: VP9_LEVEL_6_2
                     maxBitrateInBps: 50000000
               dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
@@ -59,9 +71,153 @@ videodecoder:
           - AV1:
               profiles:
                 - AV1_MAIN:
+                    nodeId: d0_av1_main
                     maxLevel: AV1_LEVEL_6_2
                     maxBitrateInBps: 50000000
                 - AV1_HIGH:
+                    nodeId: d0_av1_high
                     maxLevel: AV1_LEVEL_6_2
                     maxBitrateInBps: 50000000
               dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+    - 1:
+        codecCapabilities:
+          - MPEG2_VIDEO:
+              profiles:
+                - MPEG2_SIMPLE:
+                    nodeId: d1_mpeg2_simple
+                    maxLevel: MPEG2_LEVEL_HIGH
+                    maxBitrateInBps: 50000000
+                - MPEG2_MAIN:
+                    nodeId: d1_mpeg2_main
+                    maxLevel: MPEG2_LEVEL_HIGH
+                    maxBitrateInBps: 50000000
+              dynamicRange: [SDR]
+
+          - H264_AVC:
+              profiles:
+                - H264_BASELINE:
+                    nodeId: d1_h264_baseline
+                    maxLevel: H264_LEVEL_5_2
+                    maxBitrateInBps: 50000000
+                - H264_MAIN:
+                    nodeId: d1_h264_main
+                    maxLevel: H264_LEVEL_5_2
+                    maxBitrateInBps: 50000000
+                - H264_HIGH:
+                    nodeId: d1_h264_high
+                    maxLevel: H264_LEVEL_5_2
+                    maxBitrateInBps: 50000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+          - H265_HEVC:
+              profiles:
+                - H265_MAIN:
+                    nodeId: d1_h265_main
+                    maxLevel: H265_LEVEL_6_2
+                    maxBitrateInBps: 150000000
+                - H265_MAIN_10:
+                    nodeId: d1_h265_main_10
+                    maxLevel: H265_LEVEL_6_2
+                    maxBitrateInBps: 150000000
+                - H265_MAIN_10_HDR10:
+                    nodeId: d1_h265_main_10_hdr10
+                    maxLevel: H265_LEVEL_6_2
+                    maxBitrateInBps: 150000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+          - VP9:
+              profiles:
+                - VP9_PROFILE_0:
+                    nodeId: d1_vp9_profile_0
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+                - VP9_PROFILE_1:
+                    nodeId: d1_vp9_profile_1
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+                - VP9_PROFILE_2:
+                    nodeId: d1_vp9_profile_2
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+                - VP9_PROFILE_3:
+                    nodeId: d1_vp9_profile_3
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+          - AV1:
+              profiles:
+                - AV1_MAIN:
+                    nodeId: d1_av1_main
+                    maxLevel: AV1_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+                - AV1_HIGH:
+                    nodeId: d1_av1_high
+                    maxLevel: AV1_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+    - 2:
+        codecCapabilities:
+          - MPEG2_VIDEO:
+              profiles:
+                - MPEG2_SIMPLE:
+                    nodeId: d2_mpeg2_simple
+                    maxLevel: MPEG2_LEVEL_HIGH
+                    maxBitrateInBps: 50000000
+                - MPEG2_MAIN:
+                    nodeId: d2_mpeg2_main
+                    maxLevel: MPEG2_LEVEL_HIGH
+                    maxBitrateInBps: 50000000
+              dynamicRange: [SDR]
+
+          - H264_AVC:
+              profiles:
+                - H264_BASELINE:
+                    nodeId: d2_h264_baseline
+                    maxLevel: H264_LEVEL_5_2
+                    maxBitrateInBps: 50000000
+                - H264_MAIN:
+                    nodeId: d2_h264_main
+                    maxLevel: H264_LEVEL_5_2
+                    maxBitrateInBps: 50000000
+                - H264_HIGH:
+                    nodeId: d2_h264_high
+                    maxLevel: H264_LEVEL_5_2
+                    maxBitrateInBps: 50000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+          - H265_HEVC:
+              profiles:
+                - H265_MAIN:
+                    nodeId: d2_h265_main
+                    maxLevel: H265_LEVEL_6_2
+                    maxBitrateInBps: 150000000
+                - H265_MAIN_10:
+                    nodeId: d2_h265_main_10
+                    maxLevel: H265_LEVEL_6_2
+                    maxBitrateInBps: 150000000
+                - H265_MAIN_10_HDR10:
+                    nodeId: d2_h265_main_10_hdr10
+                    maxLevel: H265_LEVEL_6_2
+                    maxBitrateInBps: 150000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+          - VP9:
+              profiles:
+                - VP9_PROFILE_0:
+                    nodeId: d2_vp9_profile_0
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+                - VP9_PROFILE_1:
+                    nodeId: d2_vp9_profile_1
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+                - VP9_PROFILE_2:
+                    nodeId: d2_vp9_profile_2
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+                - VP9_PROFILE_3:
+                    nodeId: d2_vp9_profile_3
+                    maxLevel: VP9_LEVEL_6_2
+                    maxBitrateInBps: 50000000
+              dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
