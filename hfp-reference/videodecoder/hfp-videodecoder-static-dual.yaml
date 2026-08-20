@@ -1,6 +1,8 @@
 # Static dual-view concurrency combinations for video decoders 0 and 1.
 # Node definitions live in hfp-videodecoder.yaml (nodeId on each profile).
-
+# Format: d<decoderIndex>_<codec>_[<profile>][_<dynamicRange>], and profile/dynamicRange can be omitted.
+# Also do we want to support info about more than 2 decoders if Vendor Layer support
+# Vendor Layer - Source of truth can be bigger than what app needs
 videodecoderstaticdual:
   interfaceVersion: "current"
   schemaVersion: "1.0.0"
