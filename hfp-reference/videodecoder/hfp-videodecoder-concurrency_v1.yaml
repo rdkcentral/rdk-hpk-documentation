@@ -1,0 +1,419 @@
+# Static video decoder concurrency data from Vendor Layer (VL).
+# Middleware (MW) loads this file to build a concurrency graph.
+# getProperties returns the available nodes; selecting one prunes the graph.
+
+videodecoderconcurrency:
+  interfaceVersion: "current"
+  schemaVersion: "1.0.0"
+  maxConcurrentInstances: 2
+
+  # All possible video decoder nodes the SoC can instantiate.
+  # Each node is one codec/profile/level capability on a specific decoder.
+  nodes:
+    # Decoder 0
+    - nodeId: d0_mpeg2_simple
+      decoder: 0
+      codec: MPEG2_VIDEO
+      profile: MPEG2_SIMPLE
+      maxLevel: MPEG2_LEVEL_HIGH
+      dynamicRange: [SDR]
+
+    - nodeId: d0_mpeg2_main
+      decoder: 0
+      codec: MPEG2_VIDEO
+      profile: MPEG2_MAIN
+      maxLevel: MPEG2_LEVEL_HIGH
+      dynamicRange: [SDR]
+
+    - nodeId: d0_h264_baseline
+      decoder: 0
+      codec: H264_AVC
+      profile: H264_BASELINE
+      maxLevel: H264_LEVEL_5_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d0_h264_main
+      decoder: 0
+      codec: H264_AVC
+      profile: H264_MAIN
+      maxLevel: H264_LEVEL_5_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d0_h264_high
+      decoder: 0
+      codec: H264_AVC
+      profile: H264_HIGH
+      maxLevel: H264_LEVEL_5_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d0_h265_main
+      decoder: 0
+      codec: H265_HEVC
+      profile: H265_MAIN
+      maxLevel: H265_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d0_h265_main_10
+      decoder: 0
+      codec: H265_HEVC
+      profile: H265_MAIN_10
+      maxLevel: H265_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d0_h265_main_10_hdr10
+      decoder: 0
+      codec: H265_HEVC
+      profile: H265_MAIN_10_HDR10
+      maxLevel: H265_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d0_vp9_profile_0
+      decoder: 0
+      codec: VP9
+      profile: VP9_PROFILE_0
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d0_vp9_profile_1
+      decoder: 0
+      codec: VP9
+      profile: VP9_PROFILE_1
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d0_vp9_profile_2
+      decoder: 0
+      codec: VP9
+      profile: VP9_PROFILE_2
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d0_vp9_profile_3
+      decoder: 0
+      codec: VP9
+      profile: VP9_PROFILE_3
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d0_av1_main
+      decoder: 0
+      codec: AV1
+      profile: AV1_MAIN
+      maxLevel: AV1_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d0_av1_high
+      decoder: 0
+      codec: AV1
+      profile: AV1_HIGH
+      maxLevel: AV1_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    # Decoder 1
+    - nodeId: d1_mpeg2_simple
+      decoder: 1
+      codec: MPEG2_VIDEO
+      profile: MPEG2_SIMPLE
+      maxLevel: MPEG2_LEVEL_HIGH
+      dynamicRange: [SDR]
+
+    - nodeId: d1_mpeg2_main
+      decoder: 1
+      codec: MPEG2_VIDEO
+      profile: MPEG2_MAIN
+      maxLevel: MPEG2_LEVEL_HIGH
+      dynamicRange: [SDR]
+
+    - nodeId: d1_h264_baseline
+      decoder: 1
+      codec: H264_AVC
+      profile: H264_BASELINE
+      maxLevel: H264_LEVEL_5_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d1_h264_main
+      decoder: 1
+      codec: H264_AVC
+      profile: H264_MAIN
+      maxLevel: H264_LEVEL_5_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d1_h264_high
+      decoder: 1
+      codec: H264_AVC
+      profile: H264_HIGH
+      maxLevel: H264_LEVEL_5_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d1_h265_main
+      decoder: 1
+      codec: H265_HEVC
+      profile: H265_MAIN
+      maxLevel: H265_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d1_h265_main_10
+      decoder: 1
+      codec: H265_HEVC
+      profile: H265_MAIN_10
+      maxLevel: H265_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d1_h265_main_10_hdr10
+      decoder: 1
+      codec: H265_HEVC
+      profile: H265_MAIN_10_HDR10
+      maxLevel: H265_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d1_vp9_profile_0
+      decoder: 1
+      codec: VP9
+      profile: VP9_PROFILE_0
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d1_vp9_profile_1
+      decoder: 1
+      codec: VP9
+      profile: VP9_PROFILE_1
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d1_vp9_profile_2
+      decoder: 1
+      codec: VP9
+      profile: VP9_PROFILE_2
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d1_vp9_profile_3
+      decoder: 1
+      codec: VP9
+      profile: VP9_PROFILE_3
+      maxLevel: VP9_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS]
+
+    - nodeId: d1_av1_main
+      decoder: 1
+      codec: AV1
+      profile: AV1_MAIN
+      maxLevel: AV1_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+    - nodeId: d1_av1_high
+      decoder: 1
+      codec: AV1
+      profile: AV1_HIGH
+      maxLevel: AV1_LEVEL_6_2
+      dynamicRange: [SDR, HLG, HDR10, HDR10PLUS, DOLBY_VISION]
+
+  # Allowed combinations (edges in the MW concurrency graph).
+  # Each entry is a pair of node IDs that can run concurrently.
+  # MW builds directed edges from these; getProperties uses them to prune.
+  combinations:
+    # MPEG2 on decoder 0 with all decoder 1 nodes
+    - [d0_mpeg2_simple, d1_mpeg2_simple]
+    - [d0_mpeg2_simple, d1_mpeg2_main]
+    - [d0_mpeg2_simple, d1_h264_baseline]
+    - [d0_mpeg2_simple, d1_h264_main]
+    - [d0_mpeg2_simple, d1_h264_high]
+    - [d0_mpeg2_simple, d1_h265_main]
+    - [d0_mpeg2_simple, d1_h265_main_10]
+    - [d0_mpeg2_simple, d1_h265_main_10_hdr10]
+    - [d0_mpeg2_simple, d1_vp9_profile_0]
+    - [d0_mpeg2_simple, d1_vp9_profile_1]
+    - [d0_mpeg2_simple, d1_vp9_profile_2]
+    - [d0_mpeg2_simple, d1_vp9_profile_3]
+    - [d0_mpeg2_simple, d1_av1_main]
+    - [d0_mpeg2_simple, d1_av1_high]
+    - [d0_mpeg2_main, d1_mpeg2_simple]
+    - [d0_mpeg2_main, d1_mpeg2_main]
+    - [d0_mpeg2_main, d1_h264_baseline]
+    - [d0_mpeg2_main, d1_h264_main]
+    - [d0_mpeg2_main, d1_h264_high]
+    - [d0_mpeg2_main, d1_h265_main]
+    - [d0_mpeg2_main, d1_h265_main_10]
+    - [d0_mpeg2_main, d1_h265_main_10_hdr10]
+    - [d0_mpeg2_main, d1_vp9_profile_0]
+    - [d0_mpeg2_main, d1_vp9_profile_1]
+    - [d0_mpeg2_main, d1_vp9_profile_2]
+    - [d0_mpeg2_main, d1_vp9_profile_3]
+    - [d0_mpeg2_main, d1_av1_main]
+    - [d0_mpeg2_main, d1_av1_high]
+
+    # H264 on decoder 0 with all decoder 1 nodes
+    - [d0_h264_baseline, d1_mpeg2_simple]
+    - [d0_h264_baseline, d1_mpeg2_main]
+    - [d0_h264_baseline, d1_h264_baseline]
+    - [d0_h264_baseline, d1_h264_main]
+    - [d0_h264_baseline, d1_h264_high]
+    - [d0_h264_baseline, d1_h265_main]
+    - [d0_h264_baseline, d1_h265_main_10]
+    - [d0_h264_baseline, d1_h265_main_10_hdr10]
+    - [d0_h264_baseline, d1_vp9_profile_0]
+    - [d0_h264_baseline, d1_vp9_profile_1]
+    - [d0_h264_baseline, d1_vp9_profile_2]
+    - [d0_h264_baseline, d1_vp9_profile_3]
+    - [d0_h264_baseline, d1_av1_main]
+    - [d0_h264_baseline, d1_av1_high]
+    - [d0_h264_main, d1_mpeg2_simple]
+    - [d0_h264_main, d1_mpeg2_main]
+    - [d0_h264_main, d1_h264_baseline]
+    - [d0_h264_main, d1_h264_main]
+    - [d0_h264_main, d1_h264_high]
+    - [d0_h264_main, d1_h265_main]
+    - [d0_h264_main, d1_h265_main_10]
+    - [d0_h264_main, d1_h265_main_10_hdr10]
+    - [d0_h264_main, d1_vp9_profile_0]
+    - [d0_h264_main, d1_vp9_profile_1]
+    - [d0_h264_main, d1_vp9_profile_2]
+    - [d0_h264_main, d1_vp9_profile_3]
+    - [d0_h264_main, d1_av1_main]
+    - [d0_h264_main, d1_av1_high]
+    - [d0_h264_high, d1_mpeg2_simple]
+    - [d0_h264_high, d1_mpeg2_main]
+    - [d0_h264_high, d1_h264_baseline]
+    - [d0_h264_high, d1_h264_main]
+    - [d0_h264_high, d1_h264_high]
+    - [d0_h264_high, d1_h265_main]
+    - [d0_h264_high, d1_h265_main_10]
+    - [d0_h264_high, d1_h265_main_10_hdr10]
+    - [d0_h264_high, d1_vp9_profile_0]
+    - [d0_h264_high, d1_vp9_profile_1]
+    - [d0_h264_high, d1_vp9_profile_2]
+    - [d0_h264_high, d1_vp9_profile_3]
+    - [d0_h264_high, d1_av1_main]
+    - [d0_h264_high, d1_av1_high]
+
+    # H265 on decoder 0 with all decoder 1 nodes
+    - [d0_h265_main, d1_mpeg2_simple]
+    - [d0_h265_main, d1_mpeg2_main]
+    - [d0_h265_main, d1_h264_baseline]
+    - [d0_h265_main, d1_h264_main]
+    - [d0_h265_main, d1_h264_high]
+    - [d0_h265_main, d1_h265_main]
+    - [d0_h265_main, d1_h265_main_10]
+    - [d0_h265_main, d1_h265_main_10_hdr10]
+    - [d0_h265_main, d1_vp9_profile_0]
+    - [d0_h265_main, d1_vp9_profile_1]
+    - [d0_h265_main, d1_vp9_profile_2]
+    - [d0_h265_main, d1_vp9_profile_3]
+    - [d0_h265_main, d1_av1_main]
+    - [d0_h265_main, d1_av1_high]
+    - [d0_h265_main_10, d1_mpeg2_simple]
+    - [d0_h265_main_10, d1_mpeg2_main]
+    - [d0_h265_main_10, d1_h264_baseline]
+    - [d0_h265_main_10, d1_h264_main]
+    - [d0_h265_main_10, d1_h264_high]
+    - [d0_h265_main_10, d1_h265_main]
+    - [d0_h265_main_10, d1_h265_main_10]
+    - [d0_h265_main_10, d1_h265_main_10_hdr10]
+    - [d0_h265_main_10, d1_vp9_profile_0]
+    - [d0_h265_main_10, d1_vp9_profile_1]
+    - [d0_h265_main_10, d1_vp9_profile_2]
+    - [d0_h265_main_10, d1_vp9_profile_3]
+    - [d0_h265_main_10, d1_av1_main]
+    - [d0_h265_main_10, d1_av1_high]
+    - [d0_h265_main_10_hdr10, d1_mpeg2_simple]
+    - [d0_h265_main_10_hdr10, d1_mpeg2_main]
+    - [d0_h265_main_10_hdr10, d1_h264_baseline]
+    - [d0_h265_main_10_hdr10, d1_h264_main]
+    - [d0_h265_main_10_hdr10, d1_h264_high]
+    - [d0_h265_main_10_hdr10, d1_h265_main]
+    - [d0_h265_main_10_hdr10, d1_h265_main_10]
+    - [d0_h265_main_10_hdr10, d1_h265_main_10_hdr10]
+    - [d0_h265_main_10_hdr10, d1_vp9_profile_0]
+    - [d0_h265_main_10_hdr10, d1_vp9_profile_1]
+    - [d0_h265_main_10_hdr10, d1_vp9_profile_2]
+    - [d0_h265_main_10_hdr10, d1_vp9_profile_3]
+    - [d0_h265_main_10_hdr10, d1_av1_main]
+    - [d0_h265_main_10_hdr10, d1_av1_high]
+
+    # VP9 on decoder 0 with all decoder 1 nodes
+    - [d0_vp9_profile_0, d1_mpeg2_simple]
+    - [d0_vp9_profile_0, d1_mpeg2_main]
+    - [d0_vp9_profile_0, d1_h264_baseline]
+    - [d0_vp9_profile_0, d1_h264_main]
+    - [d0_vp9_profile_0, d1_h264_high]
+    - [d0_vp9_profile_0, d1_h265_main]
+    - [d0_vp9_profile_0, d1_h265_main_10]
+    - [d0_vp9_profile_0, d1_h265_main_10_hdr10]
+    - [d0_vp9_profile_0, d1_vp9_profile_0]
+    - [d0_vp9_profile_0, d1_vp9_profile_1]
+    - [d0_vp9_profile_0, d1_vp9_profile_2]
+    - [d0_vp9_profile_0, d1_vp9_profile_3]
+    - [d0_vp9_profile_0, d1_av1_main]
+    - [d0_vp9_profile_0, d1_av1_high]
+    - [d0_vp9_profile_1, d1_mpeg2_simple]
+    - [d0_vp9_profile_1, d1_mpeg2_main]
+    - [d0_vp9_profile_1, d1_h264_baseline]
+    - [d0_vp9_profile_1, d1_h264_main]
+    - [d0_vp9_profile_1, d1_h264_high]
+    - [d0_vp9_profile_1, d1_h265_main]
+    - [d0_vp9_profile_1, d1_h265_main_10]
+    - [d0_vp9_profile_1, d1_h265_main_10_hdr10]
+    - [d0_vp9_profile_1, d1_vp9_profile_0]
+    - [d0_vp9_profile_1, d1_vp9_profile_1]
+    - [d0_vp9_profile_1, d1_vp9_profile_2]
+    - [d0_vp9_profile_1, d1_vp9_profile_3]
+    - [d0_vp9_profile_1, d1_av1_main]
+    - [d0_vp9_profile_1, d1_av1_high]
+    - [d0_vp9_profile_2, d1_mpeg2_simple]
+    - [d0_vp9_profile_2, d1_mpeg2_main]
+    - [d0_vp9_profile_2, d1_h264_baseline]
+    - [d0_vp9_profile_2, d1_h264_main]
+    - [d0_vp9_profile_2, d1_h264_high]
+    - [d0_vp9_profile_2, d1_h265_main]
+    - [d0_vp9_profile_2, d1_h265_main_10]
+    - [d0_vp9_profile_2, d1_h265_main_10_hdr10]
+    - [d0_vp9_profile_2, d1_vp9_profile_0]
+    - [d0_vp9_profile_2, d1_vp9_profile_1]
+    - [d0_vp9_profile_2, d1_vp9_profile_2]
+    - [d0_vp9_profile_2, d1_vp9_profile_3]
+    - [d0_vp9_profile_2, d1_av1_main]
+    - [d0_vp9_profile_2, d1_av1_high]
+    - [d0_vp9_profile_3, d1_mpeg2_simple]
+    - [d0_vp9_profile_3, d1_mpeg2_main]
+    - [d0_vp9_profile_3, d1_h264_baseline]
+    - [d0_vp9_profile_3, d1_h264_main]
+    - [d0_vp9_profile_3, d1_h264_high]
+    - [d0_vp9_profile_3, d1_h265_main]
+    - [d0_vp9_profile_3, d1_h265_main_10]
+    - [d0_vp9_profile_3, d1_h265_main_10_hdr10]
+    - [d0_vp9_profile_3, d1_vp9_profile_0]
+    - [d0_vp9_profile_3, d1_vp9_profile_1]
+    - [d0_vp9_profile_3, d1_vp9_profile_2]
+    - [d0_vp9_profile_3, d1_vp9_profile_3]
+    - [d0_vp9_profile_3, d1_av1_main]
+    - [d0_vp9_profile_3, d1_av1_high]
+
+    # AV1 on decoder 0 with all decoder 1 nodes
+    - [d0_av1_main, d1_mpeg2_simple]
+    - [d0_av1_main, d1_mpeg2_main]
+    - [d0_av1_main, d1_h264_baseline]
+    - [d0_av1_main, d1_h264_main]
+    - [d0_av1_main, d1_h264_high]
+    - [d0_av1_main, d1_h265_main]
+    - [d0_av1_main, d1_h265_main_10]
+    - [d0_av1_main, d1_h265_main_10_hdr10]
+    - [d0_av1_main, d1_vp9_profile_0]
+    - [d0_av1_main, d1_vp9_profile_1]
+    - [d0_av1_main, d1_vp9_profile_2]
+    - [d0_av1_main, d1_vp9_profile_3]
+    - [d0_av1_main, d1_av1_main]
+    - [d0_av1_main, d1_av1_high]
+    - [d0_av1_high, d1_mpeg2_simple]
+    - [d0_av1_high, d1_mpeg2_main]
+    - [d0_av1_high, d1_h264_baseline]
+    - [d0_av1_high, d1_h264_main]
+    - [d0_av1_high, d1_h264_high]
+    - [d0_av1_high, d1_h265_main]
+    - [d0_av1_high, d1_h265_main_10]
+    - [d0_av1_high, d1_h265_main_10_hdr10]
+    - [d0_av1_high, d1_vp9_profile_0]
+    - [d0_av1_high, d1_vp9_profile_1]
+    - [d0_av1_high, d1_vp9_profile_2]
+    - [d0_av1_high, d1_vp9_profile_3]
+    - [d0_av1_high, d1_av1_main]
+    - [d0_av1_high, d1_av1_high]
