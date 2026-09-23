@@ -5,6 +5,7 @@
 - [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
 - [Description](#description)
 - [Hardware Porting Kit](#hardware-porting-kit)
+- [Media Metrics & Video Frame Capture](#media-metrics-and-video-frame-capture)
 - [How to build the test suite](#how-to-build-the-test-suite)
 - [Levels of Test for Vendor Layer](#levels-of-test-for-vendor-layer)
 - [Executing the `L1` `L2` and `L3` test suites via automation on the target](#executing-the-l1-l2-and-l3-test-suites-via-automation-on-the-target)
@@ -30,6 +31,12 @@ The Hardware Porting Kit (`HPK`) is a collection resources that simplify the pro
 
 It will provide both Hardware Abstraction Layer (`API`) Header files, and software tests to ensure compatibility with the RDK Middleware Stack.
 
+## Media Metrics and Video Frame Capture
+
+- [SoC Media Metrics GStreamer Specification](doc/Media_Pipeline/SPECIFICATION-soc-media-metrics.md)
+
+- [SoC Video Frame Capture Specification](doc/Media_Pipeline/SPECIFICATION-soc-video-frame-capture.md)
+
 The components and their respective repositories are listed below:
 
 | #  | Component Name | Repositories |
@@ -45,6 +52,7 @@ The components and their respective repositories are listed below:
 | 9|AvSync|[HAL Interface](https://github.com/rdkcentral/rdk-halif-avsync)/Test Suit NA|
 |10|V4L2|[HAL Interface](https://github.com/rdkcentral/rdk-halif-v4l2)/Test Suit NA|
 |11|Initial Setup|HAL Interface NA/[Test Suite](https://github.com/rdkcentral/rdk-halif-test-initial-setup)|
+
 ## How to build the test suite
 
 In order to build the test suits, there is a requirement to supply the toolchain, either as a vendor independent toolchain, an SDK, or an RDK toolchain.
