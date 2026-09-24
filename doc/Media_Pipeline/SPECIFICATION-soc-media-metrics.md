@@ -2,6 +2,27 @@
 
 **Status:** Draft for review.
 
+**Specification version:** 0.2
+
+## Revision history
+
+| Version | Status | What changed | What reviewers should check |
+|---|---|---|---|
+| 0.2 | Draft for review | Made all seven defined metrics part of the required SoC contract and removed per-platform metric capability reporting. | Required metric coverage, topology limits, buffer-underflow reporting, client selection, and conformance tests. |
+| 0.1 | Initial draft | Introduced the GStreamer message format, metric meanings, producer ownership, collector behavior, and conformance rules. | Complete specification. |
+
+### What changed in version 0.2
+
+- Every defined media metric is now required on a conforming SoC; vendors no longer advertise a supported subset.
+- The `media-metrics-capabilities` property and other metric-capability queries have been removed.
+- Buffer-underflow reporting is now required and uses the same started/resolved episode model as the other episode metrics.
+- A metric is required only where its condition can occur inside the active SoC pipeline. For example, the SoC does not report frame repetition performed later by an application renderer after Video Frame Capture handoff.
+- Applications can choose which metrics Rialto delivers, but where that filtering happens is an implementation choice for RialtoServer rather than a new public vendor-element control.
+- Fatal decoder failure handling is intentionally separate from this frame-level metrics contract.
+- The conformance matrix and required tests now cover every defined metric in each applicable pipeline topology.
+
+Reviewers who already reviewed version 0.1 can focus on the areas named in the latest row above. The message field names, value types, units, and producer-ownership model are otherwise unchanged.
+
 ---
 
 ## 1. Purpose
@@ -42,7 +63,7 @@ Vendors modify GStreamer elements that own or observe hardware state.
 2. Every frame drop or decode error is represented by one occurrence message.
 3. Every episode metric uses a started/resolved message pair.
 4. `GST_MESSAGE_SRC(message)` identifies the concrete producing element. The collector maps it to the corresponding audio or video stream.
-5. Unsupported metrics are omitted from the capability list. A permanent zero value does not indicate support.
+5. Every defined metric type is mandatory for a conforming SoC media HAL; no metric-capability list is exposed.
 6. Optional PTS carries the best available stream position under the semantics of its observation kind; zero remains a valid PTS.
 7. Messages use ordinary queued `GstBus` delivery. Posting must not block decode or presentation.
 8. `GST_BUS_ASYNC` is not the delivery mode: a bus sync handler must not return `GST_BUS_ASYNC` for metric messages. If a sync handler is installed, it permits these messages to enter the normal bus queue by returning `GST_BUS_PASS`.
@@ -155,7 +176,7 @@ The metric contains decoded audio frames discarded before output and any audio f
 
 Required form: `OCCURRENCE`.
 
-The source is the element owning the hardware video decoder or a combined element owning the complete decode path. A fatal decoder failure additionally uses normal `GST_MESSAGE_ERROR`; the metric counts affected frame-level failures.
+The source is the element owning the hardware video decoder or a combined element owning the complete decode path. The metric counts frame-level failures. Fatal decoder failure behavior is specified separately from this metrics contract.
 
 ### 8.4 Audio decode error
 
@@ -169,7 +190,7 @@ Required forms: `EPISODE_STARTED` and `EPISODE_RESOLVED`.
 
 The producer controls video output and reused the preceding frame because the next frame was unavailable. Structured-cadence repeats such as 3:2 or 2:2 pulldown are excluded.
 
-This metric is available only when the SoC renderer controls final video output.
+The HAL implements this metric for pipeline topologies in which the SoC renderer controls final video output. No repeat event is expected for repetition occurring after a Video Frame Capture handoff because that downstream renderer is outside the SoC media pipeline; this topology qualification is not an unsupported capability.
 
 ### 8.6 Audio gap episode
 
@@ -187,7 +208,7 @@ The message source owns the affected audio or video decoder. Underflow means tha
 
 The resolved message supplies total duration and no count. A one-shot signal without a recovery observation cannot provide an exact episode duration.
 
-Whether buffer-underflow episodes are required remains a working-group decision. An element advertises and emits this metric only when the platform requires it.
+Buffer-underflow episode observation is mandatory. The decoder-owning producer emits the pair whenever the defined starvation condition occurs.
 
 ## 9. Authoritative message producers
 
@@ -224,27 +245,13 @@ Non-conformant behavior includes:
 - a queue or renderer reporting decoder underflow; and
 - two elements posting the same occurrence.
 
-## 10. Capability declaration
+## 10. Mandatory support and client selection
 
-An element emitting custom metrics exposes a read-only property:
+A conforming SoC media HAL provides authoritative producers for all seven `MediaMetricType` values. There is no `media-metrics-capabilities` property, custom capability query or format/pacing-qualified metric list.
 
-```text
-Property: media-metrics-capabilities
-GType:    GST_TYPE_STRUCTURE
-Access:   readable
-```
+Mandatory support means the integration can observe and emit the specified message whenever the condition occurs within the active SoC pipeline topology. It does not require an event for a condition that cannot occur or is outside that topology. For example, repetition performed by NRDP after a Video Frame Capture handoff is downstream and produces no SoC video-repeat message.
 
-The returned structure is:
-
-```text
-media-pipeline-metrics-capabilities {
-    metrics: GST_TYPE_LIST<G_TYPE_UINT>
-}
-```
-
-`metrics` lists every `MediaMetricType` the element can emit when the corresponding behavior applies.
-
-Reporting an unsupported metric in the capabilities property is non-conformant. The property resides on the same element that posts the messages.
+The Rialto client API defaults to an empty metric subscription and permits runtime replacement by type. How RialtoServer realizes that selection is outside this producer-message contract: it may privately control native observation, filter bus messages in the collector, or filter normalized events before IPC. A vendor element is not required to expose public enable properties. Regardless of the selected implementation, enabling any defined type must not fail because the SoC lacks observation support.
 
 ## 11. Collector requirements
 
@@ -266,8 +273,8 @@ The collector performs no SoC-specific polling, native counter differencing, cou
 
 A vendor implementation is conformant only when:
 
-- every advertised frame-drop or decode-error metric emits one `OCCURRENCE` message per observed occurrence;
-- every advertised episode metric emits started/resolved messages;
+- every defined frame-drop or decode-error metric emits one `OCCURRENCE` message per observed occurrence in its applicable pipeline topology;
+- every defined episode metric emits started/resolved messages whenever its condition occurs in its applicable topology;
 - occurrence messages do not carry `count`;
 - all required and present optional fields have exact GTypes and units;
 - native cumulative reset/wrap does not create false occurrences;
@@ -283,22 +290,21 @@ A vendor implementation is conformant only when:
 
 Required tests cover:
 
-1. individual occurrence messages and expansion of native batched observations;
-2. complete episodes and self-describing resolutions;
-3. duplicate starts and mismatched resolutions;
-4. omitted, zero-valued, exact, episode-start, and current-position PTS;
-5. unknown enums and incorrect GTypes;
-6. unregistered message sources;
-7. source removal with messages in flight;
-8. ordinary queue delivery through the collector's `GST_MESSAGE_ELEMENT` dispatcher selection, including verification that the posting thread does not wait for handling and a sync handler returns `GST_BUS_PASS` rather than `GST_BUS_ASYNC`; and
-9. aggregate-versus-child duplicate prevention.
+1. every defined metric type in each applicable SoC pipeline topology;
+2. individual occurrence messages and expansion of native batched observations;
+3. complete episodes and self-describing resolutions;
+4. duplicate starts and mismatched resolutions;
+5. omitted, zero-valued, exact, episode-start, and current-position PTS;
+6. unknown enums and incorrect GTypes;
+7. unregistered message sources;
+8. source removal with messages in flight;
+9. ordinary queue delivery through the collector's `GST_MESSAGE_ELEMENT` dispatcher selection, including verification that the posting thread does not wait for handling and a sync handler returns `GST_BUS_PASS` rather than `GST_BUS_ASYNC`; and
+10. aggregate-versus-child duplicate prevention.
 
 ## 13. Open decisions
 
 1. Whether the structures and enums should be published as a small C header shared with vendor plugins.
-2. Whether capability discovery should remain a property or use a custom GStreamer query.
-3. Maximum permitted polling interval for native counters.
-4. Whether buffer-underflow episodes are required.
+2. Maximum permitted polling interval for native counters.
 
 ---
 
@@ -354,7 +360,7 @@ media-pipeline-metric {
 }
 ```
 
-The source owns the video decoder. Fatal failure additionally uses normal `GST_MESSAGE_ERROR`.
+The source owns the video decoder. Fatal decoder failure behavior is outside this metrics contract.
 
 ## A.5 Audio decode-error occurrences
 
@@ -457,27 +463,9 @@ media-pipeline-metric {
 
 No `count` field is present.
 
-## A.9 Capability property
+## A.9 Complete mandatory producer matrix
 
-Every producing element exposes:
-
-```text
-Property name: media-metrics-capabilities
-GType:         GST_TYPE_STRUCTURE
-Access:        readable
-```
-
-The returned structure is:
-
-```text
-media-pipeline-metrics-capabilities {
-    metrics: GST_TYPE_LIST<G_TYPE_UINT>
-}
-```
-
-## A.10 Complete producer matrix
-
-| Capability | Mandatory messages |
+| Metric | Mandatory messages in applicable topology |
 |---|---|
 | `MEDIA_METRIC_VIDEO_FRAME_DROP` | Video frame-drop `OCCURRENCE` |
 | `MEDIA_METRIC_AUDIO_FRAME_DROP` | Audio frame-drop `OCCURRENCE` |
@@ -486,7 +474,8 @@ media-pipeline-metrics-capabilities {
 | `MEDIA_METRIC_VIDEO_FRAME_REPEAT` | Repeat started and resolved |
 | `MEDIA_METRIC_AUDIO_GAP` | Audio gap started and resolved |
 | `MEDIA_METRIC_BUFFER_UNDERFLOW` | Underflow started and resolved |
-| Any custom metric | Metric listed in the producing element's capability property |
+
+Every row is required by the HAL contract. Additive custom metrics require a new governed enum value and corresponding normative message definition; they are not advertised dynamically through a capability property.
 
 ---
 
