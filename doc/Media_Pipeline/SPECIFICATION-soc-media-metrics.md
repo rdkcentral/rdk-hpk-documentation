@@ -2,14 +2,31 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.2
+**Specification version:** 0.4
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.4 | Draft for review | Added exact cumulative corrupted-frame count to the video frame snapshot already introduced in 0.3. | Corruption identity/deduplication, overlap with presentation outcomes, event consistency, and transport. |
+| 0.3 | Draft for review | Added exact cumulative rendered and dropped video-frame counters for Cobalt/YouTube PAT and WPE-WebKit W3C reporting. | Counter property, presentation-point ownership, hidden-frame exclusions, seek/discard behavior, and conformance tests. |
 | 0.2 | Draft for review | Made all seven defined metrics part of the required SoC contract and removed per-platform metric capability reporting. | Required metric coverage, topology limits, buffer-underflow reporting, client selection, and conformance tests. |
 | 0.1 | Initial draft | Introduced the GStreamer message format, metric meanings, producer ownership, collector behavior, and conformance rules. | Complete specification. |
+
+### What changed in version 0.4
+
+- Added mandatory cumulative `corrupted` alongside `rendered` and `dropped` so Cobalt, WPE and Prime can expose their existing corruption fields without relying on potentially filtered or missed notifications.
+- Defined corruption as one frame-level classification per distinct affected frame; repeated hardware indications for one frame do not increment it again.
+- Clarified that corruption may overlap either rendered or dropped and is never added to W3C total video frames.
+- Required the cumulative counter and `MEDIA_METRIC_VIDEO_DECODE_ERROR` occurrences to originate from the same authoritative observations.
+
+### What changed in version 0.3
+
+- Added a mandatory read-only cumulative snapshot containing distinct rendered and dropped video-frame counts for direct SoC-rendered video.
+- Defined W3C total frames as rendered plus dropped; submitted, demuxed, decoder-processed and codec-hidden pictures are not valid substitutes.
+- Defined seek, flush and `discardUntilPosition()` exclusions so application-directed removal does not appear as poor playback.
+- Required one coherent snapshot that remains monotonic across normal playback-state and presentation-timeline changes.
+- Kept per-drop occurrence messages for event consumers; the cumulative snapshot is independent of client event subscription and delivery loss.
 
 ### What changed in version 0.2
 
@@ -21,13 +38,13 @@
 - Fatal decoder failure handling is intentionally separate from this frame-level metrics contract.
 - The conformance matrix and required tests now cover every defined metric in each applicable pipeline topology.
 
-Reviewers who already reviewed version 0.1 can focus on the areas named in the latest row above. The message field names, value types, units, and producer-ownership model are otherwise unchanged.
+Reviewers who already reviewed an earlier version can focus on the areas named in each later row. Versions 0.3 and 0.4 do not change the event message field names, value types, units, or producer-ownership model.
 
 ---
 
 ## 1. Purpose
 
-This specification defines the media metric messages that SoC-supplied GStreamer elements must post.
+This specification defines the media metric messages that SoC-supplied GStreamer elements must post and the cumulative video frame counters that scheduled video output must expose.
 
 ```text
 hardware statistics or callbacks
@@ -49,6 +66,7 @@ Vendors modify GStreamer elements that own or observe hardware state.
 - Exact field names, GTypes, units, and lifecycle behavior.
 - Element-to-media-source association.
 - Individual occurrences and episode boundaries.
+- Coherent cumulative rendered and dropped video frame counters.
 - Collector responsibilities.
 - Conformance requirements.
 
@@ -253,7 +271,39 @@ Mandatory support means the integration can observe and emit the specified messa
 
 The Rialto client API defaults to an empty metric subscription and permits runtime replacement by type. How RialtoServer realizes that selection is outside this producer-message contract: it may privately control native observation, filter bus messages in the collector, or filter normalized events before IPC. A vendor element is not required to expose public enable properties. Regardless of the selected implementation, enabling any defined type must not fail because the SoC lacks observation support.
 
-## 11. Collector requirements
+## 11. Cumulative video frame counters
+
+For a direct SoC-rendered video path, the element owning final scheduled video output exposes a read-only `stats` property:
+
+```text
+Property: stats
+GType:    GST_TYPE_STRUCTURE
+Access:   readable
+```
+
+Each successful read returns one coherent structure containing at least:
+
+```text
+rendered:  G_TYPE_UINT64
+dropped:   G_TYPE_UINT64
+corrupted: G_TYPE_UINT64
+```
+
+`rendered` counts distinct presentation-eligible video frames actually presented by the SoC renderer. It increments when presentation is committed at the same output point that owns first-frame presentation. It excludes codec-hidden/non-display pictures, repeated display refreshes of one frame, decoded reference pictures never output, and preroll frames never displayed.
+
+`dropped` counts distinct presentation-eligible video frames irreversibly discarded before presentation. It includes predecode lateness/load-shedding drops, decoded frames discarded before output, and renderer/sink drops caused by missed presentation deadlines. One frame increments `dropped` at most once. A vendor may assemble this aggregate from disjoint decoder and renderer observations, but the property is the single authoritative result and must not double-count a frame observed at several stages.
+
+`corrupted` counts distinct frames for which the authoritative decoder reports a frame-level decode failure or corruption condition. Multiple native error indications associated with one frame increment it once. Corruption is a classification rather than a presentation outcome: a corrupted frame may also increment `rendered` when concealed output is presented or `dropped` when no output is presented. `corrupted` is not added to `rendered + dropped` when deriving W3C total video frames.
+
+Frames intentionally removed by seek or flush, frames belonging only to a superseded seek target, and frames suppressed because their position is below an active `discardUntilPosition()` boundary do not falsely increment the counters. A paused frame actually presented through explicit frame rendering increments `rendered` once. Structured cadence and renderer repeats do not create another rendered frame.
+
+All three counters start at zero when a new source presentation path is created and are monotonically non-decreasing until that path is destroyed. Seek, discard, pause/play, underflow, playback-speed changes, presentation-timeline changes, decoder recreation within the same source path and EOS do not reset them. During seek or discard, reads remain valid and return the accumulated snapshot; counters advance only for genuine presentation outcomes.
+
+The snapshot is independent of client metric subscription and message delivery. For a loss-free controlled interval, the increase in `dropped` equals the number of `MEDIA_METRIC_VIDEO_FRAME_DROP` occurrences generated for the same source and interval, and the increase in `corrupted` equals the number of `MEDIA_METRIC_VIDEO_DECODE_ERROR` occurrences. No per-rendered-frame message is required.
+
+For Video Frame Capture, the application/NRDP renderer owns final presentation after handoff. The SoC `stats` property is not an authoritative W3C displayed-frame count for that topology; Rialto reports the public frame-counter query as unavailable and the downstream renderer maintains its own counters.
+
+## 12. Collector requirements
 
 The pipeline-scoped collector:
 
@@ -269,7 +319,7 @@ The pipeline-scoped collector:
 
 The collector performs no SoC-specific polling, native counter differencing, counter-wrap interpretation, or decoder-versus-renderer classification.
 
-## 12. Conformance requirements
+## 13. Conformance requirements
 
 A vendor implementation is conformant only when:
 
@@ -286,7 +336,11 @@ A vendor implementation is conformant only when:
 - audio gaps exclude content silence;
 - underflow is decoder-specific;
 - producers do not report behavior in downstream components; and
-- malformed or unsupported messages can be ignored without affecting playback.
+- malformed or unsupported messages can be ignored without affecting playback;
+- direct SoC-rendered video exposes coherent `rendered`, aggregate `dropped` and frame-deduplicated `corrupted` `G_TYPE_UINT64` counters through the output element's read-only `stats` property;
+- cumulative `corrupted` and `MEDIA_METRIC_VIDEO_DECODE_ERROR` use the same authoritative frame-level observations;
+- submitted, decoder-processed, codec-hidden, repeated, seek-flushed and discard-suppressed frames do not falsely increment those counters; and
+- counter values remain monotonic across seek, discard and normal state transitions for the source-path lifetime.
 
 Required tests cover:
 
@@ -298,10 +352,17 @@ Required tests cover:
 6. unknown enums and incorrect GTypes;
 7. unregistered message sources;
 8. source removal with messages in flight;
-9. ordinary queue delivery through the collector's `GST_MESSAGE_ELEMENT` dispatcher selection, including verification that the posting thread does not wait for handling and a sync handler returns `GST_BUS_PASS` rather than `GST_BUS_ASYNC`; and
-10. aggregate-versus-child duplicate prevention.
+9. ordinary queue delivery through the collector's `GST_MESSAGE_ELEMENT` dispatcher selection, including verification that the posting thread does not wait for handling and a sync handler returns `GST_BUS_PASS` rather than `GST_BUS_ASYNC`;
+10. aggregate-versus-child duplicate prevention;
+11. coherent rendered/dropped/corrupted reads and `rendered + dropped` W3C totals;
+12. codec-hidden/non-display pictures excluded from presentation totals;
+13. predecode and missed-deadline drops included once without cross-stage duplication;
+14. multiple native error indications for one frame increment `corrupted` once;
+15. corrupted-and-rendered and corrupted-and-dropped overlap cases;
+16. no false increments or resets across seek, superseding seek, flush and discard; and
+17. Video Frame Capture reported as unavailable because final presentation occurs downstream.
 
-## 13. Open decisions
+## 14. Open decisions
 
 1. Whether the structures and enums should be published as a small C header shared with vendor plugins.
 2. Maximum permitted polling interval for native counters.
