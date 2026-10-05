@@ -2,14 +2,24 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.2
+**Specification version:** 0.3
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.3 | Draft for review | Changed DMA-BUF FD model: FDs are crystallized and exported at acquisition time, not at pool creation. This accommodates SoC implementations with larger internal pools. | DMA-BUF object definition, pool creation, frame acquisition, IPC transport. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, seek/flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.3
+
+- `DmaBufObject` no longer includes an `fd` field; it describes only the size and layout of a DMA-BUF allocation.
+- `CapturedFrame` now includes an `fds` vector containing the DMA-BUF file descriptors for the specific frame being acquired.
+- `createPool()` returns pool metadata without DMA-BUF file descriptors.
+- `acquireCurrentFrame()` crystallizes and exports DMA-BUF file descriptors for the acquired slot and includes them in the response.
+- IPC transport sends pool metadata once (without FDs), then sends FDs with each frame acquisition.
+- This model accommodates SoC implementations with larger internal pools where FDs are allocated/exported on-demand.
 
 ### What changed in version 0.2
 
@@ -41,7 +51,7 @@ graph LR
     RS -->|in-process calls| ICS
     GS -->|vendor-private hook| FC
     FC -->|communication link| ICS
-    ICS -->|DMA-BUF allocation| Kernel[Kernel DMA-BUF Subsystem]
+    ICS -->|capture-slot reservation and FD export| Kernel[Kernel DMA-BUF Subsystem]
     FC -->|writes to DMA-BUF| Kernel
 ```
 
@@ -68,7 +78,7 @@ The transport of captured frames beyond the capture-session interface (e.g., Ria
 
 This specification defines how an SoC capture session and GStreamer element provide decoded clear-video frames to a Rialto Server.
 
-`ICaptureSession` allocates and owns the DMA-BUF pool. The SoC scheduled-output path borrows that pool and writes STC-selected frames into available slots.
+`ICaptureSession` provisions the capture slots and tracks their ownership while frames are retained. The SoC vendor chooses how those slots are backed and supplied to the scheduled-output path.
 
 This adds to the existing SoC decode stack; it does not replace it.
 
@@ -78,14 +88,14 @@ This adds to the existing SoC decode stack; it does not replace it.
 |------|------------|------------------|
 **Middleware layer team** (Platform integrator / Platform client / HAL user) | The RDK-E middleware team that owns the Rialto Server. | - Integrates with the compositor/consumer layer<br>- Calls `ICaptureSession` methods<br>- Calls `gst_frame_capture_attach()`/`detach()`<br>- Manages pipeline state and playback lifecycle
 | **SoC vendor** | The hardware vendor providing the decoder, GStreamer elements, and HAL implementation. | - Provides the decoder GStreamer element<br>- Provides the `framecapture` GStreamer element<br>- Implements `ICaptureSession` including `createPool()`<br>- Provides the GStreamer integration (plugin registration) |
-**Vendor layer team** (SoC integration) | The SoC vendor's packaging layer that integrates SoC vendor delivery into a vendor layer build. | - Registers vendor GStreamer plugins<br>- Defines the platform-wide DMA heap policy
+**Vendor layer team** (SoC integration) | The SoC vendor's packaging layer that integrates SoC vendor delivery into a vendor layer build. | - Registers vendor GStreamer plugins<br>- Supplies applicable platform integration constraints
 
 ## 3. Scope
 
 ### In scope
 
 - Association with the SoC GStreamer element that owns native STC-based frame selection.
-- Session-owned DMA-BUF pool allocation.
+- Capture-slot reservation and DMA-BUF metadata.
 - Supplying pool slots to the vendor GStreamer element.
 - Format, modifier, memory-region, dimension, crop, and colour metadata.
 - Atomic current-frame acquisition, PTS, and write-completion synchronization.
@@ -109,9 +119,9 @@ The contract uses these terms exclusively:
 |---|---|
 | **Frame** | The video frame selected as current by the SoC's native STC scheduler, with PTS, visible region, and a reference to the slot containing its pixels. The HAL frame record does not allocate separate pixel memory; a successful acquisition returns it under the selected frame's single slot lock. |
 | **Slot** | One reusable frame-storage region in the capture pool. Its memory regions may share DMA-BUF objects with other slots. Its `slotIndex` identifies it within the session's pool. |
-| **DMA-BUF object** | One pool-owned DMA-BUF file descriptor and its total allocation size. One object may back one memory region, several regions, several slots, or the complete pool. |
-| **DMA-BUF region** | One slot pixel region's reference to a pool-level DMA-BUF object, with byte offset, byte length, and stride. It is storage metadata, not a frame and does not own an FD. |
-| **Pool** | The fixed DMA-BUF objects and logical slots owned by `ICaptureSession`. |
+| **DMA-BUF object** | One DMA-BUF allocation referenced by pool metadata and its total size. Its file descriptor is created/exported on demand when a referencing slot is acquired. One object may back one memory region, several regions, several slots, or the complete pool. |
+| **DMA-BUF region** | One slot pixel region's reference to a DMA-BUF object, with byte offset, byte length, and stride. It is storage metadata, not a frame and does not own an FD. |
+| **Pool** | The session's logical capture slots and their storage metadata. The SoC vendor chooses the backing strategy. Pool metadata does not contain a pre-created set of DMA-BUF FDs; FDs are created/exported for a slot only when its frame is acquired. |
 
 The document does not use “buffer” as a synonym for either slot or frame. “Decoder output buffer” is used only when referring to a vendor-native object outside the capture-pool contract.
 
@@ -134,31 +144,21 @@ Pool (collection of Slots)
 
 ## 4. Mandatory ownership model
 
-The following ownership rule is normative:
+The following behavior is normative; the allocation strategy is an SoC vendor decision:
 
-> `ICaptureSession` allocates and owns its capture DMA-BUF pool. The vendor GStreamer element and hardware decoder may import and write those slots, but they do not own the backing allocation lifetime. Destroying the decoder, GStreamer element, or pipeline releases only decoder-side references and does not invalidate the pool.
+> `ICaptureSession` provisions the capture slots and owns their retention/lock state. The SoC vendor may back them with decoder DPB buffers, a separate capture pool, or another implementation. Regardless of strategy, a locked slot's contents must remain valid and must not be overwritten until its matching `releaseFrame()`. Pipeline teardown must not invalidate an outstanding acquired frame; resources needed to complete its late release remain valid until the session is closed.
 
 ```text
 Middleware layer team
-    └── owns shared ICaptureSession
-          ├── owns capture pool
-          │     ├── DMA-BUF object(s)
-          │     └── slots → DMA-BUF regions within those objects
-          └── owns frame-lock state
+    └── manages pipeline-scoped ICaptureSession
+          ├── tracks capture-slot reservation and frame locks
+          └── publishes pool and region metadata
 
-vendor GstElement / hardware decoder
-    └── temporarily borrows and imports the pool
+SoC vendor / hardware decoder
+    └── selects backing strategy and provides scheduled-output integration
 ```
 
-The decoder must not:
-
-- allocate the authoritative capture pool as part of its own private lifecycle;
-- free capture-pool backing;
-- overwrite or reuse a retained slot;
-- make pool validity depend on its own continued existence; or
-- invalidate capture descriptors during transition to `GST_STATE_NULL`.
-
-A platform whose decoder cannot write session-owned slots must provide a vendor capture-output stage that copies or converts decoded output into those slots. Correct lifetime behavior takes precedence over zero-copy operation.
+The decoder and capture path must not overwrite or reuse a retained slot, invalidate an acquired frame during pipeline teardown, or allow capture-slot exhaustion to block normal decode, presentation, audio, or STC progression. How the SoC vendor meets these requirements, including whether it reserves DPB slots or supplies separate backing, is implementation-specific.
 
 ## 5. Session provision and lifecycle
 
@@ -166,19 +166,11 @@ A platform whose decoder cannot write session-owned slots must provide a vendor 
 
 The **Middleware layer team** obtains an `ICaptureSession` implementation from a vendor-supplied factory (provided by the Vendor layer team). No specific factory interface is required, but the platform must be able to obtain a session instance before the first capability query.
 
-**Initialization timing (recommended):** `ICaptureSession` is initialized once per Rialto Server process startup, before the first playback request. The session persists across multiple playback sessions and pipeline instances to avoid DMA heap and DRM handle churn.
+**Pipeline scope:** Each video pipeline using Video Frame Capture has a dedicated `ICaptureSession`. The session tracks one set of capture-slot reservations and is attached only to that pipeline. A detached session must not be attached to another video pipeline; a new pipeline requires a new session.
 
-**Alternative:** The middleware may choose to destroy and recreate the session per playback or pipeline rebuild if that matches its requirements, at the cost of allocator churn.
+**Close timing:** Pipeline teardown detaches the GStreamer capture path and stops writes, but the middleware keeps the session alive while it handles any permitted final selection and releases every outstanding acquired frame. The middleware closes/destroys the session only after all frame locks have been released. The common interface has no separate `close()` method; ending the session object's lifetime is the close operation, and any vendor-specific shutdown must complete as part of that teardown.
 
-**Process lifespan constraints:**
-- `ICaptureSession` is scoped to the lifetime of the hosting Rialto Server process.
-- In the containerized architecture, each app instance runs in its own container with its own Rialto Server instance, so the session is effectively app-instance-scoped.
-- It is one-per-Rialto-Server-instance.
-- Process restart or container shutdown requires re-initialization.
-
-**Rationale:** Creating DMA heaps and opening DRM handles is expensive and causes memory fragmentation. Frequent pipeline rebuilds (e.g., per track, per codec, per resolution change) would incur significant allocator churn if the session is recreated each time. Persistence avoids this churn and improves performance for typical STB workloads.
-
-**Session recreation:** The recommendation for persistence does not forbid session recreation. The middleware may destroy and recreate the session for configuration changes (format, capabilities) when necessary. The recommendation is about avoiding unnecessary churn on routine pipeline teardown/rebuild, not preventing recreation when actually needed.
+The session may therefore outlive its GStreamer pipeline when retained frames remain, but it does not persist for reuse across pipeline instances. Process restart or container shutdown also requires session teardown.
 
 The end-to-end middleware, capture-session and scheduled-output lifecycle is shown in `diagrams/pipeline-video-frame-capture-lifecycle-sequence.puml`.
 
@@ -244,7 +236,6 @@ struct CaptureCapabilities
 
 struct DmaBufObject
 {
-    int fd;
     uint64_t sizeBytes;
 };
 
@@ -262,6 +253,12 @@ struct CaptureSlot
     std::vector<DmaBufRegion> regions;
 };
 
+struct CapturedDmaBuf
+{
+    uint32_t dmaBufObjectIndex;
+    int fd;
+};
+
 struct CapturePool
 {
     Size backingSize;
@@ -274,8 +271,11 @@ struct CapturedFrame
     uint32_t slotIndex;
     int64_t presentationTimeNs;
     Rectangle visibleRegion;
+    std::vector<CapturedDmaBuf> exportedDmaBufs;
 };
 ```
+
+`CapturePool.backingSize` describes the dimensions/capacity of each logical slot for the selected capture layout. It does not require `ICaptureSession` to allocate new physical backing; the SoC vendor may satisfy the slot reservation using its selected backing strategy.
 
 The final API must replace bare file descriptors with a native-handle type defining duplication and close ownership.
 
@@ -283,7 +283,11 @@ The final API must replace bare file descriptors with a native-handle type defin
 
 A single DMA-BUF object may be referenced by several regions and several slots. For example, one object may contain the backing for the complete frame pool, with each slot using different region offsets. Conversely, one slot may reference several DMA-BUF objects. Each exported allocation appears once in `CapturePool.dmaBufs`; sharing is expressed by reusing its index. The contract does not require a particular allocation arrangement.
 
-A `CapturedFrame` resolves its storage through `CapturePool.slots[slotIndex].regions` and then `CapturePool.dmaBufs[dmaBufObjectIndex]`; it does not duplicate file descriptors or region layout. A transport sends the pool metadata once, then sends the slot index and frame metadata with each acquisition response.
+`DmaBufObject` describes the size and layout of a DMA-BUF allocation but does not include a file descriptor. The actual DMA-BUF file descriptor is crystallized and exported only when a frame is acquired via `acquireCurrentFrame()`. This allows the SoC implementation to manage a larger internal pool and allocate/export FDs on-demand for the specific slots being acquired.
+
+A `CapturedFrame` resolves its storage through `CapturePool.slots[slotIndex].regions` and then `CapturePool.dmaBufs[dmaBufObjectIndex]`. `exportedDmaBufs` contains exactly one descriptor for each unique DMA-BUF object referenced by that slot's regions; `dmaBufObjectIndex` maps each descriptor to the corresponding pool metadata. An object referenced by multiple regions in the slot is exported only once. Objects not referenced by the acquired slot are not exported for that acquisition.
+
+The pool metadata is sent once without FDs. On a successful acquisition, the transport sends the slot index, frame metadata, and its `exportedDmaBufs`. `NO_NEW_FRAME` and `NO_FRAME` responses contain no descriptors. The HAL-returned descriptors are owned by the Rialto Server caller, which closes them after IPC transfer (or on transfer failure). The receiving Rialto Client owns its received descriptor copies and closes them after the graphics import has taken its own reference or consumed the handle, as required by that import API. Closing an FD does not release the HAL frame lock.
 
 ## 8. Session interface
 
@@ -309,25 +313,22 @@ public:
 
 `getCapabilities()` reports the implemented capture format, modifier, maximum supported content size, and maximum pool depth. It does not return alternative formats, allocation modes, or synchronization mechanisms.
 
-`createPool()` allocates a session-owned pool containing the requested `slotCount` and synchronously returns the complete `CapturePool`. `slotCount` must be greater than zero and no greater than `CaptureCapabilities.maximumSlots`. The returned pool reports its actual backing size. It is called once per session. Success means the pool is ready to attach to the SoC GStreamer path.
+`createPool()` provisions/reserves the requested `slotCount` of capture slots and synchronously returns their complete layout metadata in `CapturePool`. `slotCount` must be greater than zero and no greater than `CaptureCapabilities.maximumSlots`. The metadata does not include DMA-BUF file descriptors. It is called once per session. Success means those slots are available to the attached SoC capture path.
 
-**Pool creation ownership:** The **SoC vendor** implements `createPool()` as part of `ICaptureSession`. The vendor is responsible for:
-- Selecting the DMA heap (e.g., `/dev/dma_heap/secure` vs. `/dev/dma_heap/system`)
-- Choosing the allocator/layout (GBM, vendor-private, etc.)
-- Validating `slotCount` against `maximumSlots` from `getCapabilities()`
-- Validating `maximumContentSize` against hardware limits
+The SoC vendor chooses how to provide the slots, including whether to reserve decoder DPB buffers or use separate backing. The contract does not prescribe an allocator, DMA heap, or GStreamer buffer-pool integration. `maximumSlots` reports the capacity the implementation can reserve while preserving the resources required for normal playback; the requested count must be within that limit.
 
-The **Vendor layer team** is responsible for:
-- Providing the platform-wide DMA heap policy to the SoC vendor (via build-time configuration or runtime parameters)
-- Ensuring the vendor's allocation choices are compatible with the downstream consumer (e.g., compositor requirements)
+`acquireCurrentFrame()` atomically examines the frame currently selected by the native STC scheduler. If that scheduler selection has not previously been returned by this session, the method locks its slot, crystallizes and exports one descriptor for each unique DMA-BUF object referenced by that slot, marks the selection as returned, populates `outFrame` (including the object-indexed descriptors), and returns `OK`. If the current selection was already returned, it returns `NO_NEW_FRAME` without modifying `outFrame` or creating a lock. If no current captured frame exists, it returns `NO_FRAME` without modifying `outFrame`; this includes the period before first output and the interval after flush or seek until a new current frame is captured. `NO_NEW_FRAME` and `NO_FRAME` are normal results and require no matching release.
 
-`acquireCurrentFrame()` atomically examines the frame currently selected by the native STC scheduler. If that scheduler selection has not previously been returned by this session, the method locks its slot, marks the selection as returned, populates `outFrame`, and returns `OK`. If the current selection was already returned, it returns `NO_NEW_FRAME` without modifying `outFrame` or creating a lock. If no current captured frame exists, it returns `NO_FRAME` without modifying `outFrame`; this includes the period before first output and the interval after flush or seek until a new current frame is captured. `NO_NEW_FRAME` and `NO_FRAME` are normal results and require no matching release.
+`createPool()` establishes the logical slots and their storage metadata, but does not require backing allocation or contain/pre-create DMA-BUF FDs. For each `OK`, `acquireCurrentFrame()` creates/exports the FD handles needed to access the selected slot's DMA-BUF objects. No FD handles are created for `NO_NEW_FRAME` or `NO_FRAME`.
+
+On `OK`, the descriptors in `outFrame.exportedDmaBufs` are caller-owned. Rialto Server closes its descriptors after IPC transfer, and the client closes its received copies after graphics import has taken its own reference or consumed the handle. Neither closing descriptors nor destroying the graphics import releases the HAL frame lock. The lock protects frame contents until the server calls the one matching `releaseFrame()` after the client's final use has ended.
 
 The SoC implementation determines whether a scheduler selection is new using private scheduler identity or equivalent internal state, not `slotIndex`; a released slot may later contain a different selection. The check, slot lock, returned-state update, and `outFrame` copy are one atomic operation. Concurrent calls for one current selection result in exactly one `OK`; every later call before a new selection is published returns `NO_NEW_FRAME`. Flush or seek invalidates the current selection and resets this comparison state without releasing previously acquired frames; the first successfully captured post-flush selection is new and returns `OK`.
 
 Every `OK` acquisition establishes one lock for one distinct captured selection. Several previously acquired frames may therefore lock different slots concurrently, but there is at most one live frame lock per slot and one successful acquisition per captured selection. The Middleware layer team may share one acquired result internally and calls `releaseFrame()` once when its final use ends.
 
 `releaseFrame(const CapturedFrame &frame)` releases the lock identified by `frame.slotIndex`. Every `OK` acquisition requires exactly one matching release. It rejects an out-of-range or currently unlocked slot. On successful release, that `CapturedFrame` and every retained copy of it become invalid and the caller must not use or release them again. The HAL is not required to distinguish a stale release from the valid owner after that slot has subsequently been reused. A slot cannot be written, reused, or associated with another frame while its lock remains active.
+The release operation uses acquired-frame lock state, not the exported FD values; those descriptors may already have been closed after import.
 
 The **SoC vendor** supplies both `ICaptureSession` and the GStreamer integration. Scheduler notifications, writable-slot management, decoder handles, and copy/conversion details remain private between those components.
 
@@ -341,7 +342,7 @@ The common API attaches the pool and session to `framecapture`; the **SoC vendor
 
 ```text
 identify the native scheduled-output path and its STC
-accept and attach the complete session-owned CapturePool
+accept the capture-slot reservation and associated CapturePool metadata
 obtain pixels for the scheduler's current frame
 start and stop writes with GStreamer pipeline state
 detach the pool before scheduled-output teardown
@@ -423,7 +424,7 @@ CaptureStatus gst_frame_capture_detach(
 - waits for or cancels every in-progress capture write;
 - disconnects private current-selection updates;
 - releases every SoC-side import and pool reference;
-- does not release session-owned slot backing;
+- does not release the capture-slot reservation or invalidate backing needed by outstanding locks;
 - does not invalidate the last current frame or any acquired frame; and
 - returns only when the scheduled-output path and decoder can be destroyed safely.
 
@@ -445,11 +446,9 @@ State changes do not create or destroy the pool. `ICaptureSession` has no corres
 
 ### 9.4 Interaction with GStreamer buffer pools
 
-The session-owned capture pool is handed over via the `gst_frame_capture_attach()` C++ call, not via GStreamer's `ALLOCATION` query or `GstBufferPool` proposal mechanism. The capture pool is independent of the decoder↔sink link's buffer pool.
+`gst_frame_capture_attach()` is the common integration point for associating capture slots with the scheduled-output path. The SoC vendor decides whether those slots use the decoder's native DPB buffers, a separate pool, or another mechanism; the common contract does not require a particular GStreamer `ALLOCATION` query or `GstBufferPool` arrangement.
 
-The decoder continues to negotiate its buffer pool with the video sink via the standard GStreamer mechanism. The capture pool is a side-channel that receives copies of decoded frames; it does not replace or interfere with the decoder's primary output path.
-
-The capture pool does not participate in caps negotiation. The decoder and sink negotiate caps as usual. The capture pool must be capable of accepting frames in the negotiated format (this is a conformance requirement).
+The implementation must provide the reported fixed capture layout for negotiated content and must not let capture retention interfere with normal decoder operation. If capture slots are exhausted, capture may omit newer selections, while normal decode, presentation, audio, and STC continue.
 
 
 ## 10. Current selection and slot ownership
@@ -468,9 +467,9 @@ When the native scheduler selects a different current frame, the SoC path captur
 
 If no slot is writable when the scheduler advances, the new capture selection is omitted. The previous captured selection remains current; if it was already acquired, `acquireCurrentFrame()` returns `NO_NEW_FRAME`. Video decode, native presentation, audio presentation, and STC progression continue without waiting. Once capacity returns, the next captured selection represents the then-current SoC frame and returns `OK` on its first acquisition; missed intermediate selections are not replayed.
 
-## 11. Pipeline-independent lifetime
+## 11. Session drain after pipeline teardown
 
-The session lifetime is independent of the GStreamer pipeline:
+The session is dedicated to one video pipeline. It remains alive beyond GStreamer teardown only as needed to serve a permitted final acquisition and accept releases for outstanding frame locks. After all frame locks are released, the Middleware layer team closes/destroys the session; it must not be reused for another pipeline.
 
 ```text
 GStreamer pipeline lifetime
@@ -481,7 +480,7 @@ GStreamer pipeline lifetime
 
 Capture session lifetime
     ICaptureSession
-        → owns the pool
+        → tracks slot reservations and backing references needed for retained frames
         → owns the last current selection
         → tracks selected-frame locks
         → accepts releases after pipeline teardown
@@ -496,7 +495,7 @@ Pipeline teardown proceeds in this order:
 5. destroy `framecapture`, the video path, and the GStreamer pipeline;
 6. retain `ICaptureSession`, its current selection, and all locked frames;
 7. permit an unacquired final selection to be acquired once, return `NO_NEW_FRAME` after it has been acquired, and continue accepting late releases; and
-8. destroy the pool only after the session closes and every frame lock has been released.
+8. close/destroy the session only after every acquired frame has been released; do not reuse it for another video pipeline.
 
 Destroying the media pipeline stops current-selection updates but does not invalidate the last current frame or an acquired frame.
 
@@ -513,51 +512,50 @@ After `gst_frame_capture_detach()` succeeds:
 - late `releaseFrame()` calls are accepted; and
 - pool destruction waits for every frame lock to be released.
 
-The specification does not require a specific internal session state. Reattaching a detached session to a different video path is outside this specification.
+The specification does not require a specific internal session state. A detached session cannot be reattached to this or another video pipeline; destroy it after all outstanding frame locks have been released.
 
 ## 13. DMA-BUF lifetime
 
-Every pool allocation must follow normal reference-counted DMA-BUF lifetime semantics:
+DMA-BUF allocation lifetime and captured-frame content retention are separate contracts:
 
-- decoder imports are temporary references;
-- any transport duplicates descriptors with explicit ownership;
-- EGL/Vulkan imports may retain backing independently;
-- decoder teardown drops only decoder references; and
-- backing is reclaimed only after all pool and imported references are released.
-
-A vendor allocator that forcibly reclaims exported backing when the decoder is destroyed is non-conformant.
+- The SoC vendor chooses the backing strategy; `ICaptureSession` tracks the capture-slot reservation and frame-lock state.
+- A successful acquisition creates/exports the FDs needed to access that slot. IPC creates receiver-owned descriptor copies; each process closes its own copies when no longer needed for import or transfer.
+- A graphics API may retain an allocation reference after its input FD is closed; the consumer follows that API's FD ownership rules. Such a reference can keep memory allocated, but it does not prevent slot reuse.
+- Before calling `releaseFrame()`, the consumer must complete all graphics work that can access the slot and destroy the graphics resources importing or referencing it. Any API-appropriate fence or wait must have completed. Closing an FD or retaining an import alone does not retain the frame contents.
+- A successful acquisition keeps the slot locked until `releaseFrame()` exactly once. After release, the consumer must not use any graphics resource or descriptor associated with that frame, and the SoC may reuse the slot.
+- Pipeline detach stops writes but does not invalidate outstanding acquired frames. The SoC implementation must retain or otherwise keep their backing valid so late releases can complete. Close/destroy the pipeline-scoped session only after every frame lock has been released; backing may then be reclaimed according to the implementation's ownership and reference rules.
 
 ## 14. Synchronization
 
 A successful `acquireCurrentFrame()` guarantees that the returned frame was selected by the native STC scheduler and that all writes, cache maintenance, and platform-private synchronization are complete. The returned slot is retained and immediately safe to import and sample.
 
-`releaseFrame()` guarantees that the caller's final shared use of the selected frame has ended. The session may then use its slot for a newer capture selection.
+The consumer may call `releaseFrame()` only after all graphics commands that reference the acquired slot have completed and the graphics resources importing or referencing that slot have been destroyed. `releaseFrame()` then releases the capture lock, allowing the SoC to reuse the slot for a newer selection. The consumer is responsible for using the synchronization mechanisms of its graphics API; the HAL does not provide a graphics fence.
 
 Any native fences required between the vendor decoder, capture session, graphics driver, or GStreamer bridge remain private to the **SoC vendor's implementation**. They are not capabilities or values in this HAL.
 
 ## 15. Fixed capture layout
 
-Each platform implements one capture layout and reports it through `getCapabilities()`. The session does not negotiate between alternative DRM formats, modifiers, allocation modes, or synchronization models. The created pool provides the authoritative DMA-BUF region layout.
+Each platform implements one capture layout and reports it through `getCapabilities()`. The session does not negotiate between alternative DRM formats, modifiers, or synchronization models. The pool metadata provides the authoritative DMA-BUF region layout, while the SoC vendor chooses the backing/allocation strategy.
 
-The pool is allocated once with:
+The session provisions the requested number of logical slots once, with metadata describing:
 
 - the implemented DRM format and modifier;
 - the same region count and pixel layout for every slot, while DMA-BUF object indices and offsets may differ;
-- an actual backing size returned in `CapturePool`; and
+- the logical slot dimensions/capacity in `CapturePool.backingSize`, independent of the physical backing strategy; and
 - the slot count requested by `createPool()`.
 
-Every slot uses `CapturePool.backingSize`, and `CapturePool.slots.size()` equals the requested count. The requested count must not exceed `CaptureCapabilities.maximumSlots`.
+Every slot supports the dimensions/capacity described by `CapturePool.backingSize`, and `CapturePool.slots.size()` equals the requested count. The requested count must not exceed `CaptureCapabilities.maximumSlots`.
 
-The capture format, modifier, region layout, pool backing size, and allocated slot count remain fixed until the session is closed. Resolution or crop changes update `CapturedFrame.visibleRegion`; they do not replace the pool.
+The capture format, modifier, region layout, logical slot dimensions, and reserved slot count remain fixed until the session is closed. Resolution or crop changes update `CapturedFrame.visibleRegion`; they do not replace the slot reservation.
 
-If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represented by the implemented capture layout, capture returns `UNSUPPORTED` or `FATAL_ERROR` and stops updating its current selection. Normal playback remains available. Runtime capture-pool replacement is outside this specification. One `ICaptureSession` owns one pool for its complete lifetime.
+If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represented by the implemented capture layout, capture returns `UNSUPPORTED` or `FATAL_ERROR` and stops updating its current selection. Normal playback remains available. Runtime capture-slot replacement is outside this specification. One `ICaptureSession` has one logical slot reservation for its complete lifetime.
 
 ## 16. Vendor integration information required
 
 The behavioral requirements are fixed by this specification. Each SoC vendor supplies only the implementation-specific information needed to integrate and review its implementation:
 
 1. the GStreamer element passed to `gst_frame_capture_attach()` and the private mechanism by which `framecapture` reaches its STC-based scheduler and frame pixels;
-2. whether the scheduled-output path writes session-owned slots directly or uses a vendor copy/conversion path;
+2. the chosen backing strategy and how it associates reserved capture slots with scheduled output (for example, decoder DPB reservation or a separate pool);
 3. the concrete `CaptureCapabilities` values returned on that SoC;
 4. how the session privately identifies scheduler selections and atomically returns and locks each selection at most once during `acquireCurrentFrame()`;
 5. the private mechanism used to track multiple locked slots and make an unlocked slot safe for capture reuse; and
@@ -578,24 +576,24 @@ An SoC implementation is conformant only when all of the following are true:
 | 1 | `framecapture` associates with the SoC element that owns or exposes native STC-based frame selection | §6 |
 | 2 | Frame selection uses the same STC and scheduling rules as native video presentation | §6 |
 | 3 | The session's current frame is the successfully captured scheduler selection closest to STC, with PTS in the scheduler's timeline | §6 |
-| 4 | `createPool(slotCount)` accepts every valid count up to `maximumSlots` and returns a complete session-owned pool synchronously | §8 |
-| 5 | The scheduled-output path writes directly into that pool or a vendor copy/conversion path populates it | §4 |
-| 6 | The returned DMA-BUF objects and region descriptors are valid for the reported format, modifier and backing size, and are importable through every required client graphics path | §7 |
+| 4 | `createPool(slotCount)` accepts every valid count up to `maximumSlots` and synchronously reserves/provisions capture slots with complete layout metadata | §8 |
+| 5 | The SoC vendor's chosen backing strategy preserves locked frame contents and supports acquisition/release semantics | §4, §10 |
+| 6 | Returned DMA-BUF objects and region descriptors are valid for the reported format, modifier and backing size, and are importable through every required client graphics path | §7 |
 | 7 | `acquireCurrentFrame()` atomically checks, locks and marks a previously unacquired current selection, returning `OK` exactly once for that selection | §8, §10 |
 | 8 | Repeated acquisition before a newer selection returns `NO_NEW_FRAME`, leaves `outFrame` unchanged and creates no lock | §8, §10 |
 | 9 | The HAL determines selection newness independently of `slotIndex`, so reuse of a released slot for a newer selection returns `OK` | §8, §10 |
 | 10 | Multiple distinct acquired frames may lock different slots concurrently; releasing one does not affect another | §8, §10 |
 | 11 | Every `OK` acquisition requires exactly one matching `releaseFrame()`, after which that `CapturedFrame` is invalid | §8, §10 |
 | 12 | An active frame lock prevents slot reuse, and reusing an unlocked current slot atomically invalidates it before writing | §10 |
-| 13 | A successful acquisition returns a slot immediately safe for graphics import and sampling | §14 |
+| 13 | A successful acquisition returns a slot immediately safe for graphics import and sampling; its lock remains until graphics work completes and importing resources are destroyed before `releaseFrame()` | §13, §14 |
 | 14 | When no slot is writable, the new capture selection is omitted, acquisition returns `NO_NEW_FRAME`, and video decode and native presentation continue without waiting | §10 |
 | 15 | Slot exhaustion does not stop audio presentation or STC progression, and missed intermediate selections are not replayed | §10 |
-| 16 | The session-owned DMA-BUF pool remains valid after the decoder, `framecapture`, and GStreamer pipeline are destroyed | §11, §12 |
-| 17 | Decoder teardown releases only decoder-side imports and cannot reclaim session-owned backing | §4, §12 |
+| 16 | Outstanding acquired-frame backing remains valid after decoder, `framecapture`, and GStreamer pipeline teardown until matching releases complete | §11, §12 |
+| 17 | Pipeline teardown does not invalidate locked frames or prevent late `releaseFrame()` calls, regardless of backing strategy | §4, §12 |
 | 18 | A final selection may be acquired once after pipeline teardown; an already acquired final selection returns `NO_NEW_FRAME` | §11, §12 |
 | 19 | Locked frames and late releases remain valid after pipeline teardown | §11, §12 |
 | 20 | Content within `CaptureCapabilities.maximumContentSize` requires no runtime pool replacement | §15 |
-| 21 | Contract tests cover STC selection, atomic single delivery, `NO_NEW_FRAME`, concurrent acquisition, slot reuse, multiple simultaneous locks, invalid/double release, capabilities, exhaustion, synchronization, teardown, and late release | — |
+| 21 | Contract tests cover STC selection, atomic single delivery, `NO_NEW_FRAME`, concurrent acquisition, slot reuse, multiple simultaneous locks, invalid/double release, capabilities, exhaustion, synchronization, teardown, late release, per-acquisition FD creation/ownership, session close timing, and no cross-pipeline reuse | — |
 
 Failure of any mandatory gate means Video Frame Capture is unsupported on that implementation; it does not permit a weakened lifetime or playback-continuity contract.
 
@@ -603,7 +601,7 @@ Failure of any mandatory gate means Video Frame Capture is unsupported on that i
 
 # Appendix A — Initialization and lifetime example
 
-This appendix illustrates one in-process integration. `PlatformVideoFrameCapture` represents **Rialto Server** code outside the HAL. Private client-transport operations appear only as comments. All vendor-facing types and calls used by the example are defined in Sections 7–9. The normative points are that `ICaptureSession` is injected rather than created through a capture HAL factory, `framecapture` borrows it, pool creation completes synchronously before GStreamer attachment, and pipeline teardown detaches without destroying the session.
+This appendix illustrates one in-process integration. `PlatformVideoFrameCapture` represents **Rialto Server** code outside the HAL. Private client-transport operations appear only as comments. All vendor-facing types and calls used by the example are defined in Sections 7–9. The normative points are that a pipeline-scoped `ICaptureSession` is injected rather than created through a capture HAL factory, `framecapture` borrows it, pool creation completes synchronously before GStreamer attachment, and pipeline teardown detaches before the session is closed after all acquired frames have been released. The session is not reused for another video pipeline.
 
 ## A.1 Example platform HAL usage
 
@@ -692,10 +690,11 @@ private:
 At the end of `initialize()`:
 
 ```text
-PlatformVideoFrameCapture owns ICaptureSession and the returned pool description
-ICaptureSession owns the slot backing
-capture client has received the complete pool description
-framecapture bridge borrows ICaptureSession and the pool
+PlatformVideoFrameCapture owns the pipeline-scoped ICaptureSession and returned slot metadata
+ICaptureSession tracks slot reservations and frame locks
+the SoC vendor supplies slot backing using its selected strategy
+capture client receives pool metadata without FDs
+framecapture bridge borrows ICaptureSession and the slot metadata
 framecapture bridge targets the exact vendor video element
 capture begins only when the pipeline enters PLAYING
 ```
@@ -705,36 +704,33 @@ capture begins only when the pipeline enters PLAYING
 The Middleware layer team sends the pool layout once. Each region identifies a pool-level DMA-BUF object and a byte range within it:
 
 ```cpp
-void publishPoolOnce(
+void publishPoolMetadata(
     const CaptureCapabilities &capabilities,
     const CapturePool &pool)
 {
     // Publish capabilities.drmFormat and capabilities.drmModifier.
-    // Publish pool.backingSize.
+    // Publish logical pool.backingSize and DMA-BUF object size metadata.
+    // Do not send FDs with pool metadata.
 
-    for (const DmaBufObject &dmaBuf : pool.dmaBufs)
+    for (uint32_t objectIndex = 0; objectIndex < pool.dmaBufs.size(); ++objectIndex)
     {
-        // Duplicate dmaBuf.fd for the receiving process and publish
-        // dmaBuf.sizeBytes with it.
+        // Publish objectIndex and pool.dmaBufs[objectIndex].sizeBytes.
     }
 
     for (const CaptureSlot &slot : pool.slots)
     {
         for (const DmaBufRegion &region : slot.regions)
         {
-            const DmaBufObject &dmaBuf =
-                pool.dmaBufs.at(region.dmaBufObjectIndex);
-
             // Publish slot.slotIndex, region.dmaBufObjectIndex,
             // region.offsetBytes, region.lengthBytes and
-            // region.strideBytes. dmaBuf identifies the FD that the
-            // receiving process imports for this region.
+            // region.strideBytes. The object index resolves against
+            // the size metadata published with the pool.
         }
     }
 }
 ```
 
-When a frame is requested, the Middleware layer team resolves the returned slot against that cached pool:
+Pool metadata is published once without FDs. For each successful frame acquisition, the Middleware layer team resolves the returned slot against that metadata and sends `frame.exportedDmaBufs` with the frame record. Each exported FD is paired with its `dmaBufObjectIndex`. `NO_NEW_FRAME` and `NO_FRAME` responses contain no FDs:
 
 ```cpp
 CaptureStatus acquireForConsumer(
@@ -746,21 +742,23 @@ CaptureStatus acquireForConsumer(
     if (status != CaptureStatus::OK)
         return status;
 
-    const CaptureSlot &slot =
-        pool.slots.at(frame.slotIndex);
+    const CaptureSlot &slot = pool.slots.at(frame.slotIndex);
 
     for (const DmaBufRegion &region : slot.regions)
     {
-        const DmaBufObject &dmaBuf =
-            pool.dmaBufs.at(region.dmaBufObjectIndex);
-
-        // The receiving process already has a duplicate of dmaBuf.fd.
-        // It resolves that object with region.offsetBytes,
-        // region.lengthBytes and region.strideBytes.
+        // Resolve region metadata from region.dmaBufObjectIndex,
+        // offset, length and stride. Pool metadata was sent at commit.
     }
 
-    // Send only frame.slotIndex, frame.presentationTimeNs and
-    // frame.visibleRegion for this acquisition.
+    for (const CapturedDmaBuf &exported : frame.exportedDmaBufs)
+    {
+        // Send exported.dmaBufObjectIndex and exported.fd with the frame
+        // metadata using FD-passing IPC. The receiver gets its own FD copy.
+        // Close the server-owned FD after transfer, including on error.
+    }
+
+    // Also send frame.slotIndex, frame.presentationTimeNs and frame.visibleRegion.
+    // If transfer fails, close all server-owned FDs and release this HAL lock.
     return CaptureStatus::OK;
 }
 
@@ -772,7 +770,7 @@ CaptureStatus releaseFromConsumer(
 }
 ```
 
-An `OK` response sends only `slotIndex`, `presentationTimeNs` and `visibleRegion`; it does not resend DMA-BUF handles, backing size, format, modifier, or region layout. `NO_NEW_FRAME` and `NO_FRAME` send status only. The Middleware layer team retains each successfully returned `CapturedFrame` until its final shared consumer use ends, then passes that same object to `releaseFrame()`.
+An `OK` response sends `slotIndex`, `presentationTimeNs`, `visibleRegion`, and the object-indexed FDs for the acquired slot; it does not resend pool dimensions, format, modifier, or region layout. The server closes its FD copies after transfer, while the client closes its received copies according to the graphics import API's ownership rules. FD closure does not release the HAL slot lock. The Middleware layer team retains each successfully returned `CapturedFrame` until graphics work has completed and importing graphics resources have been destroyed, then calls `releaseFrame()` exactly once. `NO_NEW_FRAME` and `NO_FRAME` send status only.
 
 
 ## A.2 Initialization failure behavior
@@ -783,8 +781,8 @@ An `OK` response sends only `slotIndex`, `presentationTimeNs` and `visibleRegion
 | `createPool()` fails | No bridge is attached and no pool is published |
 | Bridge creation fails | Session remains valid but unattached; capture creation fails |
 | Decoder association fails | Bridge is removed; decoder pipeline remains usable |
-| Pool allocation fails | Capture reports `NO_RESOURCES`; normal playback continues |
-| Decoder pool import fails | The unattached pool is discarded; normal playback continues |
-| Pipeline tears down during allocation | Allocation is cancelled or retained unattached and then discarded; no decoder write begins |
+| Capture-slot reservation/provisioning fails | Capture reports `NO_RESOURCES`; normal playback continues |
+| Capture backing setup fails | The unattached reservation is discarded; normal playback continues |
+| Pipeline tears down during reservation/setup | Setup is cancelled or left unattached and discarded; no capture write begins |
 | Caller disappears while frames are locked | Its transport releases every frame lock before session destruction |
 
