@@ -356,7 +356,7 @@ A vendor implementation is conformant only when:
 - underflow starts immediately on active decoder demand without input and resolves on input recovery;
 - repeat, gap, and underflow may overlap, while duplicate starts for one episode key remain invalid;
 - paused output, EOS, decoder flush/reset, and invalid decode-position state do not create false episodes;
-- deliberate decoder/output control and pacing removal creates neither a drop occurrence nor a `dropped` increment;
+- deliberate decoder/output control and pacing removals create neither a drop occurrence nor a `dropped` increment;
 - actual decoder failures during recovery or reconfiguration still create decode-error occurrences;
 - each message source is authoritative and aggregate/child observations do not duplicate an occurrence;
 - messages use ordinary non-blocking queued bus delivery;
