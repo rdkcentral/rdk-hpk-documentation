@@ -249,7 +249,7 @@ The value types follow these rules:
 - MW owns each successful `fd >= 0`, closes it explicitly, and sets it to `-1`. `-1` means invalid. Destructors do not close FDs.
 - `CapturedFrame` is non-copyable. A valid `slotIndex` means exactly one `releaseFrame()` is owed, independently of FD ownership.
 - Moving a frame through the move constructor transfers its metadata, FDs, and release obligation without `dup()` or `close()`. The source FDs become `-1` and its `slotIndex` becomes `kInvalidCaptureSlotIndex`.
-- Move assignment is deleted to avoid undefined behavior when the destination is non-empty. Callers must use the move constructor or explicitly release and clear the destination before assigning.
+- Move assignment is deleted to avoid undefined behavior when the destination is non-empty. To reuse an existing instance, callers must release its frame lock, close and invalidate its FDs, return it to the empty state, and pass it to `acquireCurrentFrame()`; transferring ownership to a different object requires the move constructor.
 - Pool `slotIndex` and `objectIndex` values equal their positions in `slotLayouts` and `dmaBufObjects`. They are unique and contiguous from zero; no pool slot may use `kInvalidCaptureSlotIndex`.
 - `planeIndex` follows the plane order defined by the reported DRM format. Import code maps that order to its graphics API.
 - Each plane references one valid object. Validate its range without overflow: `offsetBytes <= sizeBytes` and `lengthBytes <= sizeBytes - offsetBytes`. The range and stride must fit the advertised layout.
