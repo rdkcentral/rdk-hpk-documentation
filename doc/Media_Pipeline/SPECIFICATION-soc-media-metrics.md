@@ -327,7 +327,7 @@ All three counters start at zero when a source presentation path is created and 
 
 For a loss-free controlled interval, the increase in `dropped` equals the number of `MEDIA_METRIC_VIDEO_FRAME_DROP` occurrences for the same source and interval, and the increase in `corrupted` equals the number of `MEDIA_METRIC_VIDEO_DECODE_ERROR` occurrences. No rendered-frame message is required.
 
-After Video Frame Capture handoff, final presentation occurs downstream. The SoC `stats` property is therefore not authoritative for displayed-frame totals in that topology.
+After Video Frame Capture handoff, final presentation occurs downstream. The SoC `stats` property is therefore not authoritative for displayed-frame totals in that topology, and the frame-counter interface must report unavailable.
 
 ## 12. Collector requirements
 
