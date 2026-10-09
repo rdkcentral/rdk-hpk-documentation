@@ -399,7 +399,7 @@ Every `OK` acquisition establishes one lock for one distinct captured selection.
 
 `releaseFrame(CapturedFrame &frame)` requires a valid slot index. It releases that slot lock and, on `OK`, sets `frame.slotIndex` to `kInvalidCaptureSlotIndex`. It does not inspect or close FDs, so MW must still close any open FDs separately. A successful release makes the frame invalid for content access even if an FD remains open.
 
-An invalid, moved-from, out-of-range, stale, or currently unlocked slot index returns `INVALID_ARGUMENT`. Every non-`OK` result leaves the frame unchanged. A slot cannot be reused while its lock remains active.
+An invalid, moved-from, out-of-range, stale, or currently unlocked slot index returns `INVALID_ARGUMENT`. Every non-`OK` result leaves both the frame and its existing lock state unchanged, so a valid frame retains exactly one release obligation. A slot cannot be reused while its lock remains active.
 
 The **SoC vendor** supplies both `ICaptureSession` and the GStreamer integration. Scheduler notifications, writable-slot management, decoder handles, and copy/conversion details remain private between those components.
 
