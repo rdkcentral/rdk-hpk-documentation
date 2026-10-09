@@ -2,39 +2,48 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.4
+**Specification version:** 0.5
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.5 | Draft for review | Defined complete episode lifecycle, decoder-underflow recovery, cross-metric overlap, deliberate-drop exclusions, and event/counter consistency. | Episode boundaries and restart, native decoder/output conditions, overlapping metrics, and counter alignment. |
 | 0.4 | Draft for review | Added exact cumulative corrupted-frame count to the video frame snapshot already introduced in 0.3. | Corruption identity/deduplication, overlap with presentation outcomes, event consistency, and transport. |
-| 0.3 | Draft for review | Added exact cumulative rendered and dropped video-frame counters for Cobalt/YouTube PAT and WPE-WebKit W3C reporting. | Counter property, presentation-point ownership, hidden-frame exclusions, seek/discard behavior, and conformance tests. |
+| 0.3 | Draft for review | Added exact cumulative rendered and dropped video-frame counters for direct SoC-rendered video. | Counter property, presentation-point ownership, hidden-frame exclusions, deliberate-removal behavior, and conformance tests. |
 | 0.2 | Draft for review | Made all seven defined metrics part of the required SoC contract and removed per-platform metric capability reporting. | Required metric coverage, topology limits, buffer-underflow reporting, client selection, and conformance tests. |
 | 0.1 | Initial draft | Introduced the GStreamer message format, metric meanings, producer ownership, collector behavior, and conformance rules. | Complete specification. |
 
+### What changed in version 0.5
+
+- Defined natural and lifecycle-boundary resolution for every episode metric.
+- Kept underflow decoder-scoped, with immediate start and input-recovery resolution.
+- Allowed underflow, video-repeat, and audio-gap episodes to overlap independently.
+- Excluded deliberate decoder/output control and pacing removals from drop events and counters.
+- Aligned video-drop events with `dropped` and video decode-error events with `corrupted`.
+
 ### What changed in version 0.4
 
-- Added mandatory cumulative `corrupted` alongside `rendered` and `dropped` so Cobalt, WPE and Prime can expose their existing corruption fields without relying on potentially filtered or missed notifications.
+- Added mandatory cumulative `corrupted` alongside `rendered` and `dropped` so exact corruption totals do not depend on message delivery.
 - Defined corruption as one frame-level classification per distinct affected frame; repeated hardware indications for one frame do not increment it again.
-- Clarified that corruption may overlap either rendered or dropped and is never added to W3C total video frames.
+- Clarified that corruption may overlap either rendered or dropped and is not added to the presentation-outcome total.
 - Required the cumulative counter and `MEDIA_METRIC_VIDEO_DECODE_ERROR` occurrences to originate from the same authoritative observations.
 
 ### What changed in version 0.3
 
 - Added a mandatory read-only cumulative snapshot containing distinct rendered and dropped video-frame counts for direct SoC-rendered video.
-- Defined W3C total frames as rendered plus dropped; submitted, demuxed, decoder-processed and codec-hidden pictures are not valid substitutes.
-- Defined seek, flush and `discardUntilPosition()` exclusions so application-directed removal does not appear as poor playback.
-- Required one coherent snapshot that remains monotonic across normal playback-state and presentation-timeline changes.
-- Kept per-drop occurrence messages for event consumers; the cumulative snapshot is independent of client event subscription and delivery loss.
+- Defined total presentation outcomes as rendered plus dropped; submitted, demuxed, decoder-processed and codec-hidden pictures are not valid substitutes.
+- Excluded deliberate decoder/output removal from poor-playback counts.
+- Required one coherent snapshot that remains monotonic across decoder/output lifecycle changes.
+- Kept per-drop occurrence messages; the cumulative snapshot is independent of message delivery.
 
 ### What changed in version 0.2
 
 - Every defined media metric is now required on a conforming SoC; vendors no longer advertise a supported subset.
 - The `media-metrics-capabilities` property and other metric-capability queries have been removed.
 - Buffer-underflow reporting is now required and uses the same started/resolved episode model as the other episode metrics.
-- A metric is required only where its condition can occur inside the active SoC pipeline. For example, the SoC does not report frame repetition performed later by an application renderer after Video Frame Capture handoff.
-- Applications can choose which metrics Rialto delivers, but where that filtering happens is an implementation choice for RialtoServer rather than a new public vendor-element control.
+- A metric is required only where its condition can occur inside the active SoC pipeline. Repetition performed by a downstream renderer after frame handoff is not a SoC repeat metric.
+- Vendor elements expose the complete required observation stream; downstream filtering does not change the vendor contract.
 - Fatal decoder failure handling is intentionally separate from this frame-level metrics contract.
 - The conformance matrix and required tests now cover every defined metric in each applicable pipeline topology.
 
@@ -174,59 +183,78 @@ Required field:
 
 Video-repeat and audio-gap resolutions additionally require `count`, the total affected frames or samples during the completed episode. Buffer-underflow resolution does not carry `count`. When present, `pts-ns` repeats the episode-start PTS so resolution is self-describing if the start message was lost. A collector may accept a resolved message without receiving the corresponding start.
 
+### 7.4 Common episode lifecycle
+
+Only one episode may be active for one metric, media source, and producing element. Different metric types are independent and may be active at the same time.
+
+An episode ends by natural recovery or when its decoder/output observation epoch ends. The producer posts `EPISODE_RESOLVED` before it stops being authoritative when any of these boundaries occurs:
+
+- native scheduled output enters paused operation;
+- EOS is accepted by the affected decoder or output path;
+- decoder flush or reset begins;
+- decoder input/output is invalidated while establishing a new decode position;
+- source or codec configuration is replaced; or
+- the source path is removed or torn down.
+
+For a boundary resolution, `duration-ns` ends at the boundary. Repeat and gap `count` includes only affected outputs observed before the boundary. Optional `pts-ns` remains the episode-start PTS. A resolution means that the episode ended; it does not necessarily mean natural recovery.
+
+The next decoder/output epoch is armed independently. Its first qualifying observation may start a new episode immediately. The boundary operation itself does not start an episode unless the new epoch separately meets that metric's start condition. The producer resolves active episodes before it is unregistered; collector cleanup is a defensive fallback, not a replacement for the required resolution.
+
+### 7.5 Cross-metric overlap
+
+Episode metrics describe different observations and may overlap. One decoder starvation may produce buffer underflow and also video repeat or audio gap. Each qualifying metric is reported independently; there is no precedence or mutual exclusion. Duplicate starts remain prohibited for the same metric, source, and producer.
+
 ## 8. Metric-specific requirements
 
 ### 8.1 Video frame drop
 
 Required form: `OCCURRENCE`.
 
-The metric contains all pipeline-observable video frames dropped before capture handoff or SoC presentation. The producer integration may use one authoritative aggregate or several demonstrably disjoint producers. Failures during content parsing or header processing that produce no frame are decode errors, not frame drops.
+The metric contains unintended quality-loss removal of presentation-eligible video frames inside the SoC pipeline, including load shedding and missed presentation deadlines. The producer integration may use one authoritative aggregate or several demonstrably disjoint producers.
 
-A producer reports only drops observed within the SoC media pipeline. Drops after frame handoff are outside this specification.
+Do not report frames deliberately removed for decoder flush/reset cleanup, establishment of a new decode position, source/codec reconfiguration, EOS cleanup, or configured non-unity pacing. A frame discarded before decode is not a decode error. Drops after frame handoff are outside this specification.
 
 ### 8.2 Audio frame drop
 
 Required form: `OCCURRENCE`.
 
-The metric contains decoded audio frames discarded before output and any audio frames intentionally skipped by the decoder under load. Content-authored silence is not a drop. A decode failure that produces no sample is a decode error.
+The metric contains unintended quality-loss removal of decoded audio frames before output, including decoder skipping under load. It excludes content-authored silence and frames deliberately removed for decoder flush/reset cleanup, establishment of a new decode position, normal source/codec reconfiguration, EOS cleanup, or configured non-unity pacing. A decode failure that produces no sample is a decode error.
 
 ### 8.3 Video decode error
 
 Required form: `OCCURRENCE`.
 
-The source is the element owning the hardware video decoder or a combined element owning the complete decode path. The metric counts frame-level failures. Fatal decoder failure behavior is specified separately from this metrics contract.
+The source is the element owning the hardware video decoder or a combined element owning the complete decode path. Count every authoritative frame-level decoder failure, including failures during recovery or source/codec reconfiguration. Data deliberately discarded before decode is not a decode error. Fatal decoder failure behavior is specified separately.
 
 ### 8.4 Audio decode error
 
 Required form: `OCCURRENCE`.
 
-The source is the element owning the hardware audio decoder or a combined element owning the complete decode path.
+The source is the element owning the hardware audio decoder or a combined element owning the complete decode path. Count every authoritative sample/frame decode failure, including failures during recovery or source/codec reconfiguration. Data deliberately discarded before decode is not a decode error.
 
 ### 8.5 Video frame repeat episode
 
 Required forms: `EPISODE_STARTED` and `EPISODE_RESOLVED`.
 
-The producer controls video output and reused the preceding frame because the next frame was unavailable. Structured-cadence repeats such as 3:2 or 2:2 pulldown are excluded.
+Start on the first unintended reuse of the preceding frame because the required next frame is unavailable during active scheduled output. Resolve when scheduled output first selects/presents a new real frame.
 
-The HAL implements this metric for pipeline topologies in which the SoC renderer controls final video output. No repeat event is expected for repetition occurring after a Video Frame Capture handoff because that downstream renderer is outside the SoC media pipeline; this topology qualification is not an unsupported capability.
+Exclude structured cadence, a frame held while output is paused, the final frame held after EOS, and a frame held while decoder/output state is invalid during flush, reset, or decode-position establishment. This metric applies only when the SoC controls final video output; repetition after frame handoff is downstream.
 
 ### 8.6 Audio gap episode
 
 Required forms: `EPISODE_STARTED` and `EPISODE_RESOLVED`.
 
-The audio-output element posts start when it emits its first null/substitute frame in place of expected decoded output. It posts resolved when the first real frame is emitted after the substitution run.
+Start when audio output emits its first null/substitute frame in place of expected real output. Resolve when the first real frame is emitted after the substitution run.
 
-Content-authored silence is excluded. Gap PTS/duration properties supplied by upstream code are not evidence that the output element observed a gap.
+Exclude content-authored silence, paused silence, post-EOS silence, and silence emitted only while decoder/output state is invalid during flush, reset, or decode-position establishment. Substitute output during an active source/codec reconfiguration remains reportable. Upstream gap hints are not evidence that output observed a gap.
 
 ### 8.7 Buffer-underflow episode
 
 Required forms: `EPISODE_STARTED` and `EPISODE_RESOLVED`.
 
-The message source owns the affected audio or video decoder. Underflow means that decoder lacked required input data. Pipeline queues and renderer elements do not post this metric.
+The message source owns the affected audio or video decoder. Start immediately on the first observation that the decoder actively requires input and required input is unavailable; there is no minimum starvation threshold. Resolve naturally when required input is first available or accepted again. The resolved message supplies total duration and no count.
 
-The resolved message supplies total duration and no count. A one-shot signal without a recovery observation cannot provide an exact episode duration.
-
-Buffer-underflow episode observation is mandatory. The decoder-owning producer emits the pair whenever the defined starvation condition occurs.
+Do not start underflow when the decoder is not requesting input, after EOS, or while decoder state is invalid during flush/reset or decode-position establishment. During active source/codec reconfiguration, underflow remains reportable if the newly active decoder requests input and none is available. Pipeline queues and renderer elements do not post this metric.
 
 ## 9. Authoritative message producers
 
@@ -263,13 +291,11 @@ Non-conformant behavior includes:
 - a queue or renderer reporting decoder underflow; and
 - two elements posting the same occurrence.
 
-## 10. Mandatory support and client selection
+## 10. Mandatory support
 
-A conforming SoC media HAL provides authoritative producers for all seven `MediaMetricType` values. There is no `media-metrics-capabilities` property, custom capability query or format/pacing-qualified metric list.
+A conforming SoC media HAL provides authoritative producers for all seven `MediaMetricType` values. There is no metric capability property or custom capability query.
 
-Mandatory support means the integration can observe and emit the specified message whenever the condition occurs within the active SoC pipeline topology. It does not require an event for a condition that cannot occur or is outside that topology. For example, repetition performed by NRDP after a Video Frame Capture handoff is downstream and produces no SoC video-repeat message.
-
-The Rialto client API defaults to an empty metric subscription and permits runtime replacement by type. How RialtoServer realizes that selection is outside this producer-message contract: it may privately control native observation, filter bus messages in the collector, or filter normalized events before IPC. A vendor element is not required to expose public enable properties. Regardless of the selected implementation, enabling any defined type must not fail because the SoC lacks observation support.
+Mandatory support means the integration emits each specified message whenever its condition occurs inside the active SoC pipeline topology. A condition occurring only after frame handoff to a downstream renderer produces no SoC metric. Vendor elements provide the complete required observation stream; downstream filtering does not change this contract.
 
 ## 11. Cumulative video frame counters
 
@@ -291,17 +317,17 @@ corrupted: G_TYPE_UINT64
 
 `rendered` counts distinct presentation-eligible video frames actually presented by the SoC renderer. It increments when presentation is committed at the same output point that owns first-frame presentation. It excludes codec-hidden/non-display pictures, repeated display refreshes of one frame, decoded reference pictures never output, and preroll frames never displayed.
 
-`dropped` counts distinct presentation-eligible video frames irreversibly discarded before presentation. It includes predecode lateness/load-shedding drops, decoded frames discarded before output, and renderer/sink drops caused by missed presentation deadlines. One frame increments `dropped` at most once. A vendor may assemble this aggregate from disjoint decoder and renderer observations, but the property is the single authoritative result and must not double-count a frame observed at several stages.
+`dropped` uses exactly the same frame identity and inclusion/exclusion rules as `MEDIA_METRIC_VIDEO_FRAME_DROP`. It counts unintended quality-loss removal such as load shedding and missed deadlines, once per frame. Deliberate flush/reset cleanup, decode-position establishment, source/codec reconfiguration cleanup, EOS cleanup, and configured non-unity pacing do not increment it. A vendor may combine disjoint decoder and renderer observations, but must not count one frame twice.
 
-`corrupted` counts distinct frames for which the authoritative decoder reports a frame-level decode failure or corruption condition. Multiple native error indications associated with one frame increment it once. Corruption is a classification rather than a presentation outcome: a corrupted frame may also increment `rendered` when concealed output is presented or `dropped` when no output is presented. `corrupted` is not added to `rendered + dropped` when deriving W3C total video frames.
+`corrupted` counts distinct frames for which the authoritative decoder reports a frame-level decode failure or corruption condition. It uses the same frame classification as `MEDIA_METRIC_VIDEO_DECODE_ERROR`; multiple indications for one frame increment it once. A corrupted frame may also increment `rendered` when concealed output is presented or `dropped` when no output is presented. `corrupted` is not added to `rendered + dropped`, which is the total presentation-outcome count.
 
-Frames intentionally removed by seek or flush, frames belonging only to a superseded seek target, and frames suppressed because their position is below an active `discardUntilPosition()` boundary do not falsely increment the counters. A paused frame actually presented through explicit frame rendering increments `rendered` once. Structured cadence and renderer repeats do not create another rendered frame.
+A frame actually presented while scheduled output is paused increments `rendered` once. Structured cadence and repeated refresh of one frame do not create another rendered frame.
 
-All three counters start at zero when a new source presentation path is created and are monotonically non-decreasing until that path is destroyed. Seek, discard, pause/play, underflow, playback-speed changes, presentation-timeline changes, decoder recreation within the same source path and EOS do not reset them. During seek or discard, reads remain valid and return the accumulated snapshot; counters advance only for genuine presentation outcomes.
+All three counters start at zero when a source presentation path is created and remain monotonic until that path is destroyed. Decoder flush/reset, decode-position changes, source/codec reconfiguration, output pause/resume, underflow, configured pacing changes, decoder recreation within the same source path, and EOS do not reset them. Reads remain valid during those conditions; counters advance only for genuine presentation outcomes or decoder failures.
 
-The snapshot is independent of client metric subscription and message delivery. For a loss-free controlled interval, the increase in `dropped` equals the number of `MEDIA_METRIC_VIDEO_FRAME_DROP` occurrences generated for the same source and interval, and the increase in `corrupted` equals the number of `MEDIA_METRIC_VIDEO_DECODE_ERROR` occurrences. No per-rendered-frame message is required.
+For a loss-free controlled interval, the increase in `dropped` equals the number of `MEDIA_METRIC_VIDEO_FRAME_DROP` occurrences for the same source and interval, and the increase in `corrupted` equals the number of `MEDIA_METRIC_VIDEO_DECODE_ERROR` occurrences. No rendered-frame message is required.
 
-For Video Frame Capture, the application/NRDP renderer owns final presentation after handoff. The SoC `stats` property is not an authoritative W3C displayed-frame count for that topology; Rialto reports the public frame-counter query as unavailable and the downstream renderer maintains its own counters.
+After Video Frame Capture handoff, final presentation occurs downstream. The SoC `stats` property is therefore not authoritative for displayed-frame totals in that topology.
 
 ## 12. Collector requirements
 
@@ -310,12 +336,13 @@ The pipeline-scoped collector:
 1. includes `GST_MESSAGE_ELEMENT` in its bus-dispatch selection and consumes queued `media-pipeline-metric` messages on a dedicated dispatcher context, not in the posting thread;
 2. validates each message and maps message-source object identity to the corresponding audio or video stream;
 3. verifies that the source is currently registered and authoritative for that metric and media source;
-4. timestamps accepted observations using Rialto's monotonic clock;
+4. timestamps accepted observations using the collector's monotonic clock;
 5. dispatches one normalized notification for each occurrence;
-6. tracks episode state and accepts self-describing resolutions;
-7. prevents overlap between aggregate and child producers;
-8. clears accumulated client-facing totals and active episodes on source removal; and
-9. dispatches normalized metric notifications on the collector's execution context.
+6. tracks episode state independently for each metric, source, and producer, including overlapping metrics;
+7. accepts natural and boundary resolutions and rejects duplicate starts for the same episode key;
+8. prevents duplicate observations between aggregate and child producers;
+9. expects producers to resolve active episodes before unregister/removal, then clears any residual state defensively without synthesizing another resolution; and
+10. dispatches normalized notifications on the collector's execution context.
 
 The collector performs no SoC-specific polling, native counter differencing, counter-wrap interpretation, or decoder-versus-renderer classification.
 
@@ -323,44 +350,44 @@ The collector performs no SoC-specific polling, native counter differencing, cou
 
 A vendor implementation is conformant only when:
 
-- every defined frame-drop or decode-error metric emits one `OCCURRENCE` message per observed occurrence in its applicable pipeline topology;
-- every defined episode metric emits started/resolved messages whenever its condition occurs in its applicable topology;
-- occurrence messages do not carry `count`;
-- all required and present optional fields have exact GTypes and units;
-- native cumulative reset/wrap does not create false occurrences;
-- each message source is authoritative for the metric and media source;
-- metric messages use ordinary queued bus delivery: a sync handler does no metric work, returns `GST_BUS_PASS`, and never returns `GST_BUS_ASYNC` for them;
-- posting does not wait for collector handling or otherwise block streaming threads beyond normal bus queue insertion;
-- flush, seek, source replacement, and decoder recreation do not create false occurrences;
-- repeats exclude structured cadence;
-- audio gaps exclude content silence;
-- underflow is decoder-specific;
-- producers do not report behavior in downstream components; and
+- every qualifying drop or decode failure emits one `OCCURRENCE` with the required types and units;
+- every episode follows the common lifecycle and its metric-specific start/resolve rules;
+- lifecycle boundaries resolve active episodes before the producer becomes inactive or is removed;
+- underflow starts immediately on active decoder demand without input and resolves on input recovery;
+- repeat, gap, and underflow may overlap, while duplicate starts for one episode key remain invalid;
+- paused output, EOS, decoder flush/reset, and invalid decode-position state do not create false episodes;
+- deliberate decoder/output control and pacing removal creates neither a drop occurrence nor a `dropped` increment;
+- actual decoder failures during recovery or reconfiguration still create decode-error occurrences;
+- each message source is authoritative and aggregate/child observations do not duplicate an occurrence;
+- messages use ordinary non-blocking queued bus delivery;
 - malformed or unsupported messages can be ignored without affecting playback;
-- direct SoC-rendered video exposes coherent `rendered`, aggregate `dropped` and frame-deduplicated `corrupted` `G_TYPE_UINT64` counters through the output element's read-only `stats` property;
-- cumulative `corrupted` and `MEDIA_METRIC_VIDEO_DECODE_ERROR` use the same authoritative frame-level observations;
-- submitted, decoder-processed, codec-hidden, repeated, seek-flushed and discard-suppressed frames do not falsely increment those counters; and
-- counter values remain monotonic across seek, discard and normal state transitions for the source-path lifetime.
+- direct SoC-rendered video exposes coherent `rendered`, `dropped`, and frame-deduplicated `corrupted` counters;
+- video-drop occurrences and `dropped` use identical frame identity and exclusions;
+- video decode-error occurrences and `corrupted` use identical frame identity and deduplication; and
+- counters remain monotonic for the source-path lifetime across decoder/output lifecycle changes.
 
 Required tests cover:
 
-1. every defined metric type in each applicable SoC pipeline topology;
-2. individual occurrence messages and expansion of native batched observations;
-3. complete episodes and self-describing resolutions;
-4. duplicate starts and mismatched resolutions;
-5. omitted, zero-valued, exact, episode-start, and current-position PTS;
-6. unknown enums and incorrect GTypes;
-7. unregistered message sources;
-8. source removal with messages in flight;
-9. ordinary queue delivery through the collector's `GST_MESSAGE_ELEMENT` dispatcher selection, including verification that the posting thread does not wait for handling and a sync handler returns `GST_BUS_PASS` rather than `GST_BUS_ASYNC`;
-10. aggregate-versus-child duplicate prevention;
-11. coherent rendered/dropped/corrupted reads and `rendered + dropped` W3C totals;
-12. codec-hidden/non-display pictures excluded from presentation totals;
-13. predecode and missed-deadline drops included once without cross-stage duplication;
-14. multiple native error indications for one frame increment `corrupted` once;
-15. corrupted-and-rendered and corrupted-and-dropped overlap cases;
-16. no false increments or resets across seek, superseding seek, flush and discard; and
-17. Video Frame Capture reported as unavailable because final presentation occurs downstream.
+1. every metric type in each applicable SoC topology and exact field types;
+2. occurrence expansion from individual, batched, and cumulative native observations;
+3. immediate decoder-underflow start, input-recovery resolution, and later restart;
+4. repeat start on first unintended reuse and resolution on first new real frame;
+5. audio-gap start on first substitute and resolution on first real frame;
+6. boundary resolution at scheduled-output pause, EOS, decoder flush/reset, decode-position invalidation, source/codec reconfiguration, source removal, and teardown;
+7. boundary duration/count cutoff and restart in the next decoder/output epoch;
+8. source/codec reconfiguration that produces reportable underflow and audio gap;
+9. no false episodes from paused/EOS held frames or silence, structured cadence, or invalid reset output;
+10. overlapping video underflow/repeat and audio underflow/gap, with no duplicate same-metric start;
+11. unknown enums, incorrect GTypes, unregistered sources, and messages in flight during removal;
+12. ordinary non-blocking queued bus delivery and aggregate-versus-child duplicate prevention;
+13. no drop event or `dropped` increment for deliberate flush/reset, decode-position establishment, reconfiguration, EOS cleanup, or non-unity pacing removal;
+14. one drop occurrence and one `dropped` increment for each qualifying quality-loss video drop;
+15. actual decoder failures during recovery/reconfiguration and exclusion of pre-decoder deliberate discard;
+16. decode-error/`corrupted` delta equality and frame-level deduplication;
+17. coherent rendered/dropped/corrupted reads and `rendered + dropped` presentation-outcome totals;
+18. codec-hidden/non-display pictures excluded from presentation totals;
+19. corrupted-and-rendered and corrupted-and-dropped overlap; and
+20. frame-counter unavailability when final presentation occurs downstream after frame handoff.
 
 ## 14. Open decisions
 
@@ -437,6 +464,8 @@ The source owns the audio decoder.
 
 ## A.6 Video frame-repeat episode
 
+Start, natural resolution, lifecycle-boundary resolution, and exclusions follow §§7.4 and 8.5.
+
 ### A.6.1 Started
 
 ```text
@@ -467,6 +496,8 @@ A single-repeat episode still produces both messages. Structured-cadence repeats
 
 ## A.7 Audio-gap episode
 
+Start, natural resolution, lifecycle-boundary resolution, switch behavior, and exclusions follow §§7.4 and 8.6.
+
 ### A.7.1 Started
 
 ```text
@@ -496,6 +527,8 @@ media-pipeline-metric {
 Content-authored silence produces neither message.
 
 ## A.8 Buffer-underflow episode
+
+Immediate decoder-demand start, input-recovery resolution, lifecycle-boundary resolution, and exclusions follow §§7.4 and 8.7. No debounce threshold applies.
 
 ### A.8.1 Started
 
