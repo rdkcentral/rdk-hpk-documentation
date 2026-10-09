@@ -8,16 +8,16 @@
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.3 | Draft for review | Separated frame-plane layout, DMA-BUF allocations and exported FDs; defined explicit raw-FD ownership and non-copyable frame output; standardized vendor playbin integration; made capability queries status-based; defined native paused/invalidation behavior; strengthened plane validation and fixed-layout conformance. | Vendor deliverables, FD ownership versus frame locks, native selection behavior, advertised layout, attachment, teardown and failure rollback. |
+| 0.3 | Draft for review | Separated capability limits from concrete pool layout; defined explicit FD and frame-lock ownership, invalid lock identity, non-copyable/movable frame output, vendor playbin integration, native selection behavior, plane validation, and fixed-layout conformance. | Capability/pool pairing, move and release state, output reuse, FD ownership versus frame locks, native selection, attachment, teardown, and rollback. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
 
 ### What changed in version 0.3
 
 - Frame planes reference DMA-BUF objects by index; the API can represent shared-object and multi-object layouts.
-- Each implementation reports one fixed layout. Pool metadata contains no FDs.
+- `getCapabilities()` reports format, modifier and limits; `createPool()` reports the concrete plane/object layout. Pool metadata contains no FDs.
 - Acquisition exports one MW-owned FD for each distinct object referenced by the selected slot.
-- `CapturedFrame` is non-copyable, FD ownership moves explicitly, and export failure rolls back without changing output.
+- `CapturedFrame` is non-copyable. Move transfers both FD ownership and the frame-release obligation; invalid slot identity means no release is owed.
 - `getCapabilities()` returns `CaptureStatus` and leaves output unchanged on failure.
 - The vendor playbin policy creates and attaches `framecapture` to native scheduled output.
 - Native selection, paused behavior, slot exhaustion, teardown, plane-range validation, and late release are fully defined.
@@ -163,6 +163,8 @@ enum class CaptureStatus : uint32_t
     FATAL_ERROR,
 };
 
+constexpr uint32_t kInvalidCaptureSlotIndex = std::numeric_limits<uint32_t>::max();
+
 struct Size
 {
     uint32_t width;
@@ -221,7 +223,7 @@ struct CapturePool
 
 struct CapturedFrame
 {
-    uint32_t slotIndex;
+    uint32_t slotIndex{kInvalidCaptureSlotIndex};
     int64_t presentationTimeNs;
     Rectangle visibleRegion;
     std::vector<ExportedDmaBuf> exportedDmaBufs;
@@ -239,14 +241,18 @@ The value types follow these rules:
 
 - `backingSize` describes the capacity of each logical slot; it does not require a particular physical allocation strategy.
 - MW owns each successful `fd >= 0`, closes it explicitly, and sets it to `-1`. `-1` means invalid. Destructors do not close FDs.
-- `CapturedFrame` is non-copyable. Moving it transfers FD ownership without `dup()` or `close()` and sets source FDs to `-1`. A move destination must own no FDs.
-- `slotIndex` and `objectIndex` equal their positions in `slotLayouts` and `dmaBufObjects`. Indices are unique and contiguous from zero.
+- `CapturedFrame` is non-copyable. A valid `slotIndex` means exactly one `releaseFrame()` is owed, independently of FD ownership.
+- Moving a frame transfers its metadata, FDs, and release obligation without `dup()` or `close()`. The source FDs become `-1` and its `slotIndex` becomes `kInvalidCaptureSlotIndex`.
+- Move assignment requires an empty destination: invalid `slotIndex` and no owned FDs. It must not discard an existing lock obligation or FD.
+- Pool `slotIndex` and `objectIndex` values equal their positions in `slotLayouts` and `dmaBufObjects`. They are unique and contiguous from zero; no pool slot may use `kInvalidCaptureSlotIndex`.
 - `planeIndex` follows the plane order defined by the reported DRM format. Import code maps that order to its graphics API.
 - Each plane references one valid object. Validate its range without overflow: `offsetBytes <= sizeBytes` and `lengthBytes <= sizeBytes - offsetBytes`. The range and stride must fit the advertised layout.
 - Plane and object metadata remain fixed for the pool lifetime. Storage not exposed as a DRM plane remains part of its DMA-BUF object.
 - On `OK`, `exportedDmaBufs` contains exactly one entry for each distinct object referenced by the selected slot, with no duplicate or unrelated object. Object index—not FD value—is the join key.
 
 Plane count, object count, and FD count are independent.
+
+A `CapturedFrame` is empty only when its `slotIndex` is invalid and every FD is `-1`. Closing all FDs does not make a frame empty while its slot index remains valid; the frame lock still requires release.
 
 FDs are exported only when a frame is acquired. MW owns and closes them. Closing an FD does not release the frame lock, and `releaseFrame()` does not inspect FD values.
 
@@ -338,7 +344,7 @@ exportedDmaBufs = {
 
 ### 7.2 DRM NV12 linear example
 
-The standardized Linux DRM definitions in `include/uapi/drm/drm_fourcc.h` define `DRM_FORMAT_NV12` as a two-plane format and `DRM_FORMAT_MOD_LINEAR` as linear storage. An NV12 slot may represent plane 0 (luma Y) and plane 1 (interleaved chroma UV) using either Example B, where both planes reference one DMA-BUF object at different offsets and acquisition exports one FD, or Example C, where each plane references a separate object and acquisition exports two object-indexed FDs. The modifier does not determine DMA-BUF object or FD cardinality; the plane-to-object mapping in the slot layout does. These examples define representational capability, while an implementation must still advertise and provide an arrangement importable through every required graphics path.
+For this example, `CaptureCapabilities` reports `DRM_FORMAT_NV12` and `DRM_FORMAT_MOD_LINEAR`; the pool supplies the plane/object layout shown below. Linux `drm_fourcc.h` defines NV12 as a two-plane format and the modifier as linear storage. An NV12 slot may represent plane 0 (luma Y) and plane 1 (interleaved chroma UV) using either Example B, where both planes reference one DMA-BUF object at different offsets and acquisition exports one FD, or Example C, where each plane references a separate object and acquisition exports two object-indexed FDs. The modifier does not determine DMA-BUF object or FD cardinality; the plane-to-object mapping in the slot layout does. These examples define representational capability, while an implementation must still advertise and provide an arrangement importable through every required graphics path.
 
 ## 8. Session interface
 
@@ -358,17 +364,21 @@ public:
         CapturedFrame &outFrame) = 0;
 
     virtual CaptureStatus releaseFrame(
-        const CapturedFrame &frame) = 0;
+        CapturedFrame &frame) = 0;
 };
 ```
 
-`getCapabilities()` reports the implemented capture format, modifier, maximum supported content size, and maximum pool depth. `OK` fully populates `out` with a valid `CaptureCapabilities` value. `UNSUPPORTED` reports that capture is unavailable, and `FATAL_ERROR` reports an unrecoverable session/query failure. Every non-`OK` result leaves `out` unchanged. The method does not return alternative formats, allocation modes, or synchronization mechanisms.
+`getCapabilities()` reports exactly the fixed `drmFormat`, `drmModifier`, `maximumContentSize`, and `maximumSlots` for the session. It does not report plane count/order, DMA-BUF objects, plane mappings, offsets, lengths, strides, or actual pool backing size. `OK` fully populates `out`; `UNSUPPORTED` or `FATAL_ERROR` leaves it unchanged.
 
-`createPool()` provisions/reserves the requested `slotCount` of capture slots and synchronously returns their complete layout metadata in `CapturePool`. `slotCount` must be greater than zero and no greater than `CaptureCapabilities.maximumSlots`. Every plane must reference a valid DMA-BUF object and pass the overflow-safe offset/length and format-layout validation in Section 7; `createPool()` must not return `OK` with invalid metadata. The metadata does not include DMA-BUF file descriptors. It is called once per session. Success means those slots are available to the SoC playbin policy for attachment.
+`createPool()` accepts a valid `slotCount` and returns the concrete pool layout: `backingSize`, DMA-BUF object indices/sizes, and each slot's plane indices, object references, offsets, lengths, and strides. It does not repeat format or modifier and contains no FDs. Every plane range must pass the overflow-safe validation in Section 7. `backingSize` must not exceed `maximumContentSize`, and the returned layout must be valid for the same session's format and modifier.
 
-The SoC vendor chooses how to provide the slots, including whether to reserve decoder DPB buffers or use separate backing. The contract does not prescribe an allocator, DMA heap, or GStreamer buffer-pool integration. `maximumSlots` reports the capacity the implementation can reserve while preserving the resources required for normal playback; the requested count must be within that limit.
+The capability result and pool belong to the same session and are interpreted together. Format, modifier, and limits remain fixed for that session. MW keeps both records while it needs to interpret the pool; no extra capability fields or duplicated pool fields are implied.
 
-`acquireCurrentFrame()` requires `outFrame` to own no FDs. It atomically examines the frame currently selected by the native scheduler. If that selection has not previously been returned, the method temporarily locks its slot, exports one descriptor for each distinct DMA-BUF object referenced by that slot's planes, then commits the lock and returned-selection state, moves the complete owning result into `outFrame`, and returns `OK`. Before decoder consumption establishes a valid native display selection, it returns `NO_FRAME`. If the current selection was already returned, it returns `NO_NEW_FRAME`. Every non-`OK` result leaves all fields and ownership in `outFrame` unchanged and requires no matching release.
+The SoC vendor chooses how to provide the slots. `maximumSlots` is the greatest count that preserves the resources needed for normal playback.
+
+`acquireCurrentFrame()` requires an empty `outFrame`: invalid slot index and no owned FDs. A valid slot index means that output still owes a release even if all its FDs are already closed. Passing a non-empty output returns `INVALID_ARGUMENT` without changing it.
+
+For an empty output, the method examines the current native selection. A new selection is temporarily locked, all required FDs are exported, and the complete result—including the valid slot index and release obligation—is moved into `outFrame` before returning `OK`. No valid selection returns `NO_FRAME`; an already returned selection returns `NO_NEW_FRAME`. Every non-`OK` result leaves `outFrame` unchanged and creates no release obligation.
 
 If descriptor creation/export fails because a transient resource is unavailable, including descriptor exhaustion, `acquireCurrentFrame()` returns `NO_RESOURCES`. Before returning, the vendor implementation explicitly closes every FD created for that attempt, removes the temporary lock, leaves the selection not returned, and does not move any result into `outFrame`. No matching release is required and the selection remains retriable. An unrecoverable session/backing failure returns `FATAL_ERROR` with the same all-or-nothing cleanup. `FATAL_ERROR` is not retriable; capture is unavailable for the remainder of the session. An implementation that cannot roll back atomically is non-conformant.
 
@@ -380,8 +390,9 @@ The SoC implementation determines whether a native scheduler selection is new us
 
 Every `OK` acquisition establishes one lock for one distinct captured selection. Several acquired frames may lock different slots concurrently, but there is at most one live lock per slot and one successful acquisition per selection. MW may share access through references or one shared owner around the non-copyable record and calls `releaseFrame()` once when final use ends.
 
-`releaseFrame(const CapturedFrame &frame)` releases the lock identified by `frame.slotIndex`; it does not consume, close, or inspect exported FDs. Every `OK` acquisition requires exactly one matching release. It rejects an out-of-range or currently unlocked slot. On successful release, the owning `CapturedFrame` becomes invalid for frame access and must not be released again. The HAL need not distinguish a stale release after slot reuse. A slot cannot be written, reused, or associated with another frame while its lock remains active.
-The release operation uses acquired-frame lock state, not the exported FD values; those descriptors may already have been closed after import.
+`releaseFrame(CapturedFrame &frame)` requires a valid slot index. It releases that slot lock and, on `OK`, sets `frame.slotIndex` to `kInvalidCaptureSlotIndex`. It does not inspect or close FDs, so MW must still close any open FDs separately. A successful release makes the frame invalid for content access even if an FD remains open.
+
+An invalid, moved-from, out-of-range, stale, or currently unlocked slot index returns `INVALID_ARGUMENT`. Every non-`OK` result leaves the frame unchanged. A slot cannot be reused while its lock remains active.
 
 The **SoC vendor** supplies both `ICaptureSession` and the GStreamer integration. Scheduler notifications, writable-slot management, decoder handles, and copy/conversion details remain private between those components.
 
@@ -464,7 +475,7 @@ When the native scheduler selects a different current frame, the SoC path captur
 
 `acquireCurrentFrame()` checks the current selection, temporarily locks its slot, exports every required descriptor, and commits the returned state in one atomic success transaction. A descriptor-export failure closes partial descriptors, removes the temporary lock, leaves `outFrame` unchanged, and leaves the selection available for retry. The first committed call for that selection returns `OK`; later calls return `NO_NEW_FRAME` without returning its `slotIndex` again or changing lock state. The slot therefore cannot become writable during a successful selection/export/commit transaction.
 
-`releaseFrame()` removes the lock established by one successful acquisition. Once release succeeds, that `CapturedFrame` is invalid and the slot may later hold a different frame. Releasing one slot has no effect on other acquired slots.
+`releaseFrame()` removes one lock and invalidates that frame's slot index. Releasing one slot has no effect on other acquired slots. Open FDs remain MW-owned but no longer provide access to stable frame contents.
 
 If no slot is writable when the scheduler advances, the new capture selection is omitted. The previous captured selection remains current; if it was already acquired, `acquireCurrentFrame()` returns `NO_NEW_FRAME`. Video decode, native presentation, audio presentation, and STC progression continue without waiting. Once capacity returns, the next captured selection represents the then-current SoC frame and returns `OK` on its first acquisition; missed intermediate selections are not replayed.
 
@@ -498,18 +509,19 @@ On `OK`, all decoder writes, cache maintenance, and SoC-side synchronization are
 
 ## 14. Fixed capture layout
 
-Each implementation supports one fixed capture layout and reports it through `getCapabilities()`. It is not required to support every shared-object, separate-object, or mixed arrangement representable by the value types. The session does not negotiate alternatives. Pool metadata must faithfully describe the advertised format, modifier, frame planes, and DMA-BUF objects, and that layout must be importable through every graphics path required on the platform.
+Each implementation supports one fixed capture contract. `getCapabilities()` reports its format, modifier, and limits. `createPool()` reports the concrete object, slot, and plane layout. The two records belong to the same session and together describe the layout; neither duplicates the other's fields.
 
-The session provisions the requested number of logical slots once, with metadata describing:
+The implementation need not support every shared-object, separate-object, or mixed arrangement shown in the examples. Its returned pool must faithfully represent its one fixed format/modifier arrangement and be usable through every required graphics path.
 
-- the implemented DRM format and modifier;
-- one explicitly indexed `FramePlane` per DRM plane and the same plane layout for every slot, while DMA-BUF object indices and offsets may differ;
-- the logical slot dimensions/capacity in `CapturePool.backingSize`, independent of the physical backing strategy; and
-- the slot count requested by `createPool()`.
+For the requested slot count, `CapturePool` describes:
 
-Every slot supports the dimensions/capacity described by `CapturePool.backingSize`, and `CapturePool.slotLayouts.size()` equals the requested count. The requested count must not exceed `CaptureCapabilities.maximumSlots`.
+- the actual logical slot capacity in `backingSize`;
+- each DMA-BUF object's index and size; and
+- each slot's indexed planes, object references, offsets, lengths, and strides.
 
-The capture format, modifier, plane layout, logical slot dimensions, and reserved slot count remain fixed until the session is closed. Resolution or crop changes update `CapturedFrame.visibleRegion`; they do not replace the slot reservation.
+Every slot supports `backingSize`; that size must not exceed `maximumContentSize`. `slotLayouts.size()` equals the requested count, which must not exceed `maximumSlots`.
+
+The capability values and concrete pool layout remain fixed until the session is closed. Resolution or crop changes update `CapturedFrame.visibleRegion`; they do not replace the slot reservation.
 
 If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represented by the implemented capture layout, capture returns `UNSUPPORTED` or `FATAL_ERROR` and stops updating its current selection. Normal playback remains available. Runtime capture-slot replacement is outside this specification. One `ICaptureSession` has one logical slot reservation for its complete lifetime.
 
@@ -536,13 +548,13 @@ An SoC implementation is conformant only when all of the following are true:
 | Area | Requirement | Sections |
 |---|---|---|
 | Delivery and attachment | The vendor registers `framecapture`, provides the playbin policy, attaches to native scheduled output before decoder output, and detaches safely before teardown. Existing playback integration provides the session and pool. | §§5, 6, 9 |
-| Capabilities and pool | Capability failures leave output unchanged. Pool creation returns complete, bounds-checked metadata for the advertised fixed layout and valid slot count. | §§7, 8, 14 |
+| Capabilities and pool | Capabilities report only format, modifier and limits. Pool creation returns the concrete bounds-checked object/slot/plane layout for the same session, within those limits. | §§7, 8, 14 |
 | Native selection | Capture follows native scheduled output. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. Paused and invalidation behavior follows §9.3. | §§5, 8–10 |
-| FD ownership and rollback | `CapturedFrame` is non-copyable and movable. MW owns and closes one FD per distinct referenced object. Export is atomic; failure closes partial FDs, rolls back the lock, and leaves output unchanged. | §§7, 8, 12 |
-| Frame locks and synchronization | One `OK` creates one lock and requires one release. Locked contents remain stable until MW completes use and releases the frame. | §§4, 8, 10, 12, 13 |
+| Frame identity, FD ownership and rollback | Valid slot identity means one release is owed. Move transfers that identity and all FDs, invalidating the source. Acquisition/move-assignment require an empty destination. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§7, 8, 12 |
+| Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 8, 10, 12, 13 |
 | Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, presentation, audio, or STC. | §§9, 10 |
 | Detach and teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. | §11 |
-| Contract tests | Tests cover every area above, including layout bounds, ownership, rollback, repeated/concurrent acquisition, exhaustion, detach, final acquisition, and late release. | — |
+| Contract tests | Tests cover every area above, including invalid/default/moved/released frame identity, move-assignment destination checks, acquisition-output reuse, capability/pool pairing, layout bounds, rollback, repeated/concurrent acquisition, exhaustion, detach, final acquisition, and late release. | — |
 
 Failure of any mandatory gate means Video Frame Capture is unsupported on that implementation; it does not permit a weakened lifetime or playback-continuity contract.
 
