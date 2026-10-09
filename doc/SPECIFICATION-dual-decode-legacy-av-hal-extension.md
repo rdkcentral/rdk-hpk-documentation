@@ -12,6 +12,7 @@
 
 ### What this specification covers
 
+- AV sync for dual-decode use cases.
 - Westeros sink property extensions for `window-group-id` and `window-group-apply`.
 - Audio sink property extension for `audio-enable`.
 - Video decoder and video plane resource selection using `res-usage`.
@@ -22,6 +23,7 @@
 
 ### What this specification does not cover
 
+- AV sync for use cases other than dual decode.
 - Unrelated platform features outside decoder, audio, SVP, DRM, and transition handling.
 - Metrics HAL requirements.
 - Frame-capture HAL behaviour.
@@ -34,22 +36,71 @@ This specification defines the contract between the middleware playback stack, v
 
 ```mermaid
 graph LR
-    App[Application Process] --> RC[Rialto Client]
-    RC -->|IPC| RS[Rialto Server]
-    RS --> GST[GStreamer Pipeline A / B]
-    GST --> VARB[Video arbitration element<br/>video decoder or westeros sink]
-    GST --> AARB[Audio arbitration element<br/>audio decoder or audio sink]
-    RS --> Ctx[GStreamer Context]
-    RS --> YAML[Capability YAML]
-    GST --> OCDM[OCDM Adaptor]
-    OCDM --> SVPC[gst-svp-common]
-    SVPC --> SVPE[gst-svp-ext-soc]
-    SVPE --> SVP[SVP Allocator]
-    GST --> SVPC
-    GST --> DRM[DRM System]
-    RM[ESSOS Resource Manager] <--> VARB
-    RM <--> AARB
-    RM <--> SVP
+    subgraph AP[Application Process]
+        App[Application Process] --> RC[Rialto Client]
+    end
+
+    subgraph RSP[Rialto Server Process]
+        RS[Rialto Server]
+        subgraph GSTP[GStreamer Pipeline A / B]
+            GST[Pipeline flow]
+            Ctx[GStreamer Context]
+            DEC[decryptor]
+            SVPP[svp payload]
+            VARB[Video arbitration element<br/>video decoder or westeros sink]
+            AARB[Audio arbitration element<br/>audio decoder or audio sink]
+        end
+        RS --> GST
+        GST --> DEC
+        GST --> SVPP
+        GST --> VARB
+        GST --> AARB
+        RS --> Ctx
+        Ctx -->|UHD SVP pool or FHD SVP pool| DEC
+        Ctx -->|UHD SVP pool or FHD SVP pool| SVPP
+        RS --> YAML[Capability YAML]
+        DEC --> OCDM[Rialto OCDM Adaptor]
+        SVPP --> SVPC[gst-svp-common]
+        SVPC --> SVPE[gst-svp-ext-soc]
+        SVPE --> SVP[SVP Allocator]
+    end
+
+    subgraph OCP[openCDMi Process]
+        OPENCDM[openCDMi]
+        DRM[DRM System]
+    end
+
+    subgraph LEG[Legend]
+        LRESP[Highlighted blocks = SoC vendor responsibility]
+    end
+
+    OCDM -->|IPC| OPENCDM
+    OPENCDM --> DRM
+
+    subgraph RMP[ESSOS Resource Manager Process]
+        RM[ESSOS Resource Manager]
+    end
+
+    RC -->|IPC| RS
+    RM -->|IPC| VARB
+    VARB -->|IPC| RM
+    RM -->|IPC| AARB
+    AARB -->|IPC| RM
+    RM -->|IPC| SVP
+    SVP -->|IPC| RM
+
+    style AP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
+    style RSP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
+    style GSTP fill:#e6e6e6,stroke:#666,stroke-width:1px
+    style LEG fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
+    style OCP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
+    style RMP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
+    style VARB fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style AARB fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style SVPE fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style SVP fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style DRM fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style LRESP fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
 ```
 
 ### Process and IPC boundaries
@@ -91,7 +142,7 @@ The contract covers:
 | Role | Definition | Responsibilities |
 |---|---|---|
 | **Middleware layer team** | Owns Rialto Client, Rialto Server, and playback orchestration. | Builds playback pipelines, sets sink properties, propagates GStreamer context, and coordinates player transitions. |
-| **SoC vendor** | Provides vendor GStreamer elements and platform resource integration. | Implements westeros sink, audio sink, decoder selection, SVP usage handling, DRM integration, and assigned-resource binding. |
+| **SoC vendor** | Provides vendor GStreamer elements and platform resource integration. | Implements westeros sink, audio sink, decoder selection, SVP usage handling, DRM integration, assigned-resource binding, and AV sync for dual decode. |
 | **Vendor layer team** | Integrates the SoC delivery into the platform image. | Supplies capability YAML, ESSOS resource-manager configuration, and any platform-specific resource identifiers consumed by middleware and vendor plugins. |
 
 ## 3. Scope
@@ -123,12 +174,15 @@ The contract covers:
 - For DPI9 the initial requirement is a maximum of two playback sessions in one application process.
 - Each pipeline operates independently and keeps its own play, pause, seek, and trick-mode state.
 - AV sync is maintained independently inside each pipeline. No AV synchronisation is required between pipelines.
+- During dual decode, AV sync remains the responsibility of the SoC vendor implementation.
 - Existing SoC-vendor behaviour for a single playback pipeline remains unchanged unless explicitly extended by this specification.
 
 ### 4.2 Assumptions
 
 - Legacy pipeline construction remains unchanged.
 - New functionality is delivered primarily through sink properties, GStreamer context, capability YAML, and existing middleware orchestration.
+- During dual decode, the SoC vendor may assume that the corresponding audio and video sinks belong to the same process.
+- Where helpful for sink association inside the same playbin, the SoC vendor may use `gst_element_parent()` to locate the corresponding audio and video sinks that require AV synchronisation.
 - Unsupported capability requests must fail positively rather than producing undefined behaviour.
 - Capability reporting is available before runtime configuration occurs.
 
@@ -144,14 +198,20 @@ Capability YAML shall report at least the following platform capabilities when s
 
 The capability YAML and ESSOS resource-manager configuration shall refer consistently to the same logical resources, including video decoder, audio decoder, video sink, audio sink, SVP allocator, and DRM-related platform identifiers where applicable.
 
+### 4.4 Capability YAML
+
+TBC.
+
 ## 5. GStreamer property extensions
 
 ### 5.1 Westeros sink property extensions
 
+`window-group-id` and `window-group-apply` are newly introduced properties. `res-usage` is an existing property that continues to be used as described in this specification.
+
 | Property | Type | Purpose | Required behaviour |
 |---|---|---|---|
-| `window-group-id` | Integer | Associates multiple westeros sink instances with one window-update group. | Multiple sink instances that share the same non-zero group identifier participate in grouped window updates. |
-| `window-group-apply` | Boolean | Controls whether pending rectangle changes apply immediately to the whole group. | When `true`, a rectangle change on one grouped sink shall apply to every sink in the group atomically. When `false`, the change may be stored until grouping is applied. |
+| `window-group-id` | Integer | Associates multiple westeros sink instances with one window-update group. | The default value shall be `-1`. If a sink has a non-default `window-group-id`, that sink participates in the identified group. |
+| `window-group-apply` | Trigger | Applies pending grouped rectangle changes to every sink in the group. | This is a one-shot property. After `window-group-id` has been set on the participating sinks, setting `window-group-apply` on one sink in the group shall apply the pending grouped rectangle changes atomically across the group. |
 | `res-usage` | Enum | Identifies the intended resource profile for the video path. | The property value shall continue to distinguish primary and secondary resource usage and shall participate in video-decoder selection as defined in Section 7. |
 
 #### 5.1.1 `window-group-id`
@@ -164,24 +224,28 @@ Example intent:
 Westeros Sink A -> group 1
 Westeros Sink B -> group 1
 rectangle change on Sink A
-    -> applied to Sink A and Sink B when group apply is enabled
+rectangle change on Sink B
+    -> applied to Sink A and Sink B atomically when group apply is enabled
 ```
+
+Atomic means that the changes to Sink A and Sink B occur such that, to the viewer, the rectangle changes appear to occur at the same time.
 
 #### 5.1.2 `window-group-apply`
 
 `window-group-apply` determines when grouped rectangle changes take effect.
 
-- If `window-group-id` is set and `window-group-apply` is `true`, a rectangle change shall take effect for every sink in the group.
-- If `window-group-id` is set and `window-group-apply` is `false`, a rectangle change may be remembered but shall not be applied to the full group until grouping is enabled.
+- The default `window-group-id` value shall be `-1`.
+- If `window-group-id` has been set on a sink, that sink is part of the identified group.
+- No grouped rectangle change shall take effect until `window-group-apply` is set on one of the sinks in that group.
+- `window-group-apply` is a one-shot apply action and does not require separate `true` and `false` states.
+- Each time RDK needs to update grouped rectangles, it shall set the new `window-group-id` on both westeros sinks and then set the one-shot `window-group-apply` property.
 - If no valid `window-group-id` is set, rectangle changes affect only the specified sink instance.
-
-The exact behaviour when sinks in the same group hold different `window-group-apply` values is implementation-defined unless a stricter platform policy is documented. Platforms should avoid mixed configuration within one group.
 
 ### 5.2 Audio sink property extension
 
 | Property | Type | Purpose | Required behaviour |
 |---|---|---|---|
-| `audio-enable` | Boolean | Controls whether decoded audio is forwarded to the audio mixer. | When `true`, decoded audio shall be rendered through the normal mixer path. When `false`, decode shall continue, AV sync shall still be maintained, and audio output shall not be rendered or mixed. |
+| `audio-enable` | Boolean | Controls whether decoded audio is forwarded to the audio mixer. | The default value shall be `true`. When `true`, decoded audio shall be rendered through the normal mixer path. When `false`, decode shall continue, AV sync shall still be maintained, and audio output shall not be rendered or mixed. |
 
 #### 5.2.1 `audio-enable`
 
@@ -194,12 +258,12 @@ When `audio-enable` is `false`:
 - decoded audio shall not be injected into the audible mixer path; and
 - audio underflow events for that disabled stream shall not be reported.
 
-When a stream is initialised, it should default to the enabled state.
+When a stream is initialised, `audio-enable` shall default to `true`.
 
 ### 5.3 Property application timing
 
 - `res-usage` shall be set before the pipeline moves from `NULL` to `READY`, because the resource-owning element may request its ESSOS-managed resource during that transition.
-- `window-group-id` and `window-group-apply` shall be set before grouped window changes are expected to take effect.
+- `window-group-id` shall be set on the participating sinks before grouped window changes are expected to take effect, and `window-group-apply` shall then be triggered as the one-shot apply action.
 - `audio-enable` may be adjusted while both pipelines remain active, provided the platform preserves the decode-and-sync semantics defined above.
 
 ## 6. Resource identification model
@@ -279,7 +343,20 @@ All AV players supporting dual audio decode shall use Rialto middleware for the 
 
 Audio decoder resources are treated as symmetric. This specification does not require an extension to an audio-usage enumeration analogous to the video `res-usage` profile.
 
-### 8.2 ESSOS configuration and allocation
+### 8.2 ESSOS Resource Manager configuration
+
+The ESSOS Resource Manager configuration shall advertise two available audio-decoder resources.
+
+### 8.3 Example ESSOS configuration entries
+
+The configuration file is expected to contain two audio resource entries in the following form:
+
+```text
+audio: hardware
+audio: hardware
+```
+
+### 8.4 ESSOS configuration and allocation
 
 The ESSOS resource-manager configuration shall be extended to advertise both available audio-decoder resources.
 
@@ -289,7 +366,7 @@ When middleware requests an audio decoder:
 - the second request shall receive the second available audio-decoder `assignedId`; and
 - no further usage-class distinction is required for symmetric audio decoders.
 
-### 8.3 Vendor plugin behaviour
+### 8.5 Vendor plugin behaviour
 
 The audio sink or audio-decoder plugin that consumes ESSOS resource-manager results shall use the returned `assignedId` to decide which hardware audio-decoder instance to open.
 
@@ -338,7 +415,20 @@ All AV players supporting dual secure-video paths shall use Rialto middleware fo
 
 Platforms shall declare whether their SVP allocator resources are asymmetric or symmetric.
 
-### 10.2 Asymmetric SVP resources
+### 10.2 ESSOS Resource Manager configuration
+
+The ESSOS Resource Manager configuration shall advertise two SVP allocator resources for the dual-decode use case.
+
+### 10.3 Example ESSOS configuration entries
+
+For a symmetric configuration, the file is expected to contain two SVP resource entries in the following form:
+
+```text
+svpa: hardware
+svpa: hardware
+```
+
+### 10.4 Asymmetric SVP resources
 
 On platforms where SVP allocator resources are asymmetric, middleware shall signal SVP usage through GStreamer context.
 
@@ -354,9 +444,16 @@ On such platforms:
 - the first component that consumes the SVP buffer, such as a decryptor or SVP payload element, shall pass the usage to the vendor-side SVP integration; and
 - vendor code shall use the usage value together with the assigned resource identifier to bind the correct allocator resource.
 
+An asymmetric configuration may, for example, contain entries in the following form:
+
+```text
+svpa: hardware
+svpa: hardware, limitedQuality
+```
+
 The SVP resource-owning element shall create its ESSOS connection once for the lifetime of the playback pipeline, request the SVP allocator during the initial pipeline-establishment path before secure playback depends on that allocator, and handle grant or revoke using the same ESSOS request/callback/release pattern used for video.
 
-### 10.3 Symmetric SVP resources
+### 10.5 Symmetric SVP resources
 
 On platforms where SVP allocator resources are symmetric:
 
@@ -366,12 +463,20 @@ On platforms where SVP allocator resources are symmetric:
 
 Even on symmetric platforms, the SVP-owning element shall keep a persistent ESSOS connection for the lifetime of the playback pipeline, release the allocator with `EssRMgrReleaseResource()` when playback stops or a revoke event is received, and destroy the ESSOS connection only when resource-manager communication is no longer needed.
 
-### 10.4 Legacy behaviour
+### 10.6 Legacy behaviour
 
 For legacy AV players not using Rialto:
 
 - only one SVP allocator is typically requested; and
 - the default expectation is the higher-specification allocator when such differentiation exists.
+
+### 10.7 Extensions to Rialto OCDM Adaptor, gst-svp-common, and gst-svp-ext-soc
+
+TBC.
+
+### 10.8 GStreamer context structure for carrying SVP pool information
+
+TBC.
 
 ## 11. DRM resource model
 
@@ -403,7 +508,9 @@ The application manager or equivalent playback orchestrator shall coordinate act
 
 **Note:** ESSOS Resource Manager, which corresponds to the legacy vendor-layer revocation method in this specification, is the fallback resource-management model when the application resource manager does not provide smooth handover of video, audio, and SVP resources during transition from one application to another.
 
-This fallback is a mandatory requirement because not all applications use Rialto and the platform therefore requires one resource-management model that can arbitrate mixed transitions across Rialto-based and non-Rialto-based applications.
+This fallback method using ESSOS Resource Manager is a **mandatory** requirement because not all applications use Rialto and the platform therefore requires one resource-management model that can arbitrate mixed transitions across Rialto-based and non-Rialto-based applications.
+
+In dual-decode scenarios, if ESSOS Resource Manager revokes one video resource during a transition, the platform shall revoke all video resources owned by the exiting player together. This is required to prevent video from the exiting player being mixed with video from the entering player during handover.
 
 Audio-mixer behaviour remains process-specific and shall follow the ownership and isolation rules defined in Section 9.
 
@@ -417,7 +524,7 @@ For transitions between two Rialto-based players:
 - the exiting Rialto Server shall release video decoders, audio decoders, and SVP allocators before the next Rialto Server acquires them; and
 - the entering player shall wait for release confirmation before activating resource acquisition.
 
-If a platform uses a legacy vendor-layer revocation method instead of an orderly release, the implementation shall ensure that both video resources are revoked together when necessary to avoid blending video from the exiting player with video from the entering player.
+If a platform uses a legacy vendor-layer revocation method instead of an orderly release, the implementation shall ensure that all video resources owned by the exiting player are revoked together when necessary to avoid blending video from the exiting player with video from the entering player.
 
 Orderly-release path, where the exiting player releases resources before the entering player requests them:
 
@@ -426,42 +533,42 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant RS1 as Exiting Rialto Server
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant RS2 as Entering Rialto Server
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: EssRMgrCreate() already completed during initial pipeline setup
-    Note over V2,A2: EssRMgrCreate() will be done once during this pipeline setup, not per transition
+    Note over V1,S1: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
+    Note over V2,S2: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
 
     AM->>RS1: inactivate exiting player
-    RS1->>V1: stop playback and release video resource
-    V1->>RM: EssRMgrReleaseResource(video)
-    RS1->>A1: release audio resource
-    A1->>RM: EssRMgrReleaseResource(audio)
-    RS1->>S1: release SVP resource
-    S1->>RM: EssRMgrReleaseResource(svp)
+    RS1->>V1: stop playback and release video resources A/B
+    V1->>RM: EssRMgrReleaseResource(video A/B)
+    RS1->>A1: release audio resources A/B
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
+    RS1->>S1: release SVP resources A/B
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     RS1-->>AM: resource release complete
 
     AM->>RS2: activate entering player
-    RS2->>V2: initialise pipeline
+    RS2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     RS2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    RS2->>A2: initialise audio path
+    RS2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     RS2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    RS2->>S2: initialise SVP path
+    RS2->>S2: initialise SVP path A/B
     S2->>RM: EssRMgrCreate(notifyCB)
     RS2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
     RS2-->>AM: acquisition complete
 ```
@@ -473,44 +580,45 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant RS1 as Exiting Rialto Server
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant RS2 as Entering Rialto Server
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: Existing pipeline already holds resources through an earlier EssRMgrCreate()
-    Note over V2,A2: Entering pipeline performs EssRMgrCreate() once during startup, then requests resources
+    Note over V1,S1: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
+    Note over V2,S2: Entering player Pipeline A/B performs EssRMgrCreate() once during startup, then requests resources
 
     AM->>RS2: activate entering player before exit completes
-    RS2->>V2: initialise pipeline
+    RS2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     RS2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V1: notifyCB(EssRMgrEvent::Revoked)
-    RS1->>V1: stop using video resource and revoke it
-    V1->>RM: EssRMgrReleaseResource(video)
+    RS1->>V1: stop using all exiting-player video resources and revoke them
+    V1->>RM: EssRMgrReleaseResource(video primary)
+    V1->>RM: EssRMgrReleaseResource(video secondary)
     RM-->>V2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    RS2->>A2: initialise audio path
+    RS2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     RS2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A1: notifyCB(EssRMgrEvent::Revoked)
-    RS1->>A1: stop using audio resource and revoke it
-    A1->>RM: EssRMgrReleaseResource(audio)
+    RS1->>A1: stop using exiting-player audio resources A/B and revoke them
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
     RM-->>A2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    RS2->>S2: initialise SVP path if required
+    RS2->>S2: initialise SVP path A/B if required
     S2->>RM: EssRMgrCreate(notifyCB)
     RS2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S1: notifyCB(EssRMgrEvent::Revoked)
-    RS1->>S1: stop using SVP resource and revoke it
-    S1->>RM: EssRMgrReleaseResource(svp)
+    RS1->>S1: stop using exiting-player SVP resources A/B and revoke them
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     RM-->>S2: notifyCB(EssRMgrEvent::Granted, assignedId)
     RS2-->>AM: acquisition complete after revocation
 ```
@@ -533,42 +641,42 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant RS as Exiting Rialto Server
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant APP2 as Entering non-Rialto App
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: EssRMgrCreate() already completed during initial pipeline setup
-    Note over V2,A2: EssRMgrCreate() is done once when the entering pipeline is first established
+    Note over V1,S1: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
+    Note over V2,S2: EssRMgrCreate() is done once when the entering player Pipeline A/B is first established
 
     AM->>RS: inactivate Rialto-based player
-    RS->>V1: release video resource
-    V1->>RM: EssRMgrReleaseResource(video)
-    RS->>A1: release audio resource
-    A1->>RM: EssRMgrReleaseResource(audio)
-    RS->>S1: release SVP resource
-    S1->>RM: EssRMgrReleaseResource(svp)
+    RS->>V1: release video resources A/B
+    V1->>RM: EssRMgrReleaseResource(video A/B)
+    RS->>A1: release audio resources A/B
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
+    RS->>S1: release SVP resources A/B
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     RS-->>AM: release complete
 
     AM->>APP2: launch non-Rialto player
-    APP2->>V2: initialise pipeline
+    APP2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     APP2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    APP2->>A2: initialise audio path
+    APP2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     APP2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    APP2->>S2: initialise SVP path if required
+    APP2->>S2: initialise SVP path A/B if required
     S2->>RM: EssRMgrCreate(notifyCB)
     APP2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
@@ -579,44 +687,45 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant RS as Exiting Rialto Server
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant APP2 as Entering non-Rialto App
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: Existing pipeline already holds resources through an earlier EssRMgrCreate()
-    Note over V2,A2: Entering pipeline performs EssRMgrCreate() once during startup, then requests resources
+    Note over V1,S1: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
+    Note over V2,S2: Entering player Pipeline A/B performs EssRMgrCreate() once during startup, then requests resources
 
     AM->>APP2: launch non-Rialto player before exit completes
-    APP2->>V2: initialise pipeline
+    APP2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     APP2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V1: notifyCB(EssRMgrEvent::Revoked)
-    RS->>V1: stop using video resource and revoke it
-    V1->>RM: EssRMgrReleaseResource(video)
+    RS->>V1: stop using all exiting-player video resources and revoke them
+    V1->>RM: EssRMgrReleaseResource(video primary)
+    V1->>RM: EssRMgrReleaseResource(video secondary)
     RM-->>V2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP2->>A2: initialise audio path
+    APP2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     APP2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A1: notifyCB(EssRMgrEvent::Revoked)
-    RS->>A1: stop using audio resource and revoke it
-    A1->>RM: EssRMgrReleaseResource(audio)
+    RS->>A1: stop using exiting-player audio resources A/B and revoke them
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
     RM-->>A2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP2->>S2: initialise SVP path if required
+    APP2->>S2: initialise SVP path A/B if required
     S2->>RM: EssRMgrCreate(notifyCB)
     APP2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S1: notifyCB(EssRMgrEvent::Revoked)
-    RS->>S1: stop using SVP resource and revoke it
-    S1->>RM: EssRMgrReleaseResource(svp)
+    RS->>S1: stop using exiting-player SVP resources A/B and revoke them
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     RM-->>S2: notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
@@ -628,7 +737,7 @@ For transitions from a non-Rialto-based player to a Rialto-based player:
 - if shutdown is delayed, ESSOS or the vendor layer may need to force revocation before the new Rialto-based player acquires the resource; and
 - if the entering Rialto-based player acquires the lower-specification video decoder first while the exiting non-Rialto player still owns the higher-specification decoder, the platform shall avoid any temporary mixed-video presentation.
 
-Platforms that cannot guarantee this through orderly release shall revoke both video resources together when needed.
+Platforms that cannot guarantee this through orderly release shall revoke all video resources owned by the exiting player together when needed.
 
 Orderly-release path, where the exiting non-Rialto player releases resources before the entering Rialto-based player requests them:
 
@@ -637,44 +746,44 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant APP1 as Exiting non-Rialto App
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant RS2 as Entering Rialto Server
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: EssRMgrCreate() already completed during initial pipeline setup
-    Note over V2,A2: EssRMgrCreate() will be done once during this pipeline setup, not per transition
+    Note over V1,S1: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
+    Note over V2,S2: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
 
     AM->>APP1: stop exiting non-Rialto player
-    APP1->>V1: release video resource
-    V1->>RM: EssRMgrReleaseResource(video)
-    APP1->>A1: release audio resource
-    A1->>RM: EssRMgrReleaseResource(audio)
-    APP1->>S1: release SVP resource
-    S1->>RM: EssRMgrReleaseResource(svp)
+    APP1->>V1: release video resources A/B
+    V1->>RM: EssRMgrReleaseResource(video A/B)
+    APP1->>A1: release audio resources A/B
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
+    APP1->>S1: release SVP resources A/B
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     APP1-->>AM: resource release complete
 
     AM->>RS2: prepare incoming Rialto-based player
-    RS2->>V2: initialise pipeline
+    RS2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     RS2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    RS2->>A2: initialise audio path
+    RS2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     RS2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    RS2->>S2: initialise SVP path if required
+    RS2->>S2: initialise SVP path A/B if required
     S2->>RM: EssRMgrCreate(notifyCB)
     RS2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
@@ -685,44 +794,45 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant APP1 as Exiting non-Rialto App
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant RS2 as Entering Rialto Server
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: Existing pipeline already holds resources through an earlier EssRMgrCreate()
-    Note over V2,A2: Entering pipeline performs EssRMgrCreate() once during startup, then requests resources
+    Note over V1,S1: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
+    Note over V2,S2: Entering player Pipeline A/B performs EssRMgrCreate() once during startup, then requests resources
 
     AM->>RS2: prepare incoming Rialto-based player
-    RS2->>V2: initialise pipeline
+    RS2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     RS2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V1: notifyCB(EssRMgrEvent::Revoked)
-    APP1->>V1: stop using video resource and revoke it
-    V1->>RM: EssRMgrReleaseResource(video)
+    APP1->>V1: stop using all exiting-player video resources and revoke them
+    V1->>RM: EssRMgrReleaseResource(video primary)
+    V1->>RM: EssRMgrReleaseResource(video secondary)
     RM-->>V2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    RS2->>A2: initialise audio path
+    RS2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     RS2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A1: notifyCB(EssRMgrEvent::Revoked)
-    APP1->>A1: stop using audio resource and revoke it
-    A1->>RM: EssRMgrReleaseResource(audio)
+    APP1->>A1: stop using exiting-player audio resources A/B and revoke them
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
     RM-->>A2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    RS2->>S2: initialise SVP path if required
+    RS2->>S2: initialise SVP path A/B if required
     S2->>RM: EssRMgrCreate(notifyCB)
     RS2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S1: notifyCB(EssRMgrEvent::Revoked)
-    APP1->>S1: stop using SVP resource and revoke it
-    S1->>RM: EssRMgrReleaseResource(svp)
+    APP1->>S1: stop using exiting-player SVP resources A/B and revoke them
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     RM-->>S2: notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
@@ -739,44 +849,44 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant APP1 as Exiting non-Rialto App
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant APP2 as Entering non-Rialto App
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: EssRMgrCreate() already completed during initial pipeline setup
-    Note over V2,A2: EssRMgrCreate() will be done once during this pipeline setup, not per transition
+    Note over V1,S1: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
+    Note over V2,S2: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
 
     AM->>APP1: stop exiting non-Rialto player
-    APP1->>V1: release video resource
-    V1->>RM: EssRMgrReleaseResource(video)
-    APP1->>A1: release audio resource
-    A1->>RM: EssRMgrReleaseResource(audio)
-    APP1->>S1: release SVP resource
-    S1->>RM: EssRMgrReleaseResource(svp)
+    APP1->>V1: release video resources A/B
+    V1->>RM: EssRMgrReleaseResource(video A/B)
+    APP1->>A1: release audio resources A/B
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
+    APP1->>S1: release SVP resources A/B
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     APP1-->>AM: resource release complete
 
     AM->>APP2: start incoming non-Rialto player
-    APP2->>V2: initialise pipeline
+    APP2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     APP2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP2->>A2: initialise audio path
+    APP2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     APP2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP2->>S2: initialise SVP path if required
+    APP2->>S2: initialise SVP path A/B if required
     S2->>RM: EssRMgrCreate(notifyCB)
     APP2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S2: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
@@ -787,44 +897,45 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource Manager
     participant APP1 as Exiting non-Rialto App
-    participant V1 as Video arbitration element
-    participant A1 as Audio arbitration element
-    participant S1 as gst-svp-ext-soc
+    participant V1 as Exiting Video arbitration element A/B
+    participant A1 as Exiting Audio arbitration element A/B
+    participant S1 as Exiting gst-svp-ext-soc A/B
     participant RM as ESSOS Resource Manager
     participant APP2 as Entering non-Rialto App
-    participant V2 as Video arbitration element
-    participant A2 as Audio arbitration element
-    participant S2 as gst-svp-ext-soc
+    participant V2 as Entering Video arbitration element A/B
+    participant A2 as Entering Audio arbitration element A/B
+    participant S2 as Entering gst-svp-ext-soc A/B
 
-    Note over V1,A1: Existing pipeline already holds resources through an earlier EssRMgrCreate()
-    Note over V2,A2: Entering pipeline performs EssRMgrCreate() once during startup, then requests resources
+    Note over V1,S1: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
+    Note over V2,S2: Entering player Pipeline A/B performs EssRMgrCreate() once during startup, then requests resources
 
     AM->>APP2: start incoming non-Rialto player
-    APP2->>V2: initialise pipeline
+    APP2->>V2: initialise pipeline A/B
     V2->>RM: EssRMgrCreate(notifyCB)
     APP2->>V2: transition NULL -> READY
-    V2->>RM: EssRMgrRequestResource(video, notifyCB)
+    V2->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V1: notifyCB(EssRMgrEvent::Revoked)
-    APP1->>V1: release video resource
-    V1->>RM: EssRMgrReleaseResource(video)
+    APP1->>V1: release all exiting-player video resources
+    V1->>RM: EssRMgrReleaseResource(video primary)
+    V1->>RM: EssRMgrReleaseResource(video secondary)
     RM-->>V2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP2->>A2: initialise audio path
+    APP2->>A2: initialise audio path A/B
     A2->>RM: EssRMgrCreate(notifyCB)
     APP2->>A2: transition NULL -> READY
-    A2->>RM: EssRMgrRequestResource(audio, notifyCB)
+    A2->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A1: notifyCB(EssRMgrEvent::Revoked)
-    APP1->>A1: release audio resource
-    A1->>RM: EssRMgrReleaseResource(audio)
+    APP1->>A1: release exiting-player audio resources A/B
+    A1->>RM: EssRMgrReleaseResource(audio A/B)
     RM-->>A2: notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP2->>S2: initialise SVP path if required
+    APP2->>S2: initialise SVP path A/B if required
     S2->>RM: EssRMgrCreate(notifyCB)
     APP2->>S2: transition NULL -> READY
-    S2->>RM: EssRMgrRequestResource(svp, notifyCB)
+    S2->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S1: notifyCB(EssRMgrEvent::Revoked)
-    APP1->>S1: release SVP resource
-    S1->>RM: EssRMgrReleaseResource(svp)
+    APP1->>S1: release exiting-player SVP resources A/B
+    S1->>RM: EssRMgrReleaseResource(svp A/B)
     RM-->>S2: notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
@@ -844,8 +955,8 @@ An implementation is conformant only when all of the following are true:
 |---|---|
 | 1 | Existing single-pipeline behaviour remains unchanged unless extended by this specification. |
 | 2 | Up to two playback pipelines in one application process can be represented by capability reporting when supported. |
-| 3 | `window-group-id` groups sink instances for atomic multi-window updates. |
-| 4 | `window-group-apply` controls whether grouped rectangle changes apply immediately across the group. |
+| 3 | `window-group-id` defaults to `-1` and groups sink instances for atomic multi-window updates once a non-default group identifier is assigned. |
+| 4 | `window-group-apply` is a one-shot apply action that commits pending grouped rectangle changes atomically across the group. |
 | 5 | `audio-enable=false` preserves decode and AV sync while suppressing audible output and underflow reporting for that disabled stream. |
 | 6 | `res-usage` is available early enough to select the appropriate video decoder before the `NULL` to `READY` resource request is issued. |
 | 7 | GStreamer context and westeros sink property signalling coexist, with the direct sink property taking precedence on conflict. |
@@ -868,11 +979,4 @@ The following points should be documented by each platform implementation where 
 - the exact ESSOS resource identifiers used for high-specification and low-specification video resources;
 - whether the platform's SVP resources are asymmetric or symmetric;
 - any platform-specific limit on concurrent DRM sessions during steady state or transition;
-- any restriction on concurrent Dolby or other high-cost audio decode combinations; and
-- the platform policy for inconsistent `window-group-apply` values within one `window-group-id`.
-
-## 16. Risk and blocking factors
-
-Concurrent playback depends on synchronous state management between the application manager and the Rialto Server processes involved in transitions.
-
-The platform shall not activate a new Rialto Server instance for resource acquisition until the exiting instance has been inactivated and resource release has either completed or been forcefully and safely enforced by the selected platform policy.
+- any restriction on concurrent Dolby or other high-cost audio decode combinations.
