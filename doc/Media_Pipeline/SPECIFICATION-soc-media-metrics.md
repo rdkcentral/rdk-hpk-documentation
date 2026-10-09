@@ -16,7 +16,8 @@
 
 ### What changed in version 0.5
 
-- Defined natural and producer-scoped lifecycle-boundary resolution for every episode metric.
+- Defined natural and producer-scoped lifecycle-boundary resolution for every episode metric, with monotonic elapsed duration.
+- Defined video-repeat resolution at first presentation of a new real frame, not frame selection.
 - Added same-source retirement markers so queued final resolutions are handled before producer registration is removed.
 - Bounded retirement-marker posting/handling and added synchronous cancellation so teardown cannot wait indefinitely.
 - Kept underflow decoder-scoped, with immediate start and input-recovery resolution.
@@ -203,7 +204,9 @@ Required field:
 
 | Field | GType | Meaning |
 |---|---|---|
-| `duration-ns` | `G_TYPE_UINT64` | Complete episode duration in nanoseconds. |
+| `duration-ns` | `G_TYPE_UINT64` | Monotonic elapsed time from episode start observation to natural or boundary resolution, in nanoseconds. |
+
+The clock domain is GStreamer's monotonic timestamp returned by `gst_util_get_timestamp()` (nanoseconds, based on the platform monotonic clock), not pipeline running time, PTS, or STC. The producer records this timestamp at episode start and resolution and reports their non-negative difference. An episode that remains active while media PTS/STC is stationary therefore continues accumulating duration.
 
 Video-repeat and audio-gap resolutions additionally require `count`, the total affected frames or samples during the completed episode. Buffer-underflow resolution does not carry `count`. When present, `pts-ns` repeats the episode-start PTS so resolution is self-describing if the start message was lost. A collector may accept a resolved message without receiving the corresponding start.
 
@@ -266,7 +269,7 @@ The source is the element owning the hardware audio decoder or a combined elemen
 
 Required forms: `EPISODE_STARTED` and `EPISODE_RESOLVED`.
 
-Start on the first unintended reuse of the preceding frame because the required next frame is unavailable during active scheduled output. Resolve when scheduled output first selects/presents a new real frame.
+Start on the first unintended reuse of the preceding frame because the required next frame is unavailable during active scheduled output. Resolve when scheduled output first presents a new real frame. Selection alone does not resolve the episode.
 
 Exclude structured cadence, a frame held while output is paused, the final frame held after EOS, and a frame held while decoder/output state is invalid during flush, reset, or decode-position establishment. This metric applies only when the SoC controls final video output; repetition after frame handoff is downstream.
 
@@ -386,6 +389,7 @@ A vendor implementation is conformant only when:
 
 - every qualifying drop or decode failure emits one `OCCURRENCE` with the required types and units;
 - every episode follows the common lifecycle and its metric-specific start/resolve rules;
+- every `duration-ns` is monotonic elapsed time in one producer clock domain, never media PTS/STC delta;
 - lifecycle boundaries resolve active episodes before the producer becomes inactive or is removed;
 - underflow starts immediately on active decoder demand without input and resolves on input recovery;
 - repeat, gap, and underflow may overlap, while duplicate starts for one episode key remain invalid;
@@ -411,7 +415,7 @@ Required tests cover:
 1. every metric type in each applicable SoC topology and exact field types;
 2. occurrence expansion from individual, batched, and cumulative native observations;
 3. immediate decoder-underflow start, input-recovery resolution, and later restart;
-4. repeat start on first unintended reuse and resolution on first new real frame;
+4. repeat start on first unintended reuse, no resolution on selection alone, and resolution on first presentation of a new real frame;
 5. audio-gap start on first substitute and resolution on first real frame;
 6. producer-scoped boundary resolution at scheduled-output pause, EOS, decoder flush/reset, decode-position invalidation, source/codec reconfiguration, source removal, and teardown;
 7. output-only pause while decoder demand continues retains the same underflow episode;
@@ -442,7 +446,8 @@ Required tests cover:
 32. a producer with no active episode still drains queued occurrences through its marker;
 33. multiple producers retire or cancel independently without cross-source ordering assumptions;
 34. bus flushing and dispatcher shutdown wait for normal or cancelled retirement completion; and
-35. residual episode state at normal marker or cancellation is diagnosed and cleared without synthetic resolution.
+35. residual episode state at normal marker or cancellation is diagnosed and cleared without synthetic resolution; and
+36. monotonic episode duration while media PTS/STC is stationary, including decoder underflow retained across output-only pause.
 
 ## 14. Open decisions
 
@@ -557,7 +562,7 @@ media-pipeline-metric {
     observation-kind:   MEDIA_METRIC_OBSERVATION_EPISODE_RESOLVED,
     pts-ns:             G_TYPE_INT64 = <same PTS as started>  [optional],
     count:              G_TYPE_UINT64 = <total unready repeats, greater than zero>,
-    duration-ns:        G_TYPE_UINT64 = <complete episode duration>
+    duration-ns:        G_TYPE_UINT64 = <monotonic elapsed episode duration>
 }
 ```
 
@@ -589,7 +594,7 @@ media-pipeline-metric {
     observation-kind:   MEDIA_METRIC_OBSERVATION_EPISODE_RESOLVED,
     pts-ns:             G_TYPE_INT64 = <same PTS as started>  [optional],
     count:              G_TYPE_UINT64 = <substituted audio frames, greater than zero>,
-    duration-ns:        G_TYPE_UINT64 = <complete episode duration>
+    duration-ns:        G_TYPE_UINT64 = <monotonic elapsed episode duration>
 }
 ```
 
@@ -620,7 +625,7 @@ media-pipeline-metric {
     metric:             MEDIA_METRIC_BUFFER_UNDERFLOW,
     observation-kind:   MEDIA_METRIC_OBSERVATION_EPISODE_RESOLVED,
     pts-ns:             G_TYPE_INT64 = <same PTS as started>  [optional],
-    duration-ns:        G_TYPE_UINT64 = <complete episode duration>
+    duration-ns:        G_TYPE_UINT64 = <monotonic elapsed episode duration>
 }
 ```
 
