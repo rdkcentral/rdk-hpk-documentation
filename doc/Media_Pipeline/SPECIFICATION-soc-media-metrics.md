@@ -16,8 +16,9 @@
 
 ### What changed in version 0.5
 
-- Defined natural and lifecycle-boundary resolution for every episode metric.
+- Defined natural and producer-scoped lifecycle-boundary resolution for every episode metric.
 - Added same-source retirement markers so queued final resolutions are handled before producer registration is removed.
+- Bounded retirement-marker posting/handling and added synchronous cancellation so teardown cannot wait indefinitely.
 - Kept underflow decoder-scoped, with immediate start and input-recovery resolution.
 - Allowed underflow, video-repeat, and audio-gap episodes to overlap independently.
 - Excluded deliberate decoder/output control and pacing removals from drop events and counters.
@@ -106,7 +107,9 @@ A registration is **active**, **retiring**, or **removed**:
 
 - Active and retiring sources remain registered and authoritative. Their queued metric messages are processed normally.
 - A source becomes retiring before it posts final episode resolutions and its retirement marker.
-- The collector removes the registration only after it handles that marker.
+- Normal retirement completes when the collector handles the marker.
+- If the finite retirement deadline expires or the bus becomes unavailable, synchronous collector cancellation completes retirement exceptionally.
+- The collector removes the registration only after normal retirement or cancellation completes.
 - Messages from removed or unregistered sources are ignored and diagnosed.
 
 The metric type defines the observation semantics; the message does not expose a decoder-versus-renderer classification.
@@ -176,9 +179,11 @@ Producer retirement uses a separate `GST_MESSAGE_ELEMENT` structure:
 media-pipeline-metric-retired
 ```
 
-`GST_MESSAGE_SRC(message)` is the retiring producer. The structure has no metric payload fields. After posting every final metric and episode-resolution message, the producer posts this marker exactly once and posts no later metric message for that registration.
+`GST_MESSAGE_SRC(message)` is the retiring producer. The structure has no metric payload fields. After posting every final metric and episode-resolution message, the producer successfully posts this marker once and posts no later metric observation for that registration. A failed posting call may retry the same marker under the bounded policy below.
 
-Posting the marker only queues it. Retirement completes when the collector handles it. Same-producer ordering guarantees that all earlier messages from that producer have been handled first. The marker produces no normalized metric notification and does not change `MediaMetricObservationKind`.
+Posting the marker only queues it. Normal retirement completes when the collector handles it. Same-producer ordering guarantees that all earlier messages from that producer have been handled first. The marker produces no normalized metric notification and does not change `MediaMetricObservationKind`.
+
+Marker posting and handling share one finite, implementation-defined retirement deadline that must be documented and testable. If posting fails while the bus remains active, the producer retries only the same marker and creates no new metric observations. Posting success stops retries but does not complete retirement. Deadline expiry, or an unusable bus, triggers synchronous collector cancellation.
 
 ## 7. Fields by observation kind
 
@@ -206,20 +211,24 @@ Video-repeat and audio-gap resolutions additionally require `count`, the total a
 
 Only one episode may be active for one metric, media source, and producing element. Different metric types are independent and may be active at the same time.
 
-An episode ends by natural recovery or when its decoder/output observation epoch ends. The producer posts `EPISODE_RESOLVED` before it stops being authoritative when any of these boundaries occurs:
+An episode ends by natural recovery or when its authoritative producer's observation epoch ends. A system transition resolves only the episodes owned by producers whose function is stopped, reset, invalidated, reconfigured, or removed. An unaffected producer retains its active episode.
 
-- native scheduled output enters paused operation;
-- EOS is accepted by the affected decoder or output path;
-- decoder flush or reset begins;
-- decoder input/output is invalidated while establishing a new decode position;
-- source or codec configuration is replaced; or
-- the source path is removed or torn down.
+| Condition | Decoder-owned underflow | Video-output repeat | Audio-output gap |
+|---|---|---|---|
+| Scheduled output pauses | Retain if the decoder still requests unavailable input; resolve only if decoder demand/epoch also ends | Resolve | Resolve |
+| Decoder stops requesting input | Resolve | No effect unless video output is also invalidated | No effect unless audio output is also invalidated |
+| EOS accepted by the affected path | Resolve when decoder demand ends | Resolve for video output | Resolve for audio output |
+| Decoder flush/reset or decode-position invalidation | Resolve the affected decoder epoch | Resolve only if video-output selection is invalidated | Resolve only if audio-output substitution state is invalidated |
+| Source/codec reconfiguration | Resolve each affected producer's old epoch | Resolve if video output is affected | Resolve if audio output is affected |
+| Source removal or producer retirement | Resolve | Resolve | Resolve |
 
-For a boundary resolution, `duration-ns` ends at the boundary. Repeat and gap `count` includes only affected outputs observed before the boundary. Optional `pts-ns` remains the episode-start PTS. A resolution means that the episode ended; it does not necessarily mean natural recovery.
+For a boundary resolution, `duration-ns` ends when that producer epoch ends. Repeat and gap `count` includes only affected outputs before that boundary. Optional `pts-ns` remains the episode-start PTS. A resolution means the episode ended; it does not necessarily mean natural recovery.
 
-The next decoder/output epoch is armed independently. Its first qualifying observation may start a new episode immediately. The boundary operation itself does not start an episode unless the new epoch separately meets that metric's start condition.
+The next epoch for that producer is armed independently and may start immediately on its first qualifying observation. The transition itself does not start an episode unless the new epoch meets the metric's start condition.
 
-For source removal or teardown, registration first becomes retiring. The producer stops new observations, posts every final resolution, then posts `media-pipeline-metric-retired` from the same source. The collector continues accepting queued messages while retiring and removes the registration only after handling the marker. Residual state at that point is diagnosed and cleared without synthesizing a resolution.
+For source removal or teardown, registration first becomes retiring. The producer stops new observations, posts its final resolutions, then posts `media-pipeline-metric-retired`. The collector accepts queued messages while retiring. Normal removal occurs when the marker is handled.
+
+If marker posting or handling cannot complete within the finite retirement deadline, synchronous collector cancellation is serialized with collector state updates. Cancellation diagnoses possible final-message loss, clears residual state without synthesizing resolution, removes the registration, and signals completion so teardown can continue.
 
 ### 7.5 Cross-metric overlap
 
@@ -275,7 +284,7 @@ Required forms: `EPISODE_STARTED` and `EPISODE_RESOLVED`.
 
 The message source owns the affected audio or video decoder. Start immediately on the first observation that the decoder actively requires input and required input is unavailable; there is no minimum starvation threshold. Resolve naturally when required input is first available or accepted again. The resolved message supplies total duration and no count.
 
-Do not start underflow when the decoder is not requesting input, after EOS, or while decoder state is invalid during flush/reset or decode-position establishment. During active source/codec reconfiguration, underflow remains reportable if the newly active decoder requests input and none is available. Pipeline queues and renderer elements do not post this metric.
+Do not start underflow when the decoder is not requesting input, after EOS, or while decoder state is invalid during flush/reset or decode-position establishment. Output pause alone does not resolve an active underflow: retain it while the same decoder continues requesting unavailable input, and resolve only when input recovers or decoder demand/epoch ends. During active source/codec reconfiguration, underflow remains reportable if the newly active decoder requests input and none is available. Pipeline queues and renderer elements do not post this metric.
 
 ## 9. Authoritative message producers
 
@@ -362,11 +371,12 @@ The pipeline-scoped collector:
 6. tracks episode state independently for each metric, source, and producer, including overlapping metrics;
 7. accepts natural and boundary resolutions and rejects duplicate starts for the same episode key;
 8. prevents duplicate observations between aggregate and child producers;
-9. on a valid retirement marker, verifies the source is retiring, diagnoses and clears residual state without synthesizing resolution, removes the registration, and signals retirement completion through a private mechanism;
-10. rejects and diagnoses duplicate markers, markers for non-retiring sources, and metric messages received after the marker; and
-11. keeps bus dispatch active until every expected producer retirement completes.
+9. on a valid retirement marker, verifies the source is retiring, diagnoses and clears residual state without synthesizing resolution, removes the registration, and signals normal retirement completion through a private mechanism;
+10. rejects and diagnoses duplicate markers, markers for non-retiring sources, and metric messages received after normal or cancelled retirement;
+11. serializes synchronous retirement cancellation with collector state, diagnoses possible final-message loss, clears residual state without synthetic resolution, removes the registration, and signals cancellation completion; and
+12. keeps bus dispatch active until each producer reaches normal or cancelled retirement.
 
-Pipeline integration marks a registration retiring before producer quiescence. The producer then posts final resolutions and its marker. Retirement is incomplete if marker posting fails. Bus flushing, dispatcher shutdown, and final registration destruction wait until the collector has handled all expected markers. Each producer retires independently; cross-producer ordering is not assumed.
+Pipeline integration marks a registration retiring before producer quiescence. The producer posts producer-scoped final resolutions and then attempts its marker for one finite, documented retirement deadline. Failed posts retry only that marker while the bus is usable; successful posting still waits for collector handling. Deadline expiry, handling timeout, or an unusable bus triggers synchronous collector cancellation. Bus flushing, dispatcher shutdown, and final registration destruction wait for normal marker handling or cancellation completion. Producers retire independently; cross-producer ordering is not assumed.
 
 The collector performs no SoC-specific polling, native counter differencing, counter-wrap interpretation, or decoder-versus-renderer classification.
 
@@ -379,15 +389,17 @@ A vendor implementation is conformant only when:
 - lifecycle boundaries resolve active episodes before the producer becomes inactive or is removed;
 - underflow starts immediately on active decoder demand without input and resolves on input recovery;
 - repeat, gap, and underflow may overlap, while duplicate starts for one episode key remain invalid;
-- paused output, EOS, decoder flush/reset, and invalid decode-position state do not create false episodes;
+- lifecycle boundaries resolve only episodes owned by affected producers; output-only pause does not resolve decoder underflow while decoder demand continues;
 - deliberate decoder/output control and pacing removals create neither a drop occurrence nor a `dropped` increment;
 - actual decoder failures during recovery or reconfiguration still create decode-error occurrences;
 - each message source is authoritative and aggregate/child observations do not duplicate an occurrence;
 - messages use ordinary non-blocking queued bus delivery;
-- every retiring producer posts final resolutions followed by exactly one same-source retirement marker and no later metric message;
-- active and retiring registrations accept queued messages; removal occurs only when the marker is handled;
-- bus flush/dispatcher shutdown waits for all expected markers;
-- invalid/duplicate markers and post-marker metrics are rejected and diagnosed;
+- every retiring producer posts its producer-scoped final resolutions followed by one same-source retirement marker and no later metric observation;
+- active and retiring registrations accept queued messages; normal removal occurs only when the marker is handled;
+- marker posting/handling uses a finite documented bound and failed posts retry only the marker;
+- deadline expiry or bus failure triggers synchronous serialized cancellation with explicit possible-loss diagnosis;
+- bus flush/dispatcher shutdown waits for normal or cancelled retirement completion;
+- invalid/duplicate/late markers and post-retirement metrics are rejected and diagnosed;
 - malformed or unsupported messages can be ignored without affecting playback;
 - direct SoC-rendered video exposes coherent `rendered`, `dropped`, and frame-deduplicated `corrupted` counters;
 - video-drop occurrences and `dropped` use identical frame identity and exclusions;
@@ -401,31 +413,36 @@ Required tests cover:
 3. immediate decoder-underflow start, input-recovery resolution, and later restart;
 4. repeat start on first unintended reuse and resolution on first new real frame;
 5. audio-gap start on first substitute and resolution on first real frame;
-6. boundary resolution at scheduled-output pause, EOS, decoder flush/reset, decode-position invalidation, source/codec reconfiguration, source removal, and teardown;
-7. boundary duration/count cutoff and restart in the next decoder/output epoch;
-8. source/codec reconfiguration that produces reportable underflow and audio gap;
-9. no false episodes from paused/EOS held frames or silence, structured cadence, or invalid reset output;
-10. overlapping video underflow/repeat and audio underflow/gap, with no duplicate same-metric start;
-11. unknown enums, incorrect GTypes, unregistered sources, and messages in flight during removal;
-12. ordinary non-blocking queued bus delivery and aggregate-versus-child duplicate prevention;
-13. no drop event or `dropped` increment for deliberate flush/reset, decode-position establishment, reconfiguration, EOS cleanup, or non-unity pacing removal;
-14. one drop occurrence and one `dropped` increment for each qualifying quality-loss video drop;
-15. actual decoder failures during recovery/reconfiguration and exclusion of pre-decoder deliberate discard;
-16. decode-error/`corrupted` delta equality and frame-level deduplication;
-17. coherent rendered/dropped/corrupted reads and `rendered + dropped` presentation-outcome totals;
-18. codec-hidden/non-display pictures excluded from presentation totals;
-19. corrupted-and-rendered and corrupted-and-dropped overlap; and
-20. frame-counter unavailability when final presentation occurs downstream after frame handoff;
-21. queued final resolution followed by marker is delivered before removal;
-22. queued occurrences before marker are delivered;
-23. multiple final episode resolutions before one marker are delivered;
-24. retiring registration remains valid until marker handling;
-25. metric after marker, duplicate marker, and marker from active/unregistered/removed source are rejected;
-26. marker-post failure does not complete retirement;
-27. a producer with no active episode still drains queued occurrences through its marker;
-28. multiple producers retire independently without cross-source ordering assumptions;
-29. bus flushing and dispatcher shutdown wait for all expected markers; and
-30. residual episode state at marker is diagnosed and cleared without synthetic resolution.
+6. producer-scoped boundary resolution at scheduled-output pause, EOS, decoder flush/reset, decode-position invalidation, source/codec reconfiguration, source removal, and teardown;
+7. output-only pause while decoder demand continues retains the same underflow episode;
+8. decoder demand stopping during pause resolves underflow, and renewed starved demand starts a new episode;
+9. decoder-only reset leaves unaffected output episodes active, while output invalidation resolves them;
+10. boundary duration/count cutoff and restart in each affected producer's next epoch;
+11. source/codec reconfiguration that produces reportable underflow and audio gap;
+12. no false episodes from paused/EOS held frames or silence, structured cadence, or invalid reset output;
+13. overlapping video underflow/repeat and audio underflow/gap, with no duplicate same-metric start;
+14. unknown enums, incorrect GTypes, unregistered sources, and messages in flight during removal;
+15. ordinary non-blocking queued bus delivery and aggregate-versus-child duplicate prevention;
+16. no drop event or `dropped` increment for deliberate flush/reset, decode-position establishment, reconfiguration, EOS cleanup, or non-unity pacing removal;
+17. one drop occurrence and one `dropped` increment for each qualifying quality-loss video drop;
+18. actual decoder failures during recovery/reconfiguration and exclusion of pre-decoder deliberate discard;
+19. decode-error/`corrupted` delta equality and frame-level deduplication;
+20. coherent rendered/dropped/corrupted reads and `rendered + dropped` presentation-outcome totals;
+21. codec-hidden/non-display pictures excluded from presentation totals;
+22. corrupted-and-rendered and corrupted-and-dropped overlap;
+23. frame-counter unavailability when final presentation occurs downstream after frame handoff;
+24. queued final resolution followed by marker is delivered before removal;
+25. queued occurrences before marker are delivered;
+26. multiple final episode resolutions before one marker are delivered;
+27. retiring registration remains valid until marker handling;
+28. metric after marker, duplicate marker, and marker from active/unregistered/removed source are rejected;
+29. initial marker failure followed by successful retry and normal retirement;
+30. repeated marker failure or handling timeout followed by synchronous cancellation;
+31. bus unavailability causing immediate cancellation;
+32. a producer with no active episode still drains queued occurrences through its marker;
+33. multiple producers retire or cancel independently without cross-source ordering assumptions;
+34. bus flushing and dispatcher shutdown wait for normal or cancelled retirement completion; and
+35. residual episode state at normal marker or cancellation is diagnosed and cleared without synthetic resolution.
 
 ## 14. Open decisions
 
@@ -462,7 +479,9 @@ GST_MESSAGE_ELEMENT
     GstStructure:    media-pipeline-metric-retired { }
 ```
 
-The structure has no `metric`, `observation-kind`, `pts-ns`, `count`, or `duration-ns` fields. The producer posts no later metric message. Collector handling of this marker—rather than successful posting—is the retirement completion boundary.
+The structure has no `metric`, `observation-kind`, `pts-ns`, `count`, or `duration-ns` fields. The producer posts no later metric observation. Collector handling of this marker—rather than successful posting—is the normal retirement completion boundary.
+
+Posting and handling use one finite documented retirement deadline. A failed post retries only this marker while the bus remains usable. If the deadline expires or the bus becomes unavailable before handling, pipeline integration requests synchronous collector cancellation. Cancellation diagnoses possible final-message loss, clears residual state without synthetic resolution, removes the registration, and completes retirement exceptionally.
 
 ## A.2 Video frame drop occurrences
 
