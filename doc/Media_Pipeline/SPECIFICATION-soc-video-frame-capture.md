@@ -2,21 +2,30 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.4
+**Specification version:** 0.5
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.4 | Draft for review | Deleted move assignment to avoid undefined contract-violation behavior; defined failure invariants for all CaptureStatus values. | Move constructor only, failure invariants, and conformance test updates. |
+| 0.5 | Draft for review | Added opaque acquisition token to `CapturedFrame` to prevent stale frames from releasing newer locks after slot reuse. | Acquisition token, token validation in `releaseFrame()`, move semantics, and stale-release detection. |
+| 0.4 | Draft for review | Deleted move assignment to avoid undefined contract-violation behavior; defined failure invariants for all CaptureStatus values; made `gst_frame_capture_detach()` infallible. | Move constructor only, failure invariants, detach contract, and conformance test updates. |
 | 0.3 | Draft for review | Separated capability limits from concrete pool layout; defined explicit FD and frame-lock ownership, invalid lock identity, non-copyable/movable frame output, vendor playbin integration, native selection behavior, plane validation, and fixed-layout conformance. | Capability/pool pairing, move and release state, output reuse, FD ownership versus frame locks, native selection, attachment, teardown, and rollback. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.5
+
+- Added `acquisitionToken` to `CapturedFrame`. The HAL assigns a unique non-zero token for each successful acquisition.
+- `releaseFrame()` now validates both `slotIndex` and `acquisitionToken`. A mismatched token indicates a stale or reconstructed frame and returns `INVALID_ARGUMENT`.
+- Move constructor transfers the token along with slot index and FDs; moved-from frame has invalid token.
+- This prevents stale frames from releasing newer locks after slot reuse.
 
 ### What changed in version 0.4
 
 - Move assignment is deleted; only the move constructor is available. This avoids undefined behavior when move-assigning into a non-empty destination.
 - Every non-`OK` result for `getCapabilities()`, `createPool()`, `acquireCurrentFrame()`, and `releaseFrame()` leaves the output unchanged and creates no new obligation. The invariant is stated explicitly for all status values.
+- `gst_frame_capture_detach()` returns `void` and is infallible. Scheduled output is always safe to destroy after it returns.
 
 ### What changed in version 0.3
 
@@ -170,6 +179,7 @@ enum class CaptureStatus : uint32_t
 };
 
 constexpr uint32_t kInvalidCaptureSlotIndex = std::numeric_limits<uint32_t>::max();
+constexpr uint64_t kInvalidAcquisitionToken = 0;
 
 struct Size
 {
@@ -230,6 +240,7 @@ struct CapturePool
 struct CapturedFrame
 {
     uint32_t slotIndex{kInvalidCaptureSlotIndex};
+    uint64_t acquisitionToken{kInvalidAcquisitionToken};
     int64_t presentationTimeNs;
     Rectangle visibleRegion;
     std::vector<ExportedDmaBuf> exportedDmaBufs;
@@ -247,8 +258,9 @@ The value types follow these rules:
 
 - `backingSize` describes the capacity of each logical slot; it does not require a particular physical allocation strategy.
 - MW owns each successful `fd >= 0`, closes it explicitly, and sets it to `-1`. `-1` means invalid. Destructors do not close FDs.
-- `CapturedFrame` is non-copyable. A valid `slotIndex` means exactly one `releaseFrame()` is owed, independently of FD ownership.
-- Moving a frame through the move constructor transfers its metadata, FDs, and release obligation without `dup()` or `close()`. The source FDs become `-1` and its `slotIndex` becomes `kInvalidCaptureSlotIndex`.
+- `CapturedFrame` is non-copyable. A valid `slotIndex` and matching `acquisitionToken` mean exactly one `releaseFrame()` is owed, independently of FD ownership.
+- The HAL assigns a unique non-zero `acquisitionToken` for each successful acquisition. The token is opaque; MW must not interpret or reconstruct it.
+- Moving a frame through the move constructor transfers its metadata, FDs, token, and release obligation without `dup()` or `close()`. The source FDs become `-1`, its `slotIndex` becomes `kInvalidCaptureSlotIndex`, and its `acquisitionToken` becomes `kInvalidAcquisitionToken`.
 - Move assignment is deleted to avoid undefined behavior when the destination is non-empty. To reuse an existing instance, callers must release its frame lock, close and invalidate its FDs, return it to the empty state, and pass it to `acquireCurrentFrame()`; transferring ownership to a different object requires the move constructor.
 - Pool `slotIndex` and `objectIndex` values equal their positions in `slotLayouts` and `dmaBufObjects`. They are unique and contiguous from zero; no pool slot may use `kInvalidCaptureSlotIndex`.
 - `planeIndex` follows the plane order defined by the reported DRM format. Import code maps that order to its graphics API.
@@ -259,7 +271,7 @@ The value types follow these rules:
 
 Plane count, object count, and FD count are independent.
 
-A `CapturedFrame` is empty only when its `slotIndex` is invalid and every FD is `-1`. Closing all FDs does not make a frame empty while its slot index remains valid; the frame lock still requires release.
+A `CapturedFrame` is empty only when its `slotIndex` is invalid, its `acquisitionToken` is invalid, and every FD is `-1`. Closing all FDs does not make a frame empty while its slot index and token remain valid; the frame lock still requires release.
 
 FDs are exported only when a frame is acquired. MW owns and closes them. Closing an FD does not release the frame lock, and `releaseFrame()` does not inspect FD values.
 
@@ -397,9 +409,9 @@ The SoC implementation determines whether a native scheduler selection is new us
 
 Every `OK` acquisition establishes one lock for one distinct captured selection. Several acquired frames may lock different slots concurrently, but there is at most one live lock per slot and one successful acquisition per selection. MW may share access through references or one shared owner around the non-copyable record and calls `releaseFrame()` once when final use ends.
 
-`releaseFrame(CapturedFrame &frame)` requires a valid slot index. It releases that slot lock and, on `OK`, sets `frame.slotIndex` to `kInvalidCaptureSlotIndex`. It does not inspect or close FDs, so MW must still close any open FDs separately. A successful release makes the frame invalid for content access even if an FD remains open.
+`releaseFrame(CapturedFrame &frame)` requires a valid slot index and a matching acquisition token. The HAL validates that the token corresponds to the current lock for that slot; a mismatched token indicates a stale or reconstructed frame and returns `INVALID_ARGUMENT`. On `OK`, it releases that slot lock and sets `frame.slotIndex` to `kInvalidCaptureSlotIndex` and `frame.acquisitionToken` to `kInvalidAcquisitionToken`. It does not inspect or close FDs, so MW must still close any open FDs separately. A successful release makes the frame invalid for content access even if an FD remains open.
 
-An invalid, moved-from, out-of-range, stale, or currently unlocked slot index returns `INVALID_ARGUMENT`. Every non-`OK` result leaves both the frame and its existing lock state unchanged, so a valid frame retains exactly one release obligation. A slot cannot be reused while its lock remains active.
+An invalid, moved-from, out-of-range, stale, or currently unlocked slot index, or a mismatched acquisition token, returns `INVALID_ARGUMENT`. Every non-`OK` result leaves both the frame and its existing lock state unchanged, so a valid frame retains exactly one release obligation. A slot cannot be reused while its lock remains active.
 
 The **SoC vendor** supplies both `ICaptureSession` and the GStreamer integration. Scheduler notifications, writable-slot management, decoder handles, and copy/conversion details remain private between those components.
 
@@ -442,7 +454,7 @@ CaptureStatus gst_frame_capture_attach(
     ICaptureSession *session,
     const CapturePool &pool);
 
-CaptureStatus gst_frame_capture_detach(
+void gst_frame_capture_detach(
     GstElement *frameCapture);
 ```
 
@@ -450,7 +462,7 @@ CaptureStatus gst_frame_capture_detach(
 
 Before the call, the playbin policy has created `framecapture`, identified scheduled output, and obtained a valid session and pool. On `OK`, capture is fully attached and decoder output may start. MW keeps the session, pool, and scheduled-output element valid until detach returns.
 
-`gst_frame_capture_detach()` is idempotent and synchronous. It prevents new writes, completes or cancels any write in progress, disconnects scheduled output, and returns only when scheduled output can be destroyed safely. It must preserve the final current selection and backing required by outstanding frame locks.
+`gst_frame_capture_detach()` is idempotent, synchronous, and infallible. It prevents new writes, completes or cancels any write in progress, disconnects scheduled output, and returns only when scheduled output can be destroyed safely. It must preserve the final current selection and backing required by outstanding frame locks. The function returns `void` and cannot fail; scheduled output is always safe to destroy after it returns.
 
 ### 9.3 Native decoder and scheduled-output behavior
 
@@ -557,11 +569,11 @@ An SoC implementation is conformant only when all of the following are true:
 | Delivery and attachment | The vendor registers `framecapture`, provides the playbin policy, attaches to native scheduled output before decoder output, and detaches safely before teardown. Existing playback integration provides the session and pool. | §§5, 6, 9 |
 | Capabilities and pool | Capabilities report only format, modifier and limits. Pool creation returns the concrete bounds-checked object/slot/plane layout for the same session, within those limits. | §§7, 8, 14 |
 | Native selection | Capture follows native scheduled output. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. Paused and invalidation behavior follows §9.3. | §§5, 8–10 |
-| Frame identity, FD ownership and rollback | Valid slot identity means one release is owed. Move constructor transfers that identity and all FDs, invalidating the source. Acquisition requires an empty destination. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§7, 8, 12 |
+| Frame identity, FD ownership and rollback | Valid slot identity and matching acquisition token mean one release is owed. Move constructor transfers token, slot index, and FDs, invalidating the source. HAL assigns unique non-zero token per acquisition. Acquisition requires an empty destination. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§7, 8, 12 |
 | Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 8, 10, 12, 13 |
 | Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, presentation, audio, or STC. | §§9, 10 |
 | Detach and teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. | §11 |
-| Contract tests | Tests cover every area above, including invalid/default/moved/released frame identity, move constructor, acquisition-output reuse, capability/pool pairing, layout bounds, rollback, repeated/concurrent acquisition, exhaustion, detach, final acquisition, and late release. | — |
+| Contract tests | Tests cover every area above, including invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds, rollback, repeated/concurrent acquisition, exhaustion, detach, final acquisition, and late release. | — |
 
 Failure of any mandatory gate means Video Frame Capture is unsupported on that implementation; it does not permit a weakened lifetime or playback-continuity contract.
 

@@ -445,7 +445,7 @@ Required tests cover:
 31. bus unavailability causing immediate cancellation;
 32. a producer with no active episode still drains queued occurrences through its marker;
 33. multiple producers retire or cancel independently without cross-source ordering assumptions;
-34. bus flushing and dispatcher shutdown wait for normal or cancelled retirement completion; and
+34. bus flushing and dispatcher shutdown wait for normal or cancelled retirement completion;
 35. residual episode state at normal marker or cancellation is diagnosed and cleared without synthetic resolution; and
 36. monotonic episode duration while media PTS/STC is stationary, including decoder underflow retained across output-only pause.
 
