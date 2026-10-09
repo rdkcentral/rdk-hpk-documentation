@@ -8,7 +8,7 @@
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.5 | Draft for review | Defined complete episode lifecycle, decoder-underflow recovery, cross-metric overlap, deliberate-drop exclusions, and event/counter consistency. | Episode boundaries and restart, native decoder/output conditions, overlapping metrics, and counter alignment. |
+| 0.5 | Draft for review | Defined complete episode lifecycle, ordered producer retirement, decoder-underflow recovery, cross-metric overlap, deliberate-drop exclusions, and event/counter consistency. | Episode boundaries and restart, queued final resolutions, retirement fencing, native decoder/output conditions, overlapping metrics, and counter alignment. |
 | 0.4 | Draft for review | Added exact cumulative corrupted-frame count to the video frame snapshot already introduced in 0.3. | Corruption identity/deduplication, overlap with presentation outcomes, event consistency, and transport. |
 | 0.3 | Draft for review | Added exact cumulative rendered and dropped video-frame counters for direct SoC-rendered video. | Counter property, presentation-point ownership, hidden-frame exclusions, deliberate-removal behavior, and conformance tests. |
 | 0.2 | Draft for review | Made all seven defined metrics part of the required SoC contract and removed per-platform metric capability reporting. | Required metric coverage, topology limits, buffer-underflow reporting, client selection, and conformance tests. |
@@ -17,6 +17,7 @@
 ### What changed in version 0.5
 
 - Defined natural and lifecycle-boundary resolution for every episode metric.
+- Added same-source retirement markers so queued final resolutions are handled before producer registration is removed.
 - Kept underflow decoder-scoped, with immediate start and input-recovery resolution.
 - Allowed underflow, video-repeat, and audio-gap episodes to overlap independently.
 - Excluded deliberate decoder/output control and pacing removals from drop events and counters.
@@ -95,14 +96,20 @@ Vendors modify GStreamer elements that own or observe hardware state.
 7. Messages use ordinary queued `GstBus` delivery. Posting must not block decode or presentation.
 8. `GST_BUS_ASYNC` is not the delivery mode: a bus sync handler must not return `GST_BUS_ASYNC` for metric messages. If a sync handler is installed, it permits these messages to enter the normal bus queue by returning `GST_BUS_PASS`.
 9. Messages are ordered only per producing element; cross-element ordering is not implied.
+10. Producer retirement uses that same-source ordering: final metrics precede one retirement marker, and registration removal follows marker handling.
 
 ## 4. Pipeline association
 
-The collector is created for each GStreamer pipeline. It registers every producing element against the corresponding audio or video stream.
+The collector is created for each GStreamer pipeline. It registers every producing element against the corresponding audio or video stream. Registration is keyed by GStreamer object identity, not element or factory name.
 
-Registration is keyed by GStreamer object identity, not element name or factory name. The collector resolves `GST_MESSAGE_SRC(message)` to that registration. The metric type defines the observation semantics; the message does not expose a decoder-versus-renderer classification.
+A registration is **active**, **retiring**, or **removed**:
 
-Messages from an unregistered source are ignored and diagnosed. Messages received after registration has been removed are ignored.
+- Active and retiring sources remain registered and authoritative. Their queued metric messages are processed normally.
+- A source becomes retiring before it posts final episode resolutions and its retirement marker.
+- The collector removes the registration only after it handles that marker.
+- Messages from removed or unregistered sources are ignored and diagnosed.
+
+The metric type defines the observation semantics; the message does not expose a decoder-versus-renderer classification.
 
 ## 5. Occurrence metric requirement
 
@@ -161,6 +168,18 @@ enum MediaMetricObservationKind : uint32_t
 };
 ```
 
+### 6.4 Producer retirement marker
+
+Producer retirement uses a separate `GST_MESSAGE_ELEMENT` structure:
+
+```text
+media-pipeline-metric-retired
+```
+
+`GST_MESSAGE_SRC(message)` is the retiring producer. The structure has no metric payload fields. After posting every final metric and episode-resolution message, the producer posts this marker exactly once and posts no later metric message for that registration.
+
+Posting the marker only queues it. Retirement completes when the collector handles it. Same-producer ordering guarantees that all earlier messages from that producer have been handled first. The marker produces no normalized metric notification and does not change `MediaMetricObservationKind`.
+
 ## 7. Fields by observation kind
 
 ### 7.1 Occurrence
@@ -198,7 +217,9 @@ An episode ends by natural recovery or when its decoder/output observation epoch
 
 For a boundary resolution, `duration-ns` ends at the boundary. Repeat and gap `count` includes only affected outputs observed before the boundary. Optional `pts-ns` remains the episode-start PTS. A resolution means that the episode ended; it does not necessarily mean natural recovery.
 
-The next decoder/output epoch is armed independently. Its first qualifying observation may start a new episode immediately. The boundary operation itself does not start an episode unless the new epoch separately meets that metric's start condition. The producer resolves active episodes before it is unregistered; collector cleanup is a defensive fallback, not a replacement for the required resolution.
+The next decoder/output epoch is armed independently. Its first qualifying observation may start a new episode immediately. The boundary operation itself does not start an episode unless the new epoch separately meets that metric's start condition.
+
+For source removal or teardown, registration first becomes retiring. The producer stops new observations, posts every final resolution, then posts `media-pipeline-metric-retired` from the same source. The collector continues accepting queued messages while retiring and removes the registration only after handling the marker. Residual state at that point is diagnosed and cleared without synthesizing a resolution.
 
 ### 7.5 Cross-metric overlap
 
@@ -333,16 +354,19 @@ After Video Frame Capture handoff, final presentation occurs downstream. The SoC
 
 The pipeline-scoped collector:
 
-1. includes `GST_MESSAGE_ELEMENT` in its bus-dispatch selection and consumes queued `media-pipeline-metric` messages on a dedicated dispatcher context, not in the posting thread;
-2. validates each message and maps message-source object identity to the corresponding audio or video stream;
-3. verifies that the source is currently registered and authoritative for that metric and media source;
+1. consumes queued metric and retirement-marker element messages on its dispatcher context, not in the posting thread;
+2. maps message-source object identity to an active or retiring registration and rejects removed/unregistered sources;
+3. processes ordinary metric messages from active and retiring sources normally;
 4. timestamps accepted observations using the collector's monotonic clock;
 5. dispatches one normalized notification for each occurrence;
 6. tracks episode state independently for each metric, source, and producer, including overlapping metrics;
 7. accepts natural and boundary resolutions and rejects duplicate starts for the same episode key;
 8. prevents duplicate observations between aggregate and child producers;
-9. expects producers to resolve active episodes before unregister/removal, then clears any residual state defensively without synthesizing another resolution; and
-10. dispatches normalized notifications on the collector's execution context.
+9. on a valid retirement marker, verifies the source is retiring, diagnoses and clears residual state without synthesizing resolution, removes the registration, and signals retirement completion through a private mechanism;
+10. rejects and diagnoses duplicate markers, markers for non-retiring sources, and metric messages received after the marker; and
+11. keeps bus dispatch active until every expected producer retirement completes.
+
+Pipeline integration marks a registration retiring before producer quiescence. The producer then posts final resolutions and its marker. Retirement is incomplete if marker posting fails. Bus flushing, dispatcher shutdown, and final registration destruction wait until the collector has handled all expected markers. Each producer retires independently; cross-producer ordering is not assumed.
 
 The collector performs no SoC-specific polling, native counter differencing, counter-wrap interpretation, or decoder-versus-renderer classification.
 
@@ -360,6 +384,10 @@ A vendor implementation is conformant only when:
 - actual decoder failures during recovery or reconfiguration still create decode-error occurrences;
 - each message source is authoritative and aggregate/child observations do not duplicate an occurrence;
 - messages use ordinary non-blocking queued bus delivery;
+- every retiring producer posts final resolutions followed by exactly one same-source retirement marker and no later metric message;
+- active and retiring registrations accept queued messages; removal occurs only when the marker is handled;
+- bus flush/dispatcher shutdown waits for all expected markers;
+- invalid/duplicate markers and post-marker metrics are rejected and diagnosed;
 - malformed or unsupported messages can be ignored without affecting playback;
 - direct SoC-rendered video exposes coherent `rendered`, `dropped`, and frame-deduplicated `corrupted` counters;
 - video-drop occurrences and `dropped` use identical frame identity and exclusions;
@@ -387,7 +415,17 @@ Required tests cover:
 17. coherent rendered/dropped/corrupted reads and `rendered + dropped` presentation-outcome totals;
 18. codec-hidden/non-display pictures excluded from presentation totals;
 19. corrupted-and-rendered and corrupted-and-dropped overlap; and
-20. frame-counter unavailability when final presentation occurs downstream after frame handoff.
+20. frame-counter unavailability when final presentation occurs downstream after frame handoff;
+21. queued final resolution followed by marker is delivered before removal;
+22. queued occurrences before marker are delivered;
+23. multiple final episode resolutions before one marker are delivered;
+24. retiring registration remains valid until marker handling;
+25. metric after marker, duplicate marker, and marker from active/unregistered/removed source are rejected;
+26. marker-post failure does not complete retirement;
+27. a producer with no active episode still drains queued occurrences through its marker;
+28. multiple producers retire independently without cross-source ordering assumptions;
+29. bus flushing and dispatcher shutdown wait for all expected markers; and
+30. residual episode state at marker is diagnosed and cleared without synthetic resolution.
 
 ## 14. Open decisions
 
@@ -412,7 +450,19 @@ media-pipeline-metric {
 }
 ```
 
-The source passed to `gst_message_new_element()` is the authoritative producing element. The producer checks the return from `gst_element_post_message()` and diagnoses a failed post locally. Successfully posted messages are the delivery boundary; the schema does not add sequence or acknowledgement state that could detect but not recover a message discarded during bus flushing or teardown.
+The source passed to `gst_message_new_element()` is the authoritative producing element. The producer checks the return from `gst_element_post_message()` and diagnoses a failed post locally.
+
+### A.1.1 Producer retirement marker
+
+After all final metric messages, a retiring producer posts exactly one control message:
+
+```text
+GST_MESSAGE_ELEMENT
+    GST_MESSAGE_SRC: <retiring authoritative producer>
+    GstStructure:    media-pipeline-metric-retired { }
+```
+
+The structure has no `metric`, `observation-kind`, `pts-ns`, `count`, or `duration-ns` fields. The producer posts no later metric message. Collector handling of this marker—rather than successful posting—is the retirement completion boundary.
 
 ## A.2 Video frame drop occurrences
 
