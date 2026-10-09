@@ -228,7 +228,7 @@ struct CapturedFrame
     Rectangle visibleRegion;
     std::vector<ExportedDmaBuf> exportedDmaBufs;
 
-    CapturedFrame() = default;
+    CapturedFrame() : presentationTimeNs{0}, visibleRegion{} {}
     CapturedFrame(const CapturedFrame &) = delete;
     CapturedFrame &operator=(const CapturedFrame &) = delete;
     CapturedFrame(CapturedFrame &&other) noexcept;
