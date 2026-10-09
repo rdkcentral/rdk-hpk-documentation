@@ -440,7 +440,7 @@ CaptureStatus gst_frame_capture_detach(
     GstElement *frameCapture);
 ```
 
-`gst_frame_capture_attach()` is called once before decoder output starts. It validates the session and pool, associates them with native scheduled output, and returns only when attachment has completed or failed. A failed attachment must leave normal playback usable.
+`gst_frame_capture_attach()` is called once before decoder output starts. It validates the session and pool, associates them with native scheduled output, and returns only when attachment has completed or failed. On every non-`OK` result, it rolls back any partial association, starts no capture writes, retains no borrowed session, pool, or scheduled-output references, and requires no matching detach. Normal playback remains usable.
 
 Before the call, the playbin policy has created `framecapture`, identified scheduled output, and obtained a valid session and pool. On `OK`, capture is fully attached and decoder output may start. MW keeps the session, pool, and scheduled-output element valid until detach returns.
 
