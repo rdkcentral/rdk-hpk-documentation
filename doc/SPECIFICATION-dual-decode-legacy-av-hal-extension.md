@@ -76,8 +76,8 @@ graph LR
         GST --> VARB
         GST --> AARB
         RS --> Ctx
-        Ctx -->|UHD SVP pool or FHD SVP pool| DEC
-        Ctx -->|UHD SVP pool or FHD SVP pool| SVPP
+        Ctx -->|SVP Usage| DEC
+        Ctx -->|SVP Usage| SVPP
         RS --> YAML[Capability YAML]
         DEC --> OCDM[Rialto OCDM Adaptor]
         SVPP --> SVPC[gst-svp-ext-common]
@@ -365,7 +365,7 @@ The ESSOS Resource Manager configuration shall advertise two available audio-dec
 
 ### 8.3 Example ESSOS configuration entries
 
-The configuration file is expected to contain two audio resource entries in the following form:
+The essrmgr.conf configuration file is expected to contain two audio resource entries in the following form:
 
 ```text
 audio: hardware
@@ -437,7 +437,7 @@ The ESSOS Resource Manager configuration shall advertise two SVP allocator resou
 
 ### 10.3 Example ESSOS configuration entries
 
-For a symmetric configuration, the file is expected to contain two SVP resource entries in the following form:
+For a symmetric configuration, the essrmgr.conf file is expected to contain two SVP resource entries in the following form:
 
 ```text
 svpa: hardware
@@ -460,7 +460,7 @@ On such platforms:
 - the first component that consumes the SVP buffer, such as a decryptor or SVP payload element, shall pass the usage to the vendor-side SVP integration; and
 - vendor code shall use the usage value together with the assigned resource identifier to bind the correct allocator resource.
 
-An asymmetric configuration may, for example, contain entries in the following form:
+An asymmetric configuration may, for example, contain entries in the following form in essrmgr.conf:
 
 ```text
 svpa: hardware
@@ -550,14 +550,14 @@ sequenceDiagram
     participant AM as Application Resource<br/>Manager
     participant RS1 as Entering Rialto<br/>Server
     participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element
-    participant A1 as Entering Audio<br/>Element
+    participant V1 as Entering Video<br/>Element A/B 
+    participant A1 as Entering Audio<br/>Element A/B
     participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
     participant RS2 as Exiting Rialto<br/>Server
     participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element
-    participant A2 as Exiting Audio<br/>Element
+    participant V2 as Exiting Video<br/>Element A/B
+    participant A2 as Exiting Audio<br/>Element A/B
     participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
 
     Note over V2,S2: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
@@ -601,14 +601,14 @@ sequenceDiagram
     participant AM as Application Resource<br/>Manager
     participant RS1 as Entering Rialto<br/>Server
     participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element
-    participant A1 as Entering Audio<br/>Element
+    participant V1 as Entering Video<br/>Element A/B
+    participant A1 as Entering Audio<br/>Element A/B
     participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
     participant RS2 as Exiting Rialto<br/>Server
     participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element
-    participant A2 as Exiting Audio<br/>Element
+    participant V2 as Exiting Video<br/>Element A/B
+    participant A2 as Exiting Audio<br/>Element A/B
     participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
 
     Note over V2,S2: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
@@ -621,8 +621,6 @@ sequenceDiagram
     G1->>V1: transition NULL -> READY
     V1->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V2: notifyCB(EssRMgrEvent::Revoked)
-    RS2->>G2: revoke exiting pipeline video resources A/B
-    G2->>V2: stop using exiting-player video resources and revoke them
     V2->>RM: EssRMgrReleaseResource(video primary)
     V2->>RM: EssRMgrReleaseResource(video secondary)
     RM-->>V1: notifyCB(EssRMgrEvent::Granted, assignedId)
@@ -632,8 +630,6 @@ sequenceDiagram
     G1->>A1: transition NULL -> READY
     A1->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A2: notifyCB(EssRMgrEvent::Revoked)
-    RS2->>G2: revoke exiting pipeline audio resources A/B
-    G2->>A2: stop using exiting-player audio resources A/B and revoke them
     A2->>RM: EssRMgrReleaseResource(audio A/B)
     RM-->>A1: notifyCB(EssRMgrEvent::Granted, assignedId)
 
@@ -642,8 +638,6 @@ sequenceDiagram
     G1->>S1: transition NULL -> READY
     S1->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S2: notifyCB(EssRMgrEvent::Revoked)
-    RS2->>G2: revoke exiting pipeline SVP resources A/B
-    G2->>S2: stop using exiting-player SVP resources A/B and revoke them
     S2->>RM: EssRMgrReleaseResource(svp A/B)
     RM-->>S1: notifyCB(EssRMgrEvent::Granted, assignedId)
     RS1-->>AM: acquisition complete after revocation
@@ -668,15 +662,15 @@ sequenceDiagram
     participant AM as Application Resource<br/>Manager
     participant RS2 as Exiting Rialto<br/>Server
     participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element
-    participant A2 as Exiting Audio<br/>Element
+    participant V2 as Exiting Video<br/>Element A/B
+    participant A2 as Exiting Audio<br/>Element A/B
     participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP1 as Non Rialto App
-    participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element
-    participant A1 as Entering Audio<br/>Element
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 
+    participant G1 as GStreamer pipeline<br/>A
+    participant V1 as Entering Video<br/>Element A
+    participant A1 as Entering Audio<br/>Element A
+    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
 
     Note over V2,S2: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
     Note over V1,S1: EssRMgrCreate() is done once when the entering player pipeline is first established
@@ -692,7 +686,7 @@ sequenceDiagram
     RS2-->>AM: release complete
 
     AM->>APP1: launch non-Rialto player
-    APP1->>G1: activate pipeline A/B
+    APP1->>G1: activate pipeline A
     G1->>V1: initialise pipeline
     V1->>RM: EssRMgrCreate(notifyCB)
     G1->>V1: transition NULL -> READY
@@ -718,28 +712,26 @@ sequenceDiagram
     participant AM as Application Resource<br/>Manager
     participant RS2 as Exiting Rialto<br/>Server
     participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element
-    participant A2 as Exiting Audio<br/>Element
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 2 A/B
+    participant V2 as Exiting Video<br/>Element A/B
+    participant A2 as Exiting Audio<br/>Element A/B
+    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 2 /B
     participant RM as ESSOS Resource<br/>Manager
     participant APP1 as Non Rialto App
-    participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element
-    participant A1 as Entering Audio<br/>Element
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 1
+    participant G1 as GStreamer pipeline<br/>A
+    participant V1 as Entering Video<br/>Element A
+    participant A1 as Entering Audio<br/>Element A
+    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
 
     Note over V2,S2: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
     Note over V1,S1: Entering player pipeline performs EssRMgrCreate() once during startup, then requests resources
 
     AM->>APP1: launch non-Rialto player before exit completes
-    APP1->>G1: activate pipeline A/B
+    APP1->>G1: activate pipeline A
     G1->>V1: initialise pipeline
     V1->>RM: EssRMgrCreate(notifyCB)
     G1->>V1: transition NULL -> READY
     V1->>RM: EssRMgrRequestResource(video, notifyCB)
     RM-->>V2: notifyCB(EssRMgrEvent::Revoked)
-    RS2->>G2: revoke exiting pipeline video resources A/B
-    G2->>V2: stop using exiting-player video resources and revoke them
     V2->>RM: EssRMgrReleaseResource(video primary)
     V2->>RM: EssRMgrReleaseResource(video secondary)
     RM-->>V1: notifyCB(EssRMgrEvent::Granted, assignedId)
@@ -749,8 +741,6 @@ sequenceDiagram
     G1->>A1: transition NULL -> READY
     A1->>RM: EssRMgrRequestResource(audio, notifyCB)
     RM-->>A2: notifyCB(EssRMgrEvent::Revoked)
-    RS2->>G2: revoke exiting pipeline audio resources A/B
-    G2->>A2: stop using exiting-player audio resources A/B and revoke them
     A2->>RM: EssRMgrReleaseResource(audio A/B)
     RM-->>A1: notifyCB(EssRMgrEvent::Granted, assignedId)
 
@@ -759,8 +749,6 @@ sequenceDiagram
     G1->>S1: transition NULL -> READY
     S1->>RM: EssRMgrRequestResource(svp, notifyCB)
     RM-->>S2: notifyCB(EssRMgrEvent::Revoked)
-    RS2->>G2: revoke exiting pipeline SVP resources A/B
-    G2->>S2: stop using exiting-player SVP resources A/B and revoke them
     S2->>RM: EssRMgrReleaseResource(svp A/B)
     RM-->>S1: notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
@@ -782,22 +770,22 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource<br/>Manager
     participant APP2 as Non Rialto App
-    participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element
-    participant A2 as Exiting Audio<br/>Element
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 2
+    participant G2 as GStreamer pipeline<br/>A
+    participant V2 as Exiting Video<br/>Element A
+    participant A2 as Exiting Audio<br/>Element A
+    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
     participant RM as ESSOS Resource<br/>Manager
     participant RS1 as Entering Rialto<br/>Server
     participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element
-    participant A1 as Entering Audio<br/>Element
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 1 A/B
+    participant V1 as Entering Video<br/>Element A/B
+    participant A1 as Entering Audio<br/>Element A/B
+    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
 
     Note over V2,S2: EssRMgrCreate() already completed for exiting player pipeline during initial pipeline setup
     Note over V1,S1: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
 
     AM->>APP2: stop exiting non-Rialto player
-    APP2->>G2: stop exiting pipeline A/B
+    APP2->>G2: stop exiting pipeline A
     G2->>V2: release video resource
     V2->>RM: EssRMgrReleaseResource(video)
     G2->>A2: release audio resource
@@ -834,16 +822,16 @@ sequenceDiagram
     autonumber
     participant AM as Application Resource<br/>Manager
     participant APP2 as Non Rialto App
-    participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element
-    participant A2 as Exiting Audio<br/>Element
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 2
+    participant G2 as GStreamer pipeline<br/>A
+    participant V2 as Exiting Video<br/>Element A
+    participant A2 as Exiting Audio<br/>Element A
+    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
     participant RM as ESSOS Resource<br/>Manager
     participant RS1 as Entering Rialto<br/>Server
     participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element
-    participant A1 as Entering Audio<br/>Element
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 1 A/B
+    participant V1 as Entering Video<br/>Element A/B
+    participant A1 as Entering Audio<br/>Element A/B
+    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
 
     Note over V2,S2: Existing exiting player pipeline already holds resources through an earlier EssRMgrCreate()
     Note over V1,S1: Entering player Pipeline A/B performs EssRMgrCreate() once during startup, then requests resources
@@ -855,8 +843,6 @@ sequenceDiagram
     G1->>V1: transition NULL -> READY
     V1->>RM: EssRMgrRequestResource(video A/B, notifyCB)
     RM-->>V2: notifyCB(EssRMgrEvent::Revoked)
-    APP2->>G2: revoke exiting pipeline A/B
-    G2->>V2: stop using all exiting-player video resources and revoke them
     V2->>RM: EssRMgrReleaseResource(video)
     RM-->>V1: notifyCB(EssRMgrEvent::Granted, assignedId)
 
@@ -865,8 +851,6 @@ sequenceDiagram
     G1->>A1: transition NULL -> READY
     A1->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A2: notifyCB(EssRMgrEvent::Revoked)
-    APP2->>G2: revoke exiting audio path A/B
-    G2->>A2: stop using exiting-player audio resource and revoke it
     A2->>RM: EssRMgrReleaseResource(audio)
     RM-->>A1: notifyCB(EssRMgrEvent::Granted, assignedId)
 
@@ -875,8 +859,6 @@ sequenceDiagram
     G1->>S1: transition NULL -> READY
     S1->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S2: notifyCB(EssRMgrEvent::Revoked)
-    APP2->>G2: revoke exiting SVP path A/B
-    G2->>S2: stop using exiting-player SVP resource and revoke it
     S2->>RM: EssRMgrReleaseResource(svp)
     RM-->>S1: notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
