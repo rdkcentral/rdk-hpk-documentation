@@ -96,7 +96,7 @@ Vendors modify GStreamer elements that own or observe hardware state.
 5. Every defined metric type is mandatory for a conforming SoC media HAL; no metric-capability list is exposed.
 6. Optional PTS carries the best available stream position under the semantics of its observation kind; zero remains a valid PTS.
 7. Messages use ordinary queued `GstBus` delivery. Posting must not block decode or presentation.
-8. `GST_BUS_ASYNC` is not the delivery mode: a bus sync handler must not return `GST_BUS_ASYNC` for metric messages. If a sync handler is installed, it permits these messages to enter the normal bus queue by returning `GST_BUS_PASS`.
+8. `GST_BUS_ASYNC` is not the delivery mode: a bus sync handler must not return `GST_BUS_ASYNC` for metric observation or retirement-marker messages. If a sync handler is installed, it permits both `media-pipeline-metric` and `media-pipeline-metric-retired` messages to enter the normal bus queue by returning `GST_BUS_PASS`.
 9. Messages are ordered only per producing element; cross-element ordering is not implied.
 10. Producer retirement uses that same-source ordering: final metrics precede one retirement marker, and registration removal follows marker handling.
 
