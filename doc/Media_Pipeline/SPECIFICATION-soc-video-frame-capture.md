@@ -158,7 +158,7 @@ Reset, flush, seek, or equivalent decoder/scheduled-output processing may invali
 
 MW makes the session and pool available through the existing playback integration. The vendor playbin policy must attach them to the SoC element that owns or exposes native STC-based frame selection. This specification does not define the handoff.
 
-The vendor playbin policy identifies scheduled output, creates/inserts `framecapture`, invokes the typed attachment API in Section 9.2, and detaches before teardown. For every returned frame, the vendor implementation uses the same STC and scheduling rules as native presentation. It can publish only a selection established after decoder consumption and never selects a frame independently from the native scheduler.
+The vendor playbin policy identifies scheduled output, creates/inserts `framecapture`, invokes the typed attachment API in Section 9.2, and calls detach as the first teardown operation before destroying scheduled output. For every returned frame, the vendor implementation uses the same STC and scheduling rules as native presentation. It can publish only a selection established after decoder consumption and never selects a frame independently from the native scheduler.
 
 `CapturedFrame.presentationTimeNs` is the selected frame's PTS in the scheduler timeline. The session retains the most recent valid selection until a newer one is captured or native decoder/scheduled-output processing invalidates it. Invalidation does not release previously acquired frames.
 
@@ -502,12 +502,11 @@ If no slot is writable when the scheduler advances, the new capture selection is
 
 The session belongs to one video pipeline and is never reused. Teardown proceeds in this order:
 
-1. Stop new capture writes and complete or cancel any write in progress.
-2. Detach `framecapture` from scheduled output before destroying the video path.
-3. Keep the session, final current selection, and locked slots valid.
-4. If the final selection has not been acquired, allow one acquisition. A transient `NO_RESOURCES` result leaves it available for retry.
-5. Continue accepting `releaseFrame()` for every acquired frame.
-6. MW destroys the session only after the final acquisition opportunity is completed or abandoned and every frame lock is released.
+1. The vendor playbin policy calls `gst_frame_capture_detach()` before destroying the video path. That single synchronous operation prevents new capture writes, completes or cancels any write in progress, disconnects scheduled output, and returns only when scheduled output is safe to destroy.
+2. Keep the session, final current selection, and locked slots valid.
+3. If the final selection has not been acquired, allow one acquisition. A transient `NO_RESOURCES` result leaves it available for retry.
+4. Continue accepting `releaseFrame()` for every acquired frame.
+5. MW destroys the session only after the final acquisition opportunity is completed or abandoned and every frame lock is released.
 
 After detach, the selection no longer advances. An unacquired valid selection returns `OK` once; an already acquired selection returns `NO_NEW_FRAME`; no valid selection returns `NO_FRAME`. Locked frame contents remain valid until release.
 
@@ -566,7 +565,7 @@ An SoC implementation is conformant only when all of the following are true:
 
 | Area | Requirement | Sections |
 |---|---|---|
-| Delivery and attachment | The vendor registers `framecapture`, provides the playbin policy, attaches to native scheduled output before decoder output, and detaches safely before teardown. Existing playback integration provides the session and pool. | §§5, 6, 9 |
+| Delivery and attachment | The vendor registers `framecapture`, provides the playbin policy, attaches to native scheduled output before decoder output, and calls detach as the first teardown operation before scheduled-output destruction. Existing playback integration provides the session and pool. | §§5, 6, 9 |
 | Capabilities and pool | Capabilities report only format, modifier and limits. Pool creation returns the concrete bounds-checked object/slot/plane layout for the same session, within those limits. | §§7, 8, 14 |
 | Native selection | Capture follows native scheduled output. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. Paused and invalidation behavior follows §9.3. | §§5, 8–10 |
 | Frame identity, FD ownership and rollback | Valid slot identity and matching acquisition token mean one release is owed. Move constructor transfers token, slot index, and FDs, invalidating the source. HAL assigns unique non-zero token per acquisition. Acquisition requires invalid slot and token values and every FD exactly `-1`. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§7, 8, 12 |
