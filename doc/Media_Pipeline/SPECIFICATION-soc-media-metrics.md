@@ -8,7 +8,7 @@
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.5 | Draft for review | Defined complete episode lifecycle, ordered producer retirement, decoder-underflow recovery, cross-metric overlap, deliberate-drop exclusions, and event/counter consistency. | Episode boundaries and restart, queued final resolutions, retirement fencing, native decoder/output conditions, overlapping metrics, and counter alignment. |
+| 0.5 | Draft for review | Defined complete episode lifecycle, ordered producer retirement, decoder-underflow recovery, cross-metric overlap, deliberate-drop exclusions, and event/counter consistency. | Episode boundaries and restart, queued final resolutions, permanent producer-identity retirement, retirement fencing, native decoder/output conditions, overlapping metrics, and counter alignment. |
 | 0.4 | Draft for review | Added exact cumulative corrupted-frame count to the video frame snapshot already introduced in 0.3. | Corruption identity/deduplication, overlap with presentation outcomes, event consistency, and transport. |
 | 0.3 | Draft for review | Added exact cumulative rendered and dropped video-frame counters for direct SoC-rendered video. | Counter property, presentation-point ownership, hidden-frame exclusions, deliberate-removal behavior, and conformance tests. |
 | 0.2 | Draft for review | Made all seven defined metrics part of the required SoC contract and removed per-platform metric capability reporting. | Required metric coverage, topology limits, buffer-underflow reporting, client selection, and conformance tests. |
@@ -19,6 +19,7 @@
 - Defined natural and producer-scoped lifecycle-boundary resolution for every episode metric, with monotonic elapsed duration.
 - Defined video-repeat resolution at first presentation of a new real frame, not frame selection.
 - Added same-source retirement markers so queued final resolutions are handled before producer registration is removed.
+- Permanently retires each producer object identity after normal retirement or cancellation; the same `GstElement` cannot be re-registered with that pipeline collector.
 - Bounded retirement-marker posting/handling and added synchronous cancellation so teardown cannot wait indefinitely.
 - Kept underflow decoder-scoped, with immediate start and input-recovery resolution.
 - Allowed underflow, video-repeat, and audio-gap episodes to overlap independently.
@@ -103,6 +104,8 @@ Vendors modify GStreamer elements that own or observe hardware state.
 ## 4. Pipeline association
 
 The collector is created for each GStreamer pipeline. It registers every producing element against the corresponding audio or video stream. Registration is keyed by GStreamer object identity, not element or factory name.
+
+A `GstElement` object identity may be registered at most once with one pipeline collector. After normal retirement or cancellation, that identity remains permanently removed until the collector is destroyed and cannot be re-registered. The collector retains enough removed-identity state to reject and diagnose queued observations or markers that arrive later. A replacement producer must use a different `GstElement` object identity.
 
 A registration is **active**, **retiring**, or **removed**:
 
@@ -367,15 +370,15 @@ After Video Frame Capture handoff, final presentation occurs downstream. The SoC
 The pipeline-scoped collector:
 
 1. consumes queued metric and retirement-marker element messages on its dispatcher context, not in the posting thread;
-2. maps message-source object identity to an active or retiring registration and rejects removed/unregistered sources;
-3. processes ordinary metric messages from active and retiring sources normally;
+2. maps message-source object identity to an active or retiring registration and rejects removed or unregistered identities, including permanently retired identities;
+3. processes ordinary metric messages from active and retiring registrations normally;
 4. timestamps accepted observations using the collector's monotonic clock;
 5. dispatches one normalized notification for each occurrence;
 6. tracks episode state independently for each metric, source, and producer, including overlapping metrics;
 7. accepts natural and boundary resolutions and rejects duplicate starts for the same episode key;
 8. prevents duplicate observations between aggregate and child producers;
-9. on a valid retirement marker, verifies the source is retiring, diagnoses and clears residual state without synthesizing resolution, removes the registration, and signals normal retirement completion through a private mechanism;
-10. rejects and diagnoses duplicate markers, markers for non-retiring sources, and metric messages received after normal or cancelled retirement;
+9. on a valid retirement marker, verifies that the source identity is retiring, diagnoses and clears residual state without synthesizing resolution, permanently removes that identity, and signals normal retirement completion through a private mechanism;
+10. rejects and diagnoses duplicate markers, markers from non-retiring or permanently removed identities, and metric messages received after normal or cancelled retirement;
 11. serializes synchronous retirement cancellation with collector state, diagnoses possible final-message loss, clears residual state without synthetic resolution, removes the registration, and signals cancellation completion; and
 12. keeps bus dispatch active until each producer reaches normal or cancelled retirement.
 
@@ -398,6 +401,8 @@ A vendor implementation is conformant only when:
 - actual decoder failures during recovery or reconfiguration still create decode-error occurrences;
 - each message source is authoritative and aggregate/child observations do not duplicate an occurrence;
 - messages use ordinary non-blocking queued bus delivery;
+- one `GstElement` object identity is registered at most once per pipeline collector and remains permanently removed after normal retirement or cancellation;
+- re-registration of a permanently removed identity is rejected, and a replacement producer uses a different object identity;
 - every retiring producer posts its producer-scoped final resolutions followed by one same-source retirement marker and no later metric observation;
 - active and retiring registrations accept queued messages; normal removal occurs only when the marker is handled;
 - marker posting/handling uses a finite documented bound and failed posts retry only the marker;
@@ -446,8 +451,9 @@ Required tests cover:
 32. a producer with no active episode still drains queued occurrences through its marker;
 33. multiple producers retire or cancel independently without cross-source ordering assumptions;
 34. bus flushing and dispatcher shutdown wait for normal or cancelled retirement completion;
-35. residual episode state at normal marker or cancellation is diagnosed and cleared without synthetic resolution; and
-36. monotonic episode duration while media PTS/STC is stationary, including decoder underflow retained across output-only pause.
+35. residual episode state at normal marker or cancellation is diagnosed and cleared without synthetic resolution;
+36. monotonic episode duration while media PTS/STC is stationary, including decoder underflow retained across output-only pause; and
+37. re-registration of a normally retired or cancelled `GstElement` identity is rejected, while queued observations and markers from that identity remain rejected; a replacement producer with a different object identity registers independently.
 
 ## 14. Open decisions
 
@@ -484,7 +490,7 @@ GST_MESSAGE_ELEMENT
     GstStructure:    media-pipeline-metric-retired { }
 ```
 
-The structure has no `metric`, `observation-kind`, `pts-ns`, `count`, or `duration-ns` fields. The producer posts no later metric observation. Collector handling of this marker—rather than successful posting—is the normal retirement completion boundary.
+The structure has no `metric`, `observation-kind`, `pts-ns`, `count`, or `duration-ns` fields. The producer posts no later metric observation. Collector handling of this marker—rather than successful posting—is the normal retirement completion boundary. Because a retired source object identity cannot be re-registered with the collector, a late marker can only be rejected against its permanently removed identity and cannot retire a replacement producer.
 
 Posting and handling use one finite documented retirement deadline. A failed post retries only this marker while the bus remains usable. If the deadline expires or the bus becomes unavailable before handling, pipeline integration requests synchronous collector cancellation. Cancellation diagnoses possible final-message loss, clears residual state without synthetic resolution, removes the registration, and completes retirement exceptionally.
 
