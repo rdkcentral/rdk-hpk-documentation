@@ -2,17 +2,26 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.5
+**Specification version:** 0.6
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.6 | Draft for review | Replaced the non-standard external integration model with explicit per-pipeline selection of a session-configured `framecapture` video sink or sink-bin. | Pipeline-local association, concurrent playback isolation, session context, sink construction failure, and teardown. |
 | 0.5 | Draft for review | Added opaque acquisition token to `CapturedFrame` to prevent stale releases and prohibited overlapping DMA-BUF ranges between slots to preserve locked contents. | Acquisition token, token validation in `releaseFrame()`, move semantics, stale-release detection, and cross-slot layout isolation. |
 | 0.4 | Draft for review | Deleted move assignment to avoid undefined contract-violation behavior; defined failure invariants for all CaptureStatus values; made `gst_frame_capture_detach()` infallible. | Move constructor only, failure invariants, detach contract, and conformance test updates. |
 | 0.3 | Draft for review | Separated capability limits from concrete pool layout; defined explicit FD and frame-lock ownership, invalid lock identity, non-copyable/movable frame output, vendor playbin integration, native selection behavior, plane validation, and fixed-layout conformance. | Capability/pool pairing, move and release state, output reuse, FD ownership versus frame locks, native selection, attachment, teardown, and rollback. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.6
+
+- Pipeline requirements are known before GStreamer graph construction. A capture-enabled pipeline explicitly assigns one vendor `framecapture` sink or sink-bin to its playbin `video-sink` property.
+- `framecapture` owns or contains the native scheduled-output implementation; it is not selected through factory rank and does not search for a current playbin.
+- Each concurrent pipeline uses an independent sink instance, `ICaptureSession`, and session-owned pool.
+- `createPool()` creates the concrete session-owned pool and returns its immutable description to MW; that description is not passed back to the sink.
+- A pipeline-local `GstContext` associates the configured session with the sink before state transition. The previous external attach/detach API and separate `vendorVideoElement` argument are removed.
 
 ### What changed in version 0.5
 
@@ -35,7 +44,7 @@
 - Acquisition exports one MW-owned FD for each distinct object referenced by the selected slot.
 - `CapturedFrame` is non-copyable. Move transfers both FD ownership and the frame-release obligation; invalid slot identity means no release is owed.
 - `getCapabilities()` returns `CaptureStatus` and leaves output unchanged on failure.
-- The vendor playbin policy creates and attaches `framecapture` to native scheduled output.
+- The vendor pipeline integration creates and attaches `framecapture` to native scheduled output.
 - Native selection, paused behavior, slot exhaustion, teardown, plane-range validation, and late release are fully defined.
 
 ### What changed in version 0.2
@@ -54,13 +63,15 @@ This specification defines the in-process contract between **MW** and the **SoC 
 
 ```text
 MW
- ├── calls ICaptureSession
+ ├── knows the pipeline output requirement before graph construction
+ ├── calls ICaptureSession and retains the returned pool description
+ ├── selects framecapture for each capture-enabled playbin instance
  └── owns returned FDs and matching frame releases
 
 SoC vendor
  ├── implements ICaptureSession
- ├── provides framecapture and the playbin policy
- └── connects capture to native scheduled output
+ ├── provides a playbin-compatible framecapture sink or sink-bin
+ └── connects its session-owned pool to native scheduled output
 ```
 
 MW means the middleware component that calls the HAL. Transport and rendering after the HAL returns a frame are not part of this specification.
@@ -79,8 +90,8 @@ This adds to the existing SoC decode stack; it does not replace it.
 
 | Role | Definition | Responsibilities |
 |------|------------|------------------|
-| **MW** | The middleware that calls the HAL. | - Obtains one session for each capture-enabled pipeline<br>- Calls the HAL methods with valid inputs<br>- Closes returned FDs and releases acquired frames<br>- Keeps the session and pool valid until detach and all releases are complete<br>- Uses the existing playback integration to make the session and pool available to the vendor playbin policy |
-| **SoC vendor** | The provider of the decoder and capture implementation. | - Implements `ICaptureSession` and the advertised fixed layout<br>- Provides and registers `framecapture` and the playbin policy<br>- Attaches capture to native scheduled output and follows its frame selection<br>- Exports FDs atomically and preserves locked frame contents<br>- Keeps normal playback running when capture slots are exhausted<br>- Detaches safely and accepts required late releases |
+| **MW** | The middleware that calls the HAL. | - Determines each pipeline's output requirement before graph construction<br>- Obtains one session and creates one pool for each capture-enabled pipeline<br>- Retains the returned immutable pool description<br>- Creates one `framecapture` sink instance, supplies its session context, and assigns it to that playbin instance<br>- Closes returned FDs and releases acquired frames<br>- Keeps the session alive until sink teardown and all releases are complete |
+| **SoC vendor** | The provider of the decoder and capture implementation. | - Implements `ICaptureSession` and the advertised fixed layout<br>- Provides and registers a playbin-compatible `framecapture` sink or sink-bin<br>- Owns or contains native scheduled output and follows its frame selection<br>- Uses the pool owned by the configured session<br>- Exports FDs atomically and preserves locked frame contents<br>- Keeps decode, audio, STC, and scheduled selection running when capture slots are exhausted<br>- Tears down safely and accepts required late releases |
 
 ## 3. Scope
 
@@ -90,7 +101,7 @@ This adds to the existing SoC decode stack; it does not replace it.
 - Association with native scheduled output and its frame selection.
 - Frame-plane, DMA-BUF object, crop, format, modifier, and timestamp metadata.
 - Atomic frame acquisition, FD ownership, frame locks, and release.
-- Synchronization, slot exhaustion, detach, teardown, and late release.
+- Synchronization, slot exhaustion, sink teardown, and late release.
 
 ### 3.1 Terminology
 
@@ -104,7 +115,7 @@ The contract uses these terms exclusively:
 | **Frame plane** | One DRM image plane and its byte range and stride within a DMA-BUF object. It owns no FD. |
 | **DMA-BUF object** | One DMA-BUF allocation. One object may back one or more planes or slots. |
 | **Exported DMA-BUF** | One MW-owned raw FD for a DMA-BUF object. `fd >= 0` is owned and must be closed; `-1` is invalid. The FD is not a frame lock. |
-| **Pool** | The DMA-BUF object metadata and slot layouts created for one session. Pool metadata contains no FDs. |
+| **Pool** | The concrete slot reservation owned by one session. `CapturePool` is MW's immutable description of its DMA-BUF object metadata and slot layouts; the description contains no FDs. |
 
 The document does not use “buffer” as a synonym for either slot or frame. “Decoder output buffer” is used only when referring to a vendor-native object outside the capture-pool contract.
 
@@ -135,17 +146,19 @@ The following behavior is normative; the allocation strategy is an SoC vendor de
 
 MW owns the session from the caller side and releases each acquired frame exactly once. The SoC vendor owns the slot state and backing implementation.
 
-The decoder and capture path must not overwrite a locked slot or invalidate an acquired frame during teardown. Capture-slot exhaustion must not block normal decode, presentation, audio, or STC progression. The backing strategy is a vendor choice.
+The decoder and capture path must not overwrite a locked slot or invalidate an acquired frame during teardown. Capture-slot exhaustion must not block decode, native scheduled selection, audio presentation, or STC progression. The backing strategy is a vendor choice.
 
 ## 5. Session provision and lifecycle
 
 ### 5.1 Session provision and initialization
 
-MW obtains one vendor `ICaptureSession` for each capture-enabled video pipeline. The existing playback integration makes the session and pool available to the vendor playbin policy; this specification does not define that handoff.
+MW knows whether a video pipeline requires frame capture before constructing its GStreamer graph. For each capture-enabled pipeline, MW obtains one vendor `ICaptureSession`, calls `createPool()`, retains the returned immutable `CapturePool` description, and configures the pipeline as defined in Section 9.
 
-**Pipeline scope:** Each video pipeline using Video Frame Capture has a dedicated `ICaptureSession`. The session tracks one set of capture-slot reservations and is attached only to that pipeline. A detached session must not be attached to another video pipeline; a new pipeline requires a new session.
+`createPool()` creates the concrete pool owned by that session. `outPool` describes the session-owned backing for MW; it is not a second pool and is not passed back to `framecapture` during pipeline construction.
 
-**Close timing:** MW keeps the session alive after detach while a final selection may still be acquired or frame locks remain. MW destroys the session only after that final opportunity is resolved and all acquired frames are released. A session is never reused for another pipeline.
+**Pipeline scope:** Each video pipeline using Video Frame Capture has a dedicated `ICaptureSession`, `framecapture` sink instance, and session-owned pool. The session tracks one set of capture-slot reservations and is associated only with that sink instance. A session removed from a sink must not be associated with another video pipeline; a new pipeline requires a new session.
+
+**Close timing:** MW keeps the session alive after sink teardown while a final selection may still be acquired or frame locks remain. MW destroys the session only after that final opportunity is resolved and all acquired frames are released. A session is never reused for another pipeline.
 
 ### 5.2 Capture activity model
 
@@ -157,13 +170,13 @@ Reset, flush, seek, or equivalent decoder/scheduled-output processing may invali
 
 ## 6. Scheduled-output association and frame selection
 
-MW makes the session and pool available through the existing playback integration. The vendor playbin policy must attach them to the SoC element that owns or exposes native STC-based frame selection. This specification does not define the handoff.
+For a capture-enabled pipeline, MW creates one `framecapture` sink or sink-bin, associates that instance with the pipeline's configured `ICaptureSession`, and explicitly assigns it to that playbin instance's standard `video-sink` property before a state transition can start decoder output. `framecapture` owns or contains the SoC element that provides native STC-based scheduled selection and uses the concrete pool already owned by the session.
 
-The vendor playbin policy identifies scheduled output, creates/inserts `framecapture`, invokes the typed attachment API in Section 9.2, and calls detach as the first teardown operation before destroying scheduled output. For every returned frame, the vendor implementation uses the same STC and scheduling rules as native presentation. It can publish only a selection established after decoder consumption and never selects a frame independently from the native scheduler.
+For every returned frame, the vendor implementation uses the same STC and scheduling rules as native scheduled output. It can publish only a selection established after decoder consumption and never selects a frame independently from the native scheduler. A generic filter or tee placed before scheduled output is not equivalent because it can observe a decoded frame that the scheduler later drops or does not select.
 
 `CapturedFrame.presentationTimeNs` is the selected frame's PTS in the scheduler timeline. The session retains the most recent valid selection until a newer one is captured or native decoder/scheduled-output processing invalidates it. Invalidation does not release previously acquired frames.
 
-How `framecapture` reaches the scheduler and obtains pixels remains private to the SoC vendor's playbin policy, element, and `ICaptureSession` implementation. Merely creating or adding `framecapture` does not establish association; typed attachment must complete. The bridge borrows the session and pool and may be destroyed with the pipeline after detach.
+How the sink-bin reaches the scheduler and obtains pixels remains private to the SoC vendor's element and `ICaptureSession` implementation. The required common association is the pipeline-local session context defined in Section 9; pool backing and native scheduled-output access remain internal to the paired vendor implementations.
 
 ## 7. Capture value types
 
@@ -423,50 +436,97 @@ No factory is implied by this interface.
 
 ## 9. GStreamer-to-session contract
 
-The vendor playbin policy is the GStreamer integration path. Once MW makes the session and pool available, the policy creates `framecapture`, identifies native scheduled output and STC, and attaches them through the common typed API. The vendor implementation must:
+Pipeline requirements are known before graph construction. For each capture-enabled video pipeline, MW explicitly selects one vendor `framecapture` sink instance for one playbin instance and associates it with the pipeline's configured `ICaptureSession`. There is no process-global selection step.
+
+### 9.1 Element delivery and output selection
+
+The SoC delivery registers a GStreamer element factory named `framecapture`. The factory creates a video sink or sink-bin suitable for assignment to playbin's standard `video-sink` property. It exposes the sink pad and caps required for the vendor's native video path and owns or contains the native scheduled-output implementation that selects frames against STC.
+
+A capture-enabled source uses `framecapture` instead of a normal surface or video-plane sink for that source. The sink-bin still performs native scheduling; capture is not an unscheduled appsink, decoded-buffer tee, or generic filter. A pipeline not requesting capture uses its normal video output and is unaffected if `framecapture` is unavailable.
+
+MW creates `framecapture` explicitly for the playbin being constructed. Automatic factory-rank selection is not conformant because rank is process-global and does not identify a pipeline-scoped session. The implementation must not locate a playbin or session by element name, factory name, rank, or a process-global "current pipeline" value.
+
+### 9.2 Pipeline-local construction and association
+
+Each capture-enabled pipeline has one independent relationship:
 
 ```text
-make the framecapture factory and playbin policy available
-create and add framecapture during playbin pipeline construction
-identify the native scheduled-output path and its STC
-accept and validate the CapturePool metadata
-obtain pixels for native scheduler selections after decoder consumption
-invoke detach before scheduled-output teardown
-update the session's current frame: slot index, PTS, and visible region
+playbin instance
+  -> framecapture sink or sink-bin instance
+       -> ICaptureSession
+            -> session-owned capture pool
 ```
 
-The existing playback integration provides the session and pool; this specification does not define the handoff.
+Concurrent or dual video uses one complete relationship per pipeline. Sink A receives session A and can access only pool A; sink B receives session B and can access only pool B. The SoC implementation does not choose among active playbins. If a vendor-private graph contains multiple scheduled-output branches, the sink-bin must associate the session with the exact branch represented by that sink instance.
 
-### 9.1 Element and policy delivery
+The contract-level construction and teardown sequence is:
 
-The SoC delivery registers a GStreamer element factory named `framecapture` and provides the required playbin policy. Pad topology and links are vendor-private.
+```plantuml
+@startuml
+participant MW
+participant "playbin instance" as Playbin
+participant "framecapture sink-bin" as Capture
+participant "native scheduled output" as Output
+participant ICaptureSession as Session
 
-During pipeline construction, the playbin policy creates `framecapture`, identifies native scheduled output, and completes typed attachment before decoder output starts. If the element or policy is unavailable, Video Frame Capture is unsupported but normal playback remains usable.
+MW -> Session: getCapabilities()
+MW -> Session: createPool(slotCount, outPool)
+Session --> MW: OK + immutable pool description
+MW -> Capture: create one sink instance
+MW -> Capture: set pipeline-local session context
+MW -> Playbin: set video-sink = Capture
+MW -> Playbin: change state
+Capture -> Output: create/configure native scheduled output
+Output -> Session: publish selected frames into session-owned pool
 
-### 9.2 Common attachment API
+MW -> Playbin: teardown / set NULL
+Capture -> Output: stop new writes; complete or cancel active write
+Capture -> Output: disconnect and destroy scheduled output
+Capture --> MW: state transition completed
+note over MW,Session
+MW retains Session for final acquisition
+and outstanding releaseFrame() obligations.
+end note
+@enduml
+```
 
-The **SoC vendor** provides a C++-callable GStreamer integration header containing:
-
-**Caller:** The **SoC vendor's playbin policy** calls `gst_frame_capture_attach()` and `gst_frame_capture_detach()` in process after MW has made the pipeline-scoped session and pool available.
+Illustrative MW construction follows the normative ordering without defining an MW product API:
 
 ```cpp
-CaptureStatus gst_frame_capture_attach(
-    GstElement *frameCapture,
-    GstElement *vendorVideoElement,
-    ICaptureSession *session,
-    const CapturePool &pool);
+CaptureCapabilities capabilities;
+CapturePool poolDescription;
 
-void gst_frame_capture_detach(
-    GstElement *frameCapture);
+if (session->getCapabilities(capabilities) != CaptureStatus::OK ||
+    session->createPool(slotCount, poolDescription) != CaptureStatus::OK)
+    return false;
+
+GstElement *frameCapture = gst_element_factory_make("framecapture", nullptr);
+if (!frameCapture)
+    return false;
+
+GstContext *context = gst_context_new("rdk-frame-capture-session", FALSE);
+GstStructure *structure = gst_context_writable_structure(context);
+gst_structure_set(structure, "session", G_TYPE_POINTER, session, nullptr);
+gst_element_set_context(frameCapture, context);
+gst_context_unref(context);
+
+g_object_set(playbin, "video-sink", frameCapture, nullptr);
+return setPipelineStateReadyOrLater(playbin);
 ```
 
-`gst_frame_capture_attach()` is called once before decoder output starts. It validates the session and pool, associates them with native scheduled output, and returns only when attachment has completed or failed. On every non-`OK` result, it rolls back any partial association, starts no capture writes, retains no borrowed session, pool, or scheduled-output references, and requires no matching detach. Normal playback remains usable.
+`poolDescription` remains with MW for frame interpretation and transport. The concrete pool belongs to `session`; MW does not put `CapturePool` into the context or pass it back to the sink.
 
-Before the call, the playbin policy has created `framecapture`, identified scheduled output, and obtained a valid session and pool. On `OK`, capture is fully attached and decoder output may start. MW keeps the session, pool, and scheduled-output element valid until detach returns.
+### 9.3 Session context
 
-`gst_frame_capture_detach()` is idempotent, synchronous, and infallible. It prevents new writes, completes or cancels any write in progress, disconnects scheduled output, and returns only when scheduled output can be destroyed safely. It must preserve the final current selection and backing required by outstanding frame locks. The function returns `void` and cannot fail; scheduled output is always safe to destroy after it returns.
+The context type is `rdk-frame-capture-session`. Its structure contains one field named `session` with GType `G_TYPE_POINTER` and value type `ICaptureSession *`. The pointer is opaque to GStreamer and borrowed by the sink. MW guarantees that it remains valid until the sink has completed teardown; the longer session lifetime required for final acquisition and late releases remains governed by Sections 5.1 and 11.
 
-### 9.3 Native decoder and scheduled-output behavior
+MW sets the context directly on `framecapture` before assigning a state that can start decoder output. The sink accepts exactly one non-null session. Reapplying the same pointer is idempotent; a missing field, null pointer, wrong field type, or attempt to replace it with a different session is invalid.
+
+Before entering `READY`, the sink validates that it has one session whose `createPool()` has completed successfully and that its native scheduled-output path can use the session-owned pool. `GstElement::set_context` has no result, so invalid or missing configuration causes the next state transition toward `READY` or later to return `GST_STATE_CHANGE_FAILURE` and post a GStreamer error. The sink rolls back partial setup, starts no capture writes, and retains no scheduled-output resources. Failure affects only that capture-enabled pipeline; it does not change sink selection for another pipeline.
+
+The context does not own the session, create a pool, or carry the `CapturePool` description. The paired vendor sink and session implementation may use private interfaces to access backing and scheduler state, but those interfaces are outside this specification.
+
+### 9.4 Native decoder and scheduled-output behavior
 
 | Native decoder/scheduled-output condition | Required capture behavior |
 |---|---|
@@ -475,13 +535,15 @@ Before the call, the playbin policy has created `framecapture`, identified sched
 | Paused with a valid current selection | STC/display position is stationary; return that selection once as `OK`, then `NO_NEW_FRAME` while it remains current |
 | Active scheduled output | Follow advancing native scheduler selections into writable slots |
 | Reset, flush, seek, or equivalent processing invalidates selection | Preserve outstanding locks and return `NO_FRAME` until decoder consumption establishes another native selection |
-| Teardown | Vendor playbin policy calls `gst_frame_capture_detach()` before destroying scheduled output or the session |
+| Teardown | As the first sink teardown action, prevent new writes, complete or cancel any write in progress, and disconnect scheduled output before destroying it |
 
 These conditions do not create or destroy the pool. Capture never applies a separate state-based frame-selection policy.
 
-### 9.4 Backing strategy
+### 9.5 Sink teardown and backing strategy
 
-The backing strategy is vendor-private. It must provide the advertised fixed layout, preserve locked contents, and keep normal decode, presentation, audio, and STC running when capture slots are exhausted.
+Sink teardown is synchronous with the state transition that destroys its scheduled-output path. Before destroying that path, `framecapture` prevents new writes, completes or cancels any write in progress, and disconnects scheduled output. When teardown completes, scheduled output is safe to destroy, while the session preserves the final current selection and backing required by outstanding frame locks.
+
+The backing strategy and sink-bin topology are vendor-private. They must provide the advertised fixed layout, preserve locked contents, and keep decode, audio, STC, and native scheduled selection running when capture slots are exhausted. A generic pre-scheduler filter or tee does not satisfy the selected-frame requirement.
 
 
 ## 10. Current selection and slot ownership
@@ -498,19 +560,19 @@ When the native scheduler selects a different current frame, the SoC path captur
 
 `releaseFrame()` removes one lock and invalidates that frame's slot index. Releasing one slot has no effect on other acquired slots. Open FDs remain MW-owned but no longer provide access to stable frame contents.
 
-If no slot is writable when the scheduler advances, the new capture selection is omitted. The previous captured selection remains current; if it was already acquired, `acquireCurrentFrame()` returns `NO_NEW_FRAME`. Video decode, native presentation, audio presentation, and STC progression continue without waiting. Once capacity returns, the next captured selection represents the then-current SoC frame and returns `OK` on its first acquisition; missed intermediate selections are not replayed.
+If no slot is writable when the scheduler advances, the new capture selection is omitted. The previous captured selection remains current; if it was already acquired, `acquireCurrentFrame()` returns `NO_NEW_FRAME`. Video decode, native scheduled selection, audio presentation, and STC progression continue without waiting. Once capacity returns, the next captured selection represents the then-current SoC frame and returns `OK` on its first acquisition; missed intermediate selections are not replayed.
 
-## 11. Detach, teardown, and late release
+## 11. Sink teardown and late release
 
 The session belongs to one video pipeline and is never reused. Teardown proceeds in this order:
 
-1. The vendor playbin policy calls `gst_frame_capture_detach()` before destroying the video path. That single synchronous operation prevents new capture writes, completes or cancels any write in progress, disconnects scheduled output, and returns only when scheduled output is safe to destroy.
-2. Keep the session, final current selection, and locked slots valid.
+1. As the first action that tears down the sink's native scheduled-output path, `framecapture` prevents new writes, completes or cancels any write in progress, and disconnects scheduled output. The state transition completes only when scheduled output is safe to destroy.
+2. MW keeps the session, final current selection, and locked slots valid after sink teardown.
 3. If the final selection has not been acquired, allow one acquisition. A transient `NO_RESOURCES` result leaves it available for retry.
 4. Continue accepting `releaseFrame()` for every acquired frame.
 5. MW destroys the session only after the final acquisition opportunity is completed or abandoned and every frame lock is released.
 
-After detach, the selection no longer advances. An unacquired valid selection returns `OK` once; an already acquired selection returns `NO_NEW_FRAME`; no valid selection returns `NO_FRAME`. Locked frame contents remain valid until release.
+After sink teardown, the selection no longer advances. An unacquired valid selection returns `OK` once; an already acquired selection returns `NO_NEW_FRAME`; no valid selection returns `NO_FRAME`. Locked frame contents remain valid until release.
 
 ## 12. FD and frame lifetime
 
@@ -521,7 +583,7 @@ FD lifetime and frame-content lifetime are separate:
 - The frame lock is the only contract that prevents the SoC from overwriting the slot.
 - MW completes all use of the frame before calling `releaseFrame()`.
 - After release, MW must not access that frame and the SoC may reuse the slot.
-- Detach does not invalidate a final current selection or an acquired frame; required backing remains valid until final acquisition and late releases are complete.
+- Sink teardown does not invalidate a final current selection or an acquired frame; required backing remains valid until final acquisition and late releases are complete.
 
 ## 13. Synchronization
 
@@ -543,17 +605,18 @@ Every slot supports `backingSize`; that size must not exceed `maximumContentSize
 
 The capability values and concrete pool layout remain fixed until the session is closed. Resolution or crop changes update `CapturedFrame.visibleRegion`; they do not replace the slot reservation.
 
-If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represented by the implemented capture layout, capture returns `UNSUPPORTED` or `FATAL_ERROR` and stops updating its current selection. Normal playback remains available. Runtime capture-slot replacement is outside this specification. One `ICaptureSession` has one logical slot reservation for its complete lifetime.
+If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represented by the implemented capture layout, capture returns `UNSUPPORTED` or `FATAL_ERROR` and stops updating its current selection. It does not silently replace the capture sink with normal surface output; MW chooses any later pipeline reconstruction. Unrelated normal-output pipelines remain available. Runtime capture-slot replacement is outside this specification. One `ICaptureSession` has one logical slot reservation for its complete lifetime.
 
 ## 15. Vendor delivery information
 
 For integration and review, the SoC vendor supplies:
 
-1. the registered `framecapture` factory and playbin policy;
-2. the concrete `CaptureCapabilities` values;
-3. the advertised fixed pool layout and supported slot counts;
-4. evidence that native selection, locking, FD export, exhaustion, detach, and late release meet this specification; and
-5. any platform constraint that makes Video Frame Capture unsupported.
+1. the registered playbin-compatible `framecapture` sink or sink-bin factory and supported input caps;
+2. support for the `rdk-frame-capture-session` context contract;
+3. the concrete `CaptureCapabilities` values;
+4. the advertised fixed pool layout and supported slot counts;
+5. evidence that pipeline-local association, native selection, locking, FD export, exhaustion, sink teardown, and late release meet this specification; and
+6. any platform constraint that makes Video Frame Capture unsupported.
 
 The vendor is not being asked whether decode may stop under slot exhaustion or whether the pool may be destroyed with the decoder. Those are mandatory requirements below.
 
@@ -567,14 +630,15 @@ An SoC implementation is conformant only when all of the following are true:
 
 | Area | Requirement | Sections |
 |---|---|---|
-| Delivery and attachment | The vendor registers `framecapture`, provides the playbin policy, attaches to native scheduled output before decoder output, and calls detach as the first teardown operation before scheduled-output destruction. Existing playback integration provides the session and pool. | §§5, 6, 9 |
-| Capabilities and pool | Capabilities report only format, modifier and limits. Pool creation returns the concrete bounds-checked object/slot/plane layout for the same session, within those limits, with no overlapping ranges between different slots in one DMA-BUF object. | §§7, 8, 14 |
-| Native selection | Capture follows native scheduled output. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. Paused and invalidation behavior follows §9.3. | §§5, 8–10 |
+| Delivery and association | The vendor registers a playbin-compatible `framecapture` sink or sink-bin. MW explicitly selects one instance for each capture-enabled playbin, supplies exactly one pipeline-local session context before state transition, and never relies on rank or global discovery. | §§5, 6, 9 |
+| Concurrent pipelines | Each concurrent pipeline has a distinct sink instance, session, and session-owned pool. No sink can access or publish selections through another pipeline's session. | §§5, 9 |
+| Capabilities and pool | Capabilities report only format, modifier and limits. Pool creation creates session-owned backing and returns its concrete immutable, bounds-checked object/slot/plane description, with no overlapping ranges between different slots in one DMA-BUF object. The description is not passed back through the sink context. | §§7, 8, 14 |
+| Native selection | Capture follows native scheduled output contained or owned by the sink-bin. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. Paused and invalidation behavior follows §9.4. | §§5, 8–10 |
 | Frame identity, FD ownership and rollback | Valid slot identity and matching acquisition token mean one release is owed. Move constructor transfers token, slot index, and FDs, invalidating the source. HAL assigns unique non-zero token per acquisition. Acquisition requires invalid slot and token values and every FD exactly `-1`. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§7, 8, 12 |
 | Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 8, 10, 12, 13 |
-| Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, presentation, audio, or STC. | §§9, 10 |
-| Detach and teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. | §11 |
-| Contract tests | Tests cover every area above, including invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, detach, final acquisition, and late release. | — |
+| Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, native scheduled selection, audio, or STC. | §§9, 10 |
+| Sink teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. Scheduled output is disconnected safely during sink state teardown. | §§9, 11 |
+| Contract tests | Tests cover every area above, including missing/invalid/replaced session context, two concurrent pipelines without cross-association, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. | — |
 
 Failure of any mandatory gate means Video Frame Capture is unsupported on that implementation; it does not permit a weakened lifetime or playback-continuity contract.
 
