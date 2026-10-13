@@ -183,7 +183,7 @@ Producer retirement uses a separate `GST_MESSAGE_ELEMENT` structure:
 media-pipeline-metric-retired
 ```
 
-`GST_MESSAGE_SRC(message)` is the retiring producer. The structure has no metric payload fields. After posting every final metric and episode-resolution message, the producer successfully posts this marker once and posts no later metric observation for that registration. A failed posting call may retry the same marker under the bounded policy below.
+`GST_MESSAGE_SRC(message)` is the retiring producer. The structure has no metric payload fields. After posting every final metric and episode-resolution message, the producer successfully posts this marker once and posts no later metric observation for that registration. Because `gst_element_post_message()` consumes each `GstMessage` even when posting fails, a failed attempt may retry the same logical marker only by constructing a fresh marker message under the bounded policy below.
 
 Posting the marker only queues it. Normal retirement completes when the collector handles it. Same-producer ordering guarantees that all earlier messages from that producer have been handled first. The marker produces no normalized metric notification and does not change `MediaMetricObservationKind`.
 
