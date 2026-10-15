@@ -2,18 +2,25 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.6
+**Specification version:** 0.7
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.7 | Draft for review | Clarified that successful acquisition transfers valid MW-process-local DMA-BUF FDs while vendor-internal export and transport remain private. | Process-local FD ownership, independence from vendor-internal descriptors, and separation from frame locks. |
 | 0.6 | Draft for review | Replaced the non-standard external integration model with explicit per-pipeline selection of a session-configured `framecapture` video sink or sink-bin. | Pipeline-local association, concurrent playback isolation, session context, sink construction failure, and teardown. |
 | 0.5 | Draft for review | Added opaque acquisition token to `CapturedFrame` to prevent stale releases and prohibited overlapping DMA-BUF ranges between slots to preserve locked contents. | Acquisition token, token validation in `releaseFrame()`, move semantics, stale-release detection, and cross-slot layout isolation. |
 | 0.4 | Draft for review | Deleted move assignment to avoid undefined contract-violation behavior; defined failure invariants for all CaptureStatus values; made `gst_frame_capture_detach()` infallible. | Move constructor only, failure invariants, detach contract, and conformance test updates. |
 | 0.3 | Draft for review | Separated capability limits from concrete pool layout; defined explicit FD and frame-lock ownership, invalid lock identity, non-copyable/movable frame output, vendor playbin integration, native selection behavior, plane validation, and fixed-layout conformance. | Capability/pool pairing, move and release state, output reuse, FD ownership versus frame locks, native selection, attachment, teardown, and rollback. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.7
+
+- On successful acquisition, every exported DMA-BUF FD is valid in the MW process and independently owned by MW before the HAL call returns.
+- How the vendor implementation obtains, duplicates, exports, or transports the descriptor internally remains private; closing a vendor-internal descriptor must not invalidate the FD returned to MW.
+- Descriptor ownership remains independent of the acquired frame lock.
 
 ### What changed in version 0.6
 
@@ -115,7 +122,7 @@ The contract uses these terms exclusively:
 | **Slot layout** | The fixed plane layout for one reusable pool slot. |
 | **Frame plane** | One DRM image plane and its byte range and stride within a DMA-BUF object. It owns no FD. |
 | **DMA-BUF object** | One DMA-BUF allocation. One object may back one or more planes or slots. |
-| **Exported DMA-BUF** | One MW-owned raw FD for a DMA-BUF object. `fd >= 0` is owned and must be closed; `-1` is invalid. The FD is not a frame lock. |
+| **Exported DMA-BUF** | One valid raw FD in the MW process for a DMA-BUF object. On successful acquisition, ownership has transferred to MW; `fd >= 0` is owned and must be closed, and `-1` is invalid. The FD is not a frame lock. |
 | **Pool** | The concrete slot reservation owned by one session. `CapturePool` is MW's immutable description of its DMA-BUF object metadata and slot layouts; the description contains no FDs. |
 
 The document does not use “buffer” as a synonym for either slot or frame. “Decoder output buffer” is used only when referring to a vendor-native object outside the capture-pool contract.
@@ -413,7 +420,7 @@ The SoC vendor chooses how to provide the slots. `maximumSlots` is the greatest 
 
 `acquireCurrentFrame()` requires an empty `outFrame`: `slotIndex == kInvalidCaptureSlotIndex`, `acquisitionToken == kInvalidAcquisitionToken`, and every `ExportedDmaBuf.fd == -1`. These are the exact empty-state conditions defined in Section 7; any other FD value, including a negative value other than `-1`, is non-empty. A valid slot index and matching token mean that output still owes a release even if all its FDs are already closed and set to `-1`. Passing a non-empty output returns `INVALID_ARGUMENT` without changing it.
 
-For an empty output, the method examines the current native selection. A new selection is temporarily locked, all required FDs are exported, and the complete result—including the valid slot index and release obligation—is moved into `outFrame` before returning `OK`. No valid selection returns `NO_FRAME`; an already returned selection returns `NO_NEW_FRAME`. Every non-`OK` result leaves `outFrame` unchanged and creates no release obligation.
+For an empty output, the method examines the current native selection. A new selection is temporarily locked, all required FDs are exported, and the complete result—including the valid slot index and release obligation—is moved into `outFrame` before returning `OK`. Every returned FD is valid in the MW process, is independently owned by MW before the call returns, and remains valid if the vendor implementation closes any descriptor from which it was obtained. The vendor may obtain, duplicate, export, or transport the descriptor through in-process or vendor-service-specific mechanisms; those mechanisms and their descriptor lifetimes are private and are not part of this interface. No valid selection returns `NO_FRAME`; an already returned selection returns `NO_NEW_FRAME`. Every non-`OK` result leaves `outFrame` unchanged and creates no release obligation.
 
 If descriptor creation/export fails because a transient resource is unavailable, including descriptor exhaustion, `acquireCurrentFrame()` returns `NO_RESOURCES`. Before returning, the vendor implementation explicitly closes every FD created for that attempt, removes the temporary lock, leaves the selection not returned, and does not move any result into `outFrame`. No matching release is required and the selection remains retriable. An unrecoverable session/backing failure returns `FATAL_ERROR` with the same all-or-nothing cleanup. `FATAL_ERROR` is not retriable; capture is unavailable for the remainder of the session. An implementation that cannot roll back atomically is non-conformant.
 
