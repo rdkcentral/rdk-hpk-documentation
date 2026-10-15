@@ -188,7 +188,13 @@ Required field:
 
 The clock domain is GStreamer's monotonic timestamp returned by `gst_util_get_timestamp()` (nanoseconds, based on the platform monotonic clock), not pipeline running time, PTS, or STC. The producer records this timestamp at episode start and resolution and reports their non-negative difference. An episode that remains active while media PTS/STC is stationary therefore continues accumulating duration.
 
-Video-repeat and audio-gap resolutions additionally require `count`, the total affected frames or samples during the completed episode. Buffer-underflow resolution does not carry `count`. When present, `pts-ns` repeats the episode-start PTS so the resolution message is self-describing independently of receipt of the corresponding start message.
+Video-repeat and audio-gap resolutions additionally require:
+
+| Field | GType | Meaning |
+|---|---|---|
+| `count` | `G_TYPE_UINT64` | A value greater than zero. For video repeat, the number of unintended repeated video-frame presentations in the episode. For audio gap, the number of substituted audio frames emitted in the episode. |
+
+`count` is measured in frames for both metrics, not audio samples. Buffer-underflow resolution does not carry `count`. When present, `pts-ns` repeats the episode-start PTS so the resolution message is self-describing independently of receipt of the corresponding start message.
 
 ### 6.4 Common episode lifecycle
 

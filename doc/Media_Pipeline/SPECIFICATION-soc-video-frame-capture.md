@@ -213,15 +213,19 @@ MW -> Session: createPool(slotCount, outPool)
 Session --> MW: OK + immutable pool description
 MW -> Capture: create one sink instance
 MW -> Capture: set pipeline-local session context
-MW -> Playbin: set video-sink = Capture
-MW -> Playbin: change state
+MW -> Capture: set READY and wait for completion
 Capture -> Output: create/configure native scheduled output
-Output -> Session: publish selected frames into session-owned pool
+Output -> Session: connect to session-owned pool
+Capture --> MW: READY validation succeeded
+MW -> Playbin: set video-sink = Capture
+MW -> Playbin: later activate configured pipeline
 
-MW -> Playbin: teardown / set NULL
+MW -> Playbin: teardown / set NULL and wait
+MW -> Capture: ensure NULL and wait
 Capture -> Output: stop new writes; complete or cancel active write
 Capture -> Output: disconnect and destroy scheduled output
-Capture --> MW: state transition completed
+Capture --> MW: NULL transition completed
+MW -> Playbin: clear video-sink property
 note over MW,Session
 MW retains Session for final acquisition
 and outstanding releaseFrame() obligations.
@@ -246,6 +250,8 @@ The application selects Video Frame Capture through its media API before pipelin
 The mechanism used by MW to obtain the vendor session is platform-specific and outside this interface. The example therefore takes that already-created session as an explicit argument; no `ICaptureSession` factory is implied.
 
 ```cpp
+constexpr GstClockTime kCaptureStateChangeTimeout = 5 * GST_SECOND;
+
 bool configureFrameCaptureOutput(
     GstElement *playbin,
     ICaptureSession &session,
@@ -266,7 +272,6 @@ bool configureFrameCaptureOutput(
     if (!frameCapture)
         return false;
 
-    // Convert the factory's floating reference into an MW-owned reference.
     gst_object_ref_sink(frameCapture);
 
     GstContext *context =
@@ -281,33 +286,63 @@ bool configureFrameCaptureOutput(
     gst_structure_set(structure,
                       "session", G_TYPE_POINTER, &session,
                       nullptr);
-
-    // The sink receives the borrowed session before any state transition.
     gst_element_set_context(frameCapture, context);
     gst_context_unref(context);
 
-    // playbin retains its own reference to the selected video sink.
-    g_object_set(playbin, "video-sink", frameCapture, nullptr);
-    gst_object_unref(frameCapture); // Release only MW's reference.
-
+    // Validate the custom sink itself; playbin does not activate a stored
+    // video-sink property merely by entering READY.
     GstStateChangeReturn result =
-        gst_element_set_state(playbin, GST_STATE_READY);
-    if (result == GST_STATE_CHANGE_FAILURE)
+        gst_element_set_state(frameCapture, GST_STATE_READY);
+    if (result == GST_STATE_CHANGE_ASYNC)
     {
-        gst_element_set_state(playbin, GST_STATE_NULL);
-        g_object_set(playbin, "video-sink", nullptr, nullptr);
+        result = gst_element_get_state(frameCapture, nullptr, nullptr,
+                                       kCaptureStateChangeTimeout);
+    }
+
+    if (result == GST_STATE_CHANGE_FAILURE ||
+        result == GST_STATE_CHANGE_ASYNC)
+    {
+        gst_element_set_state(frameCapture, GST_STATE_NULL);
+        gst_element_get_state(frameCapture, nullptr, nullptr,
+                              kCaptureStateChangeTimeout);
+        gst_object_unref(frameCapture);
         return false;
     }
 
-    return true; // GST_STATE_CHANGE_SUCCESS, ASYNC, or NO_PREROLL.
+    // The validated sink is already READY. playbin retains its own reference
+    // and later manages it as the selected video output.
+    g_object_set(playbin, "video-sink", frameCapture, nullptr);
+    gst_object_unref(frameCapture);
+    return true;
+}
+
+void teardownFrameCaptureOutput(GstElement *playbin)
+{
+    GstElement *frameCapture = nullptr;
+    g_object_get(playbin, "video-sink", &frameCapture, nullptr);
+
+    gst_element_set_state(playbin, GST_STATE_NULL);
+    gst_element_get_state(playbin, nullptr, nullptr,
+                          kCaptureStateChangeTimeout);
+
+    if (frameCapture)
+    {
+        gst_element_set_state(frameCapture, GST_STATE_NULL);
+        gst_element_get_state(frameCapture, nullptr, nullptr,
+                              kCaptureStateChangeTimeout);
+        g_object_set(playbin, "video-sink", nullptr, nullptr);
+        gst_object_unref(frameCapture);
+    }
 }
 ```
 
-The caller retains `session` and `outPool` after success. `outPool` is used to interpret acquired frames; it is not passed to `framecapture`. The session must remain alive until the sink has completed teardown and every acquired frame has been released.
+The helper explicitly drives `framecapture` to `READY` and waits for completion before storing it in playbin. Success therefore proves that the sink accepted the context, validated compatibility, and connected its native scheduled-output path to the pool already created by `session.createPool()`. The helper does not claim that playbin itself has prerolled or activated a media source.
 
-A failure after `createPool()` leaves that pool owned by the session. The caller tears the failed pipeline down to `NULL`, discards the session, and creates a fresh session for any retry. A configured session is never reused with another playbin.
+The caller retains `session` and `outPool` after success. `outPool` is used to interpret acquired frames; it is not passed to `framecapture`. The session remains alive until `teardownFrameCaptureOutput()` has returned and every acquired frame has been released.
 
-The sink's `READY` transition performs compatibility validation and connects its native scheduled-output path to the pool already created by `session.createPool()`. It must not create a second pool or depend on process-global playbin discovery.
+A failure after `createPool()` returns the sink to `NULL` and releases its reference. The pool remains owned by the session, so the caller discards that session and creates a fresh one for any retry. A configured session is never reused with another playbin.
+
+Pipeline teardown first takes playbin to `NULL`, then explicitly confirms that the retained custom sink is also `NULL` before clearing the property. The sink must not create a second pool or depend on process-global playbin discovery.
 
 ### 6.5 Vendor integration test template
 
@@ -322,9 +357,6 @@ TEST(FrameCaptureIntegration, AssociatesOneSessionWithOnePlaybin)
 
     ASSERT_TRUE(configureFrameCaptureOutput(
         playbin, session, 4, pool));
-    ASSERT_NE(gst_element_get_state(
-                  playbin, nullptr, nullptr, GST_CLOCK_TIME_NONE),
-              GST_STATE_CHANGE_FAILURE);
 
     GstElement *configuredSink = nullptr;
     g_object_get(playbin, "video-sink", &configuredSink, nullptr);
@@ -335,8 +367,9 @@ TEST(FrameCaptureIntegration, AssociatesOneSessionWithOnePlaybin)
     EXPECT_EQ(testFrameCaptureSession(configuredSink), &session);
     EXPECT_TRUE(testScheduledOutputConnected(configuredSink));
 
-    gst_element_set_state(playbin, GST_STATE_NULL);
+    teardownFrameCaptureOutput(playbin);
     EXPECT_TRUE(testScheduledOutputDisconnected(configuredSink));
+    EXPECT_EQ(GST_STATE(configuredSink), GST_STATE_NULL);
 
     gst_object_unref(configuredSink);
     gst_object_unref(playbin);
