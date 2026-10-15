@@ -2,12 +2,13 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.7
+**Specification version:** 0.8
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.8 | Draft for review | Corrected ownership of the floating reference returned for the `framecapture` element before assigning it to playbin. | MW reference sinking, playbin retention, and teardown safety. |
 | 0.7 | Draft for review | Clarified that successful acquisition transfers valid MW-process-local DMA-BUF FDs while vendor-internal export and transport remain private. | Process-local FD ownership, independence from vendor-internal descriptors, and separation from frame locks. |
 | 0.6 | Draft for review | Replaced the non-standard external integration model with explicit per-pipeline selection of a session-configured `framecapture` video sink or sink-bin. | Pipeline-local association, concurrent playback isolation, session context, sink construction failure, and teardown. |
 | 0.5 | Draft for review | Added opaque acquisition token to `CapturedFrame` to prevent stale releases and prohibited overlapping DMA-BUF ranges between slots to preserve locked contents. | Acquisition token, token validation in `releaseFrame()`, move semantics, stale-release detection, and cross-slot layout isolation. |
@@ -15,6 +16,11 @@
 | 0.3 | Draft for review | Separated capability limits from concrete pool layout; defined explicit FD and frame-lock ownership, invalid lock identity, non-copyable/movable frame output, vendor playbin integration, native selection behavior, plane validation, and fixed-layout conformance. | Capability/pool pairing, move and release state, output reuse, FD ownership versus frame locks, native selection, attachment, teardown, and rollback. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.8
+
+- MW calls `gst_object_ref_sink()` on the floating reference returned by `gst_element_factory_make()` before assigning `framecapture` to playbin's `video-sink` property.
+- Playbin retains its own reference during property assignment; MW then releases only its independently owned reference.
 
 ### What changed in version 0.7
 
@@ -29,7 +35,7 @@
 - Each concurrent pipeline uses an independent sink instance, `ICaptureSession`, and session-owned pool.
 - `createPool()` creates the concrete session-owned pool and returns its immutable description to MW; that description is not passed back to the sink.
 - A pipeline-local `GstContext` associates the configured session with the sink before state transition. The previous external attach/detach API and separate `vendorVideoElement` argument are removed.
-- `createPool()` is the single synchronous slot/backing provisioning point; READY performs compatibility validation without another pool allocation. Playbin retains the assigned sink, and MW drops its factory-created reference immediately after assignment.
+- `createPool()` is the single synchronous slot/backing provisioning point; READY performs compatibility validation without another pool allocation. MW first sinks the factory-created element's floating reference, playbin retains its own reference during assignment, and MW then releases its independent reference.
 
 ### What changed in version 0.5
 
@@ -512,6 +518,8 @@ GstElement *frameCapture = gst_element_factory_make("framecapture", nullptr);
 if (!frameCapture)
     return false;
 
+gst_object_ref_sink(frameCapture);
+
 GstContext *context = gst_context_new("rdk-frame-capture-session", FALSE);
 GstStructure *structure = gst_context_writable_structure(context);
 gst_structure_set(structure, "session", G_TYPE_POINTER, session, nullptr);
@@ -523,7 +531,7 @@ gst_object_unref(frameCapture);
 return setPipelineStateReadyOrLater(playbin);
 ```
 
-Setting `video-sink` makes playbin retain its own reference. MW releases the reference returned by `gst_element_factory_make()` immediately after assignment, as shown above, so that reference cannot keep the sink or its scheduled-output resources alive after playbin teardown.
+`gst_element_factory_make()` returns a floating reference. MW first calls `gst_object_ref_sink()` so it owns an independent strong reference before property assignment. Setting `video-sink` makes playbin retain its own reference; the following `gst_object_unref()` releases only MW's reference. Omitting `gst_object_ref_sink()` would allow the property setter to sink the floating reference and make the subsequent unref risk premature destruction during state changes or teardown.
 
 `poolDescription` remains with MW for frame interpretation and transport. The concrete pool belongs to `session`; MW does not put `CapturePool` into the context or pass it back to the sink.
 
