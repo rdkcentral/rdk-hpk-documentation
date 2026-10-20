@@ -15,11 +15,10 @@
 
 ### What changed in version 0.4
 
-- The existing platform video sink remains assigned to playbin's `video-sink` property.
+- The normal platform policy resolves and creates the concrete video sink before `READY`; the same sink remains assigned to playbin's `video-sink` property.
 - MW supplies the pipeline-local `ICaptureSession` directly to that sink through the `rdk-frame-capture-session` context.
-- The platform sink implements capture directly or owns a private helper attached to its native scheduled-output path.
-- The GStreamer lifecycle example now accepts an injected platform sink and covers context setup, `READY` validation, playbin assignment, rollback, and confirmed `NULL` teardown.
-- Conformance checks now verify that capture preserves normal presentation, sink properties, decoder discovery, subtitle integration, secondary-video behavior, and scheduling.
+- The platform sink implements capture directly or owns a private helper attached to its native scheduled-output path while preserving normal presentation and the existing sink contract.
+- The revision provides a complete MW lifecycle example, non-normative Westeros context plumbing, a runnable plumbing prototype requirement, and aligned conformance tests.
 
 ### What changed in version 0.3
 
@@ -82,12 +81,13 @@ This adds to the existing SoC decode stack; it does not replace it.
 
 For integration and review, the SoC vendor supplies:
 
-1. the existing platform video sink and its supported input caps;
+1. the platform policy that selects the concrete video sink factory and that sink's supported input caps;
 2. support for the `rdk-frame-capture-session` context contract on that sink;
-3. the concrete `CaptureCapabilities` values;
-4. the fixed pool layout and supported slot counts;
-5. evidence that pipeline-local association, native selection, locking, FD export, exhaustion, sink teardown, late release, normal presentation, and existing sink behavior meet this specification; and
-6. any platform constraint that makes Video Frame Capture unsupported.
+3. a runnable plumbing prototype showing selection, context receipt before `READY`, playbin assignment, normal presentation, and teardown;
+4. the concrete `CaptureCapabilities` values;
+5. the fixed pool layout and supported slot counts;
+6. evidence that pipeline-local association, native selection, locking, FD export, exhaustion, sink teardown, late release, normal presentation, and existing sink behavior meet this specification; and
+7. any platform constraint that makes Video Frame Capture unsupported.
 
 The vendor also provides whatever private decoder or scheduled-output access the sink's capture integration needs. That access must not interfere with native scheduling, STC progression, audio presentation, normal playback, sink properties, decoder discovery, subtitle integration, or secondary-video behavior.
 
@@ -150,53 +150,44 @@ FD lifetime and frame-content lifetime are separate. MW owns and explicitly clos
 
 A successful acquisition also guarantees that decoder writes, cache maintenance, and SoC-side synchronization are complete, so the selected slot is safe to read. The HAL returns no graphics fence. MW completes downstream use before release, while any decoder, capture, cache, or native fence handling remains private to the SoC implementation.
 
-## 5. Session provision and lifecycle
+## 5. Session lifecycle and selection state
 
-### 5.1 Session provision and initialization
+### 5.1 Pipeline-scoped lifetime
 
-MW knows whether a video pipeline requires frame capture before constructing its GStreamer graph. For each capture-enabled pipeline, MW obtains one vendor `ICaptureSession`, calls `createPool()`, retains the returned immutable `CapturePool` description, and configures the pipeline as defined in Section 6.
+MW knows whether a pipeline requires frame capture before graph construction. Each capture-enabled pipeline has one dedicated `ICaptureSession` and one session-owned pool. MW provisions that pool before the GStreamer integration in Section 6 and retains its immutable description as defined by `createPool()` in Section 8.
 
-`createPool()` creates the concrete pool owned by that session. `outPool` describes the session-owned backing for MW; it is not a second pool and is not passed back to the platform video sink during pipeline construction.
+A session belongs to one pipeline and is never reassociated or reused. Its lifetime extends beyond sink teardown until the final acquisition opportunity is resolved or abandoned and every acquired frame is released.
 
-**Pipeline scope:** Each video pipeline using Video Frame Capture has a dedicated `ICaptureSession`, platform video sink instance, and session-owned pool. The session tracks one set of capture-slot reservations and is associated only with that sink instance. A session removed from a sink must not be associated with another video pipeline; a new pipeline requires a new session.
+### 5.2 Selection state
 
-**Close timing:** MW keeps the session alive after sink teardown while a final selection may still be acquired or frame locks remain. MW destroys the session only after that final opportunity is resolved and all acquired frames are released. A session is never reused for another pipeline.
+The session passively tracks the native STC scheduler's current captured selection, whether that selection has already been acquired, and every active frame lock. Selection identity is independent of reusable slot identity: a released slot may later hold a different selection that returns `OK` once.
 
-### 5.2 Capture activity model
+A slot is writable only when it has no frame lock and no write in progress. Before reusing an unlocked current slot, the session atomically invalidates the old selection so concurrent acquisition returns `NO_FRAME` rather than observing an overwrite. Section 6.4.1 defines scheduler-state behavior; Section 8 defines acquisition and release semantics.
 
-Capture is a **passive observer** of the decoder's native STC scheduler. The session tracks the current captured selection, whether that selection has already been acquired, and every active frame lock. Section 6.7 defines the exact behavior before first selection, while paused, during active output, after invalidation, and during teardown.
+### 5.3 Post-teardown behavior
 
-A slot is writable only when it has no frame lock and no write in progress. Before reusing an unlocked current slot, the session atomically invalidates its old selection so concurrent acquisition returns `NO_FRAME` rather than observing an overwrite. Selection identity is independent of slot identity: a released slot may later hold a new selection that returns `OK` once.
+The platform sink first completes the disconnection contract in Section 6.4.2. The session, final current selection, and locked slots then remain valid while MW completes these obligations:
 
-### 5.3 Sink teardown and late release
+1. An unacquired final selection remains available once; transient `NO_RESOURCES` leaves it available for retry.
+2. An already acquired final selection returns `NO_NEW_FRAME`, and no valid final selection returns `NO_FRAME`.
+3. The session continues accepting `releaseFrame()` for every acquired frame, whose contents remain valid until release.
+4. MW destroys the session only after the final acquisition opportunity is resolved or abandoned and every frame lock is released.
 
-The session belongs to one video pipeline and is never reused. Teardown proceeds in this order:
-
-1. The platform sink's capture integration prevents new writes, completes or cancels any write in progress, and disconnects from scheduled output before the state transition destroys that output path.
-2. MW keeps the session, final current selection, and locked slots valid after sink teardown.
-3. If the final selection has not been acquired, MW may acquire it once. A transient `NO_RESOURCES` result leaves it available for retry.
-4. The session continues accepting `releaseFrame()` for every acquired frame.
-5. MW destroys the session only after the final acquisition opportunity is completed or abandoned and every frame lock is released.
-
-After sink teardown, the selection no longer advances. An unacquired valid selection returns `OK` once; an already acquired selection returns `NO_NEW_FRAME`; no valid selection returns `NO_FRAME`. Locked frame contents remain valid until release.
+The selection does not advance after sink teardown.
 
 ## 6. GStreamer integration and scheduled-output behavior
 
-### 6.1 Platform video sink and output selection
+### 6.1 Required integration model
 
-The existing platform video sink remains assigned to playbin's standard `video-sink` property. MW obtains that sink through the normal platform integration and supplies the pipeline-local capture session directly to that sink. Capture does not require a separately registered GStreamer factory and does not replace the normal surface or video-plane output.
+The existing platform video sink remains assigned to playbin's standard `video-sink` property. MW creates the concrete sink selected by the platform's normal video-output policy before playbin enters `READY`, supplies the pipeline-local capture session directly to that sink, and assigns the same instance to playbin. Capture does not require a separately registered GStreamer factory and does not replace the normal surface or video-plane output.
+
+The selected sink is not obtained by reading playbin's `video-sink` after auto-plugging, and it is not an unresolved `autovideosink` whose concrete child appears during state change. The platform policy resolves the concrete sink factory or vendor sink-bin that normally serves this pipeline. Factory-rank enumeration is used only on a platform whose documented normal selection policy is that exact enumeration and whose integration prototype proves the selected sink and context timing.
 
 The platform sink integrates capture directly or owns a private helper attached to its native scheduled-output path. The helper may be a private object or child GStreamer element. It is not a second playbin sink, and it does not change the public pipeline topology.
 
 Capture is not an unscheduled appsink, decoded-buffer tee, or generic pre-scheduler filter. For every returned frame, the vendor implementation uses the same STC and scheduling rules as native scheduled output. It publishes only a selection established after decoder consumption. `CapturedFrame.presentationTimeNs` is the selected frame's PTS in that scheduler timeline.
 
 Capture must preserve normal presentation and the platform sink's existing contract, including its properties, surface output, decoder discovery, subtitle integration, secondary-video behavior, and scheduling. A pipeline not requesting capture uses the same platform sink without a capture session and is otherwise unaffected.
-
-#### Non-normative implementation options
-
-A vendor can implement capture directly inside the platform sink or attach a private helper to the sink's scheduled-output selection point. A private helper may be a C or C++ object or a child GStreamer element. In either form, it observes the frame selected for native presentation rather than every decoded buffer arriving upstream.
-
-### 6.2 Pipeline-local construction and association
 
 Each capture-enabled pipeline has one independent relationship:
 
@@ -209,6 +200,18 @@ playbin instance
 ```
 
 Concurrent or dual video uses one complete relationship per pipeline. Sink A receives session A and can access only pool A; sink B receives session B and can access only pool B. The SoC implementation does not choose among active playbins. If a vendor-private graph contains multiple scheduled-output branches, the platform sink associates the session with the exact branch represented by that sink instance.
+
+### 6.2 Session-context contract
+
+The context type is `rdk-frame-capture-session`. Its structure contains one field named `session` with GType `G_TYPE_POINTER` and value type `ICaptureSession *`. The pointer is opaque to GStreamer and borrowed by the sink. MW keeps it valid until sink teardown completes and retains the session longer when final acquisition or late release remains possible.
+
+MW sets the context directly on the existing platform video sink before any state transition that can start decoder output. The sink accepts exactly one non-null session. Reapplying the same pointer is idempotent; a missing field, null pointer, wrong field type, or attempt to replace it with a different session is invalid.
+
+Before entering `READY`, the sink validates that `createPool()` completed successfully and that its native scheduled output and capture integration are compatible with that session-owned pool. `READY` does not allocate or reserve pool backing. Invalid configuration or incompatible setup makes the transition fail with a GStreamer error, rolls back partial capture setup, and starts no capture writes.
+
+The context does not own the session, create a pool, or carry the `CapturePool` description. Private access to backing and scheduler state remains inside the paired vendor implementations.
+
+### 6.3 Middleware lifecycle
 
 The complete construction and teardown order is:
 
@@ -223,7 +226,7 @@ participant ICaptureSession as Session
 MW -> Session: getCapabilities()
 MW -> Session: createPool(slotCount, outPool)
 Session --> MW: OK + immutable pool description
-MW -> Sink: obtain pipeline's normal sink instance
+MW -> Sink: create concrete sink selected by normal platform policy
 MW -> Sink: retain independent MW reference
 MW -> Sink: set pipeline-local session context
 MW -> Sink: set READY and wait for completion
@@ -248,24 +251,29 @@ end note
 @enduml
 ```
 
-### 6.3 Session context
-
-The context type is `rdk-frame-capture-session`. Its structure contains one field named `session` with GType `G_TYPE_POINTER` and value type `ICaptureSession *`. The pointer is opaque to GStreamer and borrowed by the sink. MW keeps it valid until sink teardown completes and retains the session longer when final acquisition or late release remains possible.
-
-MW sets the context directly on the existing platform video sink before any state transition that can start decoder output. The sink accepts exactly one non-null session. Reapplying the same pointer is idempotent; a missing field, null pointer, wrong field type, or attempt to replace it with a different session is invalid.
-
-Before entering `READY`, the sink validates that `createPool()` completed successfully and that its native scheduled output and capture integration are compatible with that session-owned pool. `READY` does not allocate or reserve pool backing. Invalid configuration or incompatible setup makes the transition fail with a GStreamer error, rolls back partial capture setup, and starts no capture writes.
-
-The context does not own the session, create a pool, or carry the `CapturePool` description. Private access to backing and scheduler state remains inside the paired vendor implementations.
-
-### 6.4 Complete pipeline integration example
+#### 6.3.1 Complete pipeline integration example
 
 The application selects Video Frame Capture through its media API before pipeline construction. It does not manipulate GStreamer objects or pass `ICaptureSession` directly. MW performs the integration using one session and the normal platform video sink supplied for this pipeline.
 
-The mechanisms used to obtain the vendor session and platform sink are platform-specific and outside this interface. The example takes both as explicit arguments. The caller owns a stable, non-floating reference to `platformVideoSink` for the duration of `configureFrameCaptureOutput()`; the helper borrows all pointer arguments.
+The mechanism used to obtain the vendor session and the source of `selectedFactoryName` are platform-specific. `selectedFactoryName` is the concrete sink factory selected by the same platform policy used for a pipeline without capture. It is not discovered from an already-running playbin. The caller owns the non-floating reference returned by `obtainPlatformVideoSink()`; `configureFrameCaptureOutput()` borrows all pointer arguments.
 
 ```cpp
 constexpr GstClockTime kCaptureStateChangeTimeout = 5 * GST_SECOND;
+
+GstElement *obtainPlatformVideoSink(
+    const char *selectedFactoryName)
+{
+    if (!selectedFactoryName || selectedFactoryName[0] == '\0')
+        return nullptr;
+
+    GstElement *sink =
+        gst_element_factory_make(selectedFactoryName, nullptr);
+    if (!sink)
+        return nullptr;
+
+    gst_object_ref_sink(sink);
+    return sink;
+}
 
 bool setStateAndWait(GstElement *element, GstState state)
 {
@@ -350,7 +358,8 @@ bool teardownFrameCaptureOutput(GstElement *playbin)
 A caller establishes an independent sink reference and releases only that reference after playbin has retained the sink:
 
 ```cpp
-GstElement *platformVideoSink = obtainPlatformVideoSink();
+GstElement *platformVideoSink =
+    obtainPlatformVideoSink(selectedVideoSinkFactoryName);
 if (!platformVideoSink)
     return false;
 
@@ -360,7 +369,7 @@ gst_object_unref(platformVideoSink);
 return configured;
 ```
 
-`obtainPlatformVideoSink()` represents the existing platform integration; it does not imply a new public factory. It returns one non-floating, caller-owned reference to the normal sink instance. The caller releases that reference after configuration; playbin has retained its own reference on success.
+`selectedVideoSinkFactoryName` comes from the existing platform integration; it is not a new public factory or a hard-coded cross-platform name. `obtainPlatformVideoSink()` creates that concrete factory and converts its floating reference into one caller-owned reference. The caller releases that reference after configuration; playbin has retained its own reference on success. A platform using `westerossink` supplies `"westerossink"`; another platform supplies the concrete factory selected by its own normal policy.
 
 The configuration helper drives the existing sink to `READY` and waits for completion before storing it in playbin. Success proves that the sink accepted the context, validated compatibility, and connected its capture integration to the pool already created by `session.createPool()`. It does not claim that playbin has prerolled or activated a media source.
 
@@ -368,56 +377,34 @@ The caller retains `session` and `outPool` after success. `outPool` is used to i
 
 Pipeline teardown takes playbin to `NULL`, confirms that the selected platform sink is also `NULL`, and then clears the property. The sink's state transition disconnects capture before native scheduled output is destroyed. MW retains the session until teardown completes, the final acquisition opportunity is resolved, and every acquired frame has been released.
 
-### 6.5 Vendor integration test template
+### 6.4 Vendor sink behavior
 
-A vendor can use the same helper shape with a test `ICaptureSession` and an instrumented platform sink. At minimum, an integration test verifies:
+The vendor can implement capture directly inside the platform sink or attach a private helper to the sink's scheduled-output selection point. A private helper may be a C or C++ object or a child GStreamer element. In either form, it observes the frame selected for native presentation rather than every decoded buffer arriving upstream.
 
-```cpp
-TEST(FrameCaptureIntegration, PreservesPlatformSinkAndAssociatesSession)
-{
-    TestCaptureSession session;
-    GstElement *playbin = gst_element_factory_make("playbin", nullptr);
-    GstElement *platformSink = createInstrumentedPlatformSink();
-    CapturePool pool;
+#### 6.4.1 Native decoder and scheduled-output behavior
 
-    ASSERT_NE(playbin, nullptr);
-    ASSERT_NE(platformSink, nullptr);
-    gst_object_ref_sink(platformSink);
-    setExistingSinkProperties(platformSink);
+| Native decoder/scheduled-output condition | Required capture behavior |
+|---|---|
+| Before sufficient decoder consumption or with no valid native selection | Return `NO_FRAME` |
+| Decoder consumption while transitioning to or operating paused | Follow any selection established by the native scheduler; paused operation alone does not guarantee one |
+| Paused with a valid current selection | Return that stationary selection once as `OK`, then `NO_NEW_FRAME` while it remains current |
+| Active scheduled output | Follow advancing native scheduler selections into writable slots |
+| Reset, flush, seek, or equivalent processing invalidates selection | Preserve outstanding locks and return `NO_FRAME` until decoder consumption establishes another native selection |
+| Teardown | Prevent new writes, complete or cancel any write in progress, and disconnect scheduled output before destroying it |
 
-    ASSERT_TRUE(configureFrameCaptureOutput(
-        playbin, platformSink, session, 4, pool));
+These conditions do not create or destroy the pool. Capture never applies a separate frame-selection policy.
 
-    GstElement *configuredSink = nullptr;
-    g_object_get(playbin, "video-sink", &configuredSink, nullptr);
-    ASSERT_EQ(configuredSink, platformSink);
+#### 6.4.2 Sink teardown and backing strategy
 
-    EXPECT_EQ(session.createPoolCallCount(), 1u);
-    EXPECT_EQ(session.requestedSlotCount(), 4u);
-    EXPECT_EQ(testCaptureSession(configuredSink), &session);
-    EXPECT_TRUE(testScheduledOutputConnected(configuredSink));
-    EXPECT_TRUE(testNormalPresentationActive(configuredSink));
-    EXPECT_TRUE(existingSinkPropertiesUnchanged(configuredSink));
+Sink teardown is synchronous with the state transition that destroys native scheduled output. Before that transition completes, the platform sink's capture integration prevents new writes, completes or cancels any write in progress, and disconnects from scheduled output. The session preserves the final selection and backing required by outstanding frame locks.
 
-    ASSERT_TRUE(teardownFrameCaptureOutput(playbin));
-    EXPECT_TRUE(testScheduledOutputDisconnected(configuredSink));
-    EXPECT_EQ(GST_STATE(configuredSink), GST_STATE_NULL);
+The backing strategy and capture-integration topology remain vendor-private. They must provide the advertised fixed layout, preserve locked contents and the existing platform sink contract, and keep decode, presentation, audio, STC, and native scheduled selection running when capture slots are exhausted.
 
-    gst_object_unref(configuredSink);
-    gst_object_unref(platformSink);
-    gst_object_unref(playbin);
-}
-```
+### 6.5 Non-normative westerossink example
 
-The test functions are vendor test hooks, not production APIs. Additional tests create two playbins with two platform-sink instances and two sessions and verify that each sink reaches only its own session and pool. Failure tests cover a missing context, null session field, wrong field type, repeated context with a different session, incompatible `READY` setup, and rollback to `NULL` without capture writes.
+On a platform where `westerossink` is the normal video sink, the platform integration supplies `"westerossink"` as `selectedVideoSinkFactoryName`. `obtainPlatformVideoSink()` creates that instance, MW sets `rdk-frame-capture-session` on it, and the same instance is assigned to playbin. Existing configuration continues to target that object.
 
-The integration suite also verifies that normal scheduled presentation continues while capture is enabled; existing sink properties retain their values and effects; decoder discovery, subtitle integration, secondary-video behavior, geometry, visibility, and immediate-output behavior remain usable; capture-slot exhaustion omits capture without blocking presentation; and teardown disconnects capture before scheduled output is destroyed. Final acquisition and late `releaseFrame()` remain valid after sink teardown.
-
-### 6.6 Non-normative westerossink example
-
-On a platform where `westerossink` is the normal video sink, the platform integration supplies that instance to `configureFrameCaptureOutput()`. MW sets `rdk-frame-capture-session` on the `westerossink` instance and assigns the same instance to playbin. Existing configuration continues to target that object.
-
-A Westeros implementation can store the borrowed session in its `set_context` handler, connect capture during `NULL` to `READY`, observe the frame selected by its native scheduler, and disconnect capture before `READY` to `NULL` destroys scheduled output:
+A Westeros implementation can store the borrowed session in its `set_context` handler, connect capture during `NULL` to `READY`, observe the frame selected by its existing native scheduler, and disconnect capture before `READY` to `NULL` destroys scheduled output. The context plumbing is illustrated below:
 
 ```cpp
 void WesterosSink::setContext(GstContext *context)
@@ -444,38 +431,58 @@ void WesterosSink::setContext(GstContext *context)
 
     forwardContextToParent(context);
 }
-
-void WesterosSink::onNativeFrameSelected(
-    const NativeFrame &frame)
-{
-    presentFrame(frame);
-    if (captureIntegration())
-        captureIntegration()->observeSelectedFrame(frame);
-}
 ```
 
-`WesterosSink`, `NativeFrame`, `acceptCaptureSession()`, `forwardContextToParent()`, and `captureIntegration()` are illustrative private implementation names. They do not add public APIs. Production code also serializes context handling, state changes, native callbacks, and teardown according to the sink implementation's threading model.
+`WesterosSink`, `acceptCaptureSession()`, and `forwardContextToParent()` are illustrative private implementation names. They do not add public APIs. The specification does not invent a Westeros frame-selection callback: the production implementation connects its capture integration to the scheduler-selection point that already exists in that delivery. Production code also serializes context handling, state changes, native scheduler callbacks, and teardown according to the sink implementation's threading model.
 
 Current Westeros integrations include properties such as `res-usage`, `rectangle` or `render-rectangle`, `show-video-window`, `immediate-output`, and `videodecoder`. Capture leaves these properties and their behavior unchanged. The same requirement applies to equivalent properties and integration points on other platform sinks.
 
-### 6.7 Native decoder and scheduled-output behavior
+### 6.6 Prototype and conformance testing
 
-| Native decoder/scheduled-output condition | Required capture behavior |
-|---|---|
-| Before sufficient decoder consumption or with no valid native selection | Return `NO_FRAME` |
-| Decoder consumption while transitioning to or operating paused | Follow any selection established by the native scheduler; paused operation alone does not guarantee one |
-| Paused with a valid current selection | Return that stationary selection once as `OK`, then `NO_NEW_FRAME` while it remains current |
-| Active scheduled output | Follow advancing native scheduler selections into writable slots |
-| Reset, flush, seek, or equivalent processing invalidates selection | Preserve outstanding locks and return `NO_FRAME` until decoder consumption establishes another native selection |
-| Teardown | Prevent new writes, complete or cancel any write in progress, and disconnect scheduled output before destroying it |
+A vendor can use the same helper shape with a test `ICaptureSession` and an instrumented platform sink. At minimum, an integration test verifies:
 
-These conditions do not create or destroy the pool. Capture never applies a separate frame-selection policy.
+```cpp
+TEST(FrameCaptureIntegration, PreservesPlatformSinkAndAssociatesSession)
+{
+    TestCaptureSession session;
+    GstElement *playbin = gst_element_factory_make("playbin", nullptr);
+    GstElement *platformSink = obtainPlatformVideoSink(
+        testPlatformVideoSinkFactoryName());
+    CapturePool pool;
 
-### 6.8 Sink teardown and backing strategy
+    ASSERT_NE(playbin, nullptr);
+    ASSERT_NE(platformSink, nullptr);
+    setExistingSinkProperties(platformSink);
 
-Sink teardown is synchronous with the state transition that destroys native scheduled output. Before that transition completes, the platform sink's capture integration prevents new writes, completes or cancels any write in progress, and disconnects from scheduled output. The session preserves the final selection and backing required by outstanding frame locks.
+    ASSERT_TRUE(configureFrameCaptureOutput(
+        playbin, platformSink, session, 4, pool));
 
-The backing strategy and capture-integration topology remain vendor-private. They must provide the advertised fixed layout, preserve locked contents and the existing platform sink contract, and keep decode, presentation, audio, STC, and native scheduled selection running when capture slots are exhausted.
+    GstElement *configuredSink = nullptr;
+    g_object_get(playbin, "video-sink", &configuredSink, nullptr);
+    ASSERT_EQ(configuredSink, platformSink);
+
+    EXPECT_EQ(session.createPoolCallCount(), 1u);
+    EXPECT_EQ(session.requestedSlotCount(), 4u);
+    EXPECT_EQ(testCaptureSession(configuredSink), &session);
+    EXPECT_TRUE(testScheduledOutputConnected(configuredSink));
+    EXPECT_TRUE(testNormalPresentationActive(configuredSink));
+    EXPECT_TRUE(existingSinkPropertiesUnchanged(configuredSink));
+
+    ASSERT_TRUE(teardownFrameCaptureOutput(playbin));
+    EXPECT_TRUE(testScheduledOutputDisconnected(configuredSink));
+    EXPECT_EQ(GST_STATE(configuredSink), GST_STATE_NULL);
+
+    gst_object_unref(configuredSink);
+    gst_object_unref(platformSink);
+    gst_object_unref(playbin);
+}
+```
+
+`testPlatformVideoSinkFactoryName()` and the other test functions are vendor test hooks, not production APIs. The test factory is registered as the platform policy's selected concrete sink and implements the same context and state contract as the production sink. Additional tests create two playbins with two selected sink instances and two sessions and verify that each sink reaches only its own session and pool. Failure tests cover a missing or unavailable selected factory, missing context, null session field, wrong field type, repeated context with a different session, incompatible `READY` setup, and rollback to `NULL` without capture writes.
+
+The vendor supplies a runnable plumbing prototype using its production sink factory or an instrumented build of that factory. The prototype demonstrates factory selection, one non-floating MW reference, context receipt on the selected sink instance before `READY`, successful `READY` validation, assignment of the same instance to playbin, normal presentation, and confirmed `NULL` teardown. It need not implement frame export while validating this plumbing.
+
+The integration suite also verifies that normal scheduled presentation continues while capture is enabled; existing sink properties retain their values and effects; decoder discovery, subtitle integration, secondary-video behavior, geometry, visibility, and immediate-output behavior remain usable; capture-slot exhaustion omits capture without blocking presentation; and teardown disconnects capture before scheduled output is destroyed. Final acquisition and late `releaseFrame()` remain valid after sink teardown.
 
 ## 7. Capture value types
 
@@ -757,7 +764,8 @@ An SoC implementation is conformant only when all of the following are true:
 
 | Area | Requirement | Sections |
 |---|---|---|
-| Delivery and association | The existing platform video sink remains assigned to playbin. MW supplies exactly one pipeline-local session context directly to that sink before state transition and never relies on rank or global discovery. Capture is implemented directly in the sink or by a private helper attached to its scheduled-output path. | §6 |
+| Delivery and association | The existing platform policy resolves and creates the concrete video sink before `READY`; the same instance remains assigned to playbin. MW supplies exactly one pipeline-local session context directly to that sink before state transition. Capture is implemented directly in the sink or by a private helper attached to its scheduled-output path. | §6 |
+| Plumbing prototype | A runnable prototype proves concrete factory selection, reference ownership, context receipt before `READY`, assignment of the same sink to playbin, normal presentation, existing property behavior, and confirmed `NULL` teardown. | §6 |
 | Concurrent pipelines | Each concurrent pipeline has a distinct platform sink instance, session, and session-owned pool. No sink can access or publish selections through another pipeline's session. | §§5, 6 |
 | Capabilities and pool | `createPool()` synchronously provisions session-owned slot capacity and every required backing/resource reservation, then returns its concrete immutable, bounds-checked object/slot/plane description. READY validation performs no second pool allocation. Different slots have no overlapping ranges in one DMA-BUF object. The description is not passed back through the sink context, and caller-owned FDs are exported only at acquisition. | §§6–8 |
 | Native selection | Capture follows the same native scheduled-output selection used for normal presentation. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. | §§5, 6, 8 |
@@ -766,7 +774,7 @@ An SoC implementation is conformant only when all of the following are true:
 | Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 5, 8 |
 | Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, native scheduled selection, audio, or STC. | §§4–6 |
 | Sink teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. Scheduled output is disconnected safely during sink state teardown. | §§5, 6 |
-| Contract tests | Tests cover every area above, including missing/invalid/replaced session context, two concurrent pipelines without cross-association, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. | — |
+| Contract tests | Tests cover every area above, including missing/unavailable selected factory, missing/invalid/replaced session context, two concurrent pipelines without cross-association, preserved sink properties and presentation, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. | — |
 
 Failure of any mandatory gate means Video Frame Capture is unsupported on that implementation; it does not permit a weakened lifetime or playback-continuity contract.
 
