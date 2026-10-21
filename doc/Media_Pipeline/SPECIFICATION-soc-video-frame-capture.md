@@ -2,16 +2,24 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.4
+**Specification version:** 0.5
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.5 | Draft for review | Added ICaptureSession delivery mechanism documentation, clarifying comments to Westeros example showing platform-dependent factory selection, and factory function example. No API contract changes. | Delivery mechanism documentation, example clarity, and version bump. |
 | 0.4 | Draft for review | Kept the existing platform video sink as playbin's selected sink, supplied the capture session directly to that sink, permitted direct or private-helper capture integration, and added sink-compatibility checks. | Existing-sink association, context handling, scheduled-output attachment, preservation of normal sink behavior and properties, reference ownership, teardown, and integration tests. |
 | 0.3 | Draft for review | Expanded frame representation and acquisition safety, made pool and FD ownership explicit, and defined the complete per-pipeline GStreamer integration with construction and test examples. | Plane/object layout, acquisition tokens, failure invariants, process-local FD ownership, pool provisioning, playbin/session association, reference ownership, teardown, and conformance tests. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.5
+
+- Added documentation for ICaptureSession delivery mechanism, specifying that SoC vendor provides a shared library with a factory function.
+- Added clarifying comments to the Westeros example in Section 6.5 to emphasize that the factory name is platform-dependent and supplied by the platform integration.
+- Added factory function example in Section 6.3 showing how MW calls the vendor factory to obtain ICaptureSession.
+- No API contract changes; interface signatures and method behaviors remain unchanged.
 
 ### What changed in version 0.4
 
@@ -87,7 +95,14 @@ For integration and review, the SoC vendor supplies:
 4. the concrete `CaptureCapabilities` values;
 5. the fixed pool layout and supported slot counts;
 6. evidence that pipeline-local association, native selection, locking, FD export, exhaustion, sink teardown, late release, normal presentation, and existing sink behavior meet this specification; and
-7. any platform constraint that makes Video Frame Capture unsupported.
+7. any platform constraint that makes Video Frame Capture unsupported; and
+8. **ICaptureSession delivery mechanism**: The SoC vendor provides a shared library with a factory function to create ICaptureSession instances. The factory function signature is:
+
+```cpp
+ICaptureSession* createCaptureSession(const CaptureConfig& config);
+```
+
+The library naming convention is platform-specific (e.g., `libcapture-<vendor>.so`). MW loads the library using the platform's normal library discovery mechanism (e.g., `dlopen()`), resolves the factory symbol, and calls it to obtain an ICaptureSession instance. The application retains ownership of the session and must destroy it (via the vendor-provided destruction function or by calling the factory's `destroyCaptureSession()` method) after the pipeline has reached NULL and all acquired frames have been released. The session lifetime must exceed the sink's READY state; the sink borrows the session pointer and does not take ownership.
 
 The vendor also provides whatever private decoder or scheduled-output access the sink's capture integration needs. That access must not interfere with native scheduling, STC progression, audio presentation, normal playback, sink properties, decoder discovery, subtitle integration, or secondary-video behavior.
 
@@ -255,25 +270,10 @@ end note
 
 The application selects Video Frame Capture through its media API before pipeline construction. It does not manipulate GStreamer objects or pass `ICaptureSession` directly. MW performs the integration using one session and the normal platform video sink supplied for this pipeline.
 
-The mechanism used to obtain the vendor session and the source of `selectedFactoryName` are platform-specific. `selectedFactoryName` is the concrete sink factory selected by the same platform policy used for a pipeline without capture. It is not discovered from an already-running playbin. The caller owns the non-floating reference returned by `obtainPlatformVideoSink()`; `configureFrameCaptureOutput()` borrows all pointer arguments.
+The mechanism used to obtain the vendor session and the sink factory name are platform-specific. The sink factory name is the concrete factory selected by the same platform policy used for a pipeline without capture. It is not discovered from an already-running playbin.
 
 ```cpp
 constexpr GstClockTime kCaptureStateChangeTimeout = 5 * GST_SECOND;
-
-GstElement *obtainPlatformVideoSink(
-    const char *selectedFactoryName)
-{
-    if (!selectedFactoryName || selectedFactoryName[0] == '\0')
-        return nullptr;
-
-    GstElement *sink =
-        gst_element_factory_make(selectedFactoryName, nullptr);
-    if (!sink)
-        return nullptr;
-
-    gst_object_ref_sink(sink);
-    return sink;
-}
 
 bool setStateAndWait(GstElement *element, GstState state)
 {
@@ -358,10 +358,18 @@ bool teardownFrameCaptureOutput(GstElement *playbin)
 A caller establishes an independent sink reference and releases only that reference after playbin has retained the sink:
 
 ```cpp
+// The platform integration determines the sink factory name.
+// On a Westeros platform, this would be "westerossink".
+// Other platforms would use their own factory name according to
+// their normal video-output policy.
+const char *factoryName = obtainPlatformVideoSinkFactoryName();
 GstElement *platformVideoSink =
-    obtainPlatformVideoSink(selectedVideoSinkFactoryName);
+    gst_element_factory_make(factoryName, nullptr);
 if (!platformVideoSink)
     return false;
+
+// Take ownership of the floating reference
+gst_object_ref_sink(platformVideoSink);
 
 const bool configured = configureFrameCaptureOutput(
     playbin, platformVideoSink, session, slotCount, pool);
@@ -369,13 +377,63 @@ gst_object_unref(platformVideoSink);
 return configured;
 ```
 
-`selectedVideoSinkFactoryName` comes from the existing platform integration; it is not a new public factory or a hard-coded cross-platform name. `obtainPlatformVideoSink()` creates that concrete factory and converts its floating reference into one caller-owned reference. The caller releases that reference after configuration; playbin has retained its own reference on success. A platform using `westerossink` supplies `"westerossink"`; another platform supplies the concrete factory selected by its own normal policy.
+The platform integration determines which video sink factory to use. MW obtains the factory name through the platform's normal mechanism (e.g., platform configuration, capability query, or platform-specific API). The caller creates the sink using standard GStreamer `gst_element_factory_make()` with the obtained factory name, takes ownership of the floating reference with `gst_object_ref_sink()`, and releases that reference after configuration; playbin has retained its own reference on success. A platform using `westerossink` would use `"westerossink"` as the factory name; another platform would use the concrete factory selected by its own normal policy.
 
 The configuration helper drives the existing sink to `READY` and waits for completion before storing it in playbin. Success proves that the sink accepted the context, validated compatibility, and connected its capture integration to the pool already created by `session.createPool()`. It does not claim that playbin has prerolled or activated a media source.
 
 The caller retains `session` and `outPool` after success. `outPool` is used to interpret acquired frames; it is not passed to the sink. A failure after `createPool()` returns the sink to `NULL`. The pool remains owned by the session, so the caller discards that session and creates a fresh one for any retry.
 
 Pipeline teardown takes playbin to `NULL`, confirms that the selected platform sink is also `NULL`, and then clears the property. The sink's state transition disconnects capture before native scheduled output is destroyed. MW retains the session until teardown completes, the final acquisition opportunity is resolved, and every acquired frame has been released.
+
+#### 6.3.1 Obtaining ICaptureSession from vendor library
+
+The following example shows how MW obtains an ICaptureSession instance from the vendor-provided shared library:
+
+```cpp
+#include <dlfcn.h>
+#include "rdk/ICaptureSession.h"
+
+typedef ICaptureSession* (*CreateCaptureSessionFunc)(const CaptureConfig&);
+
+ICaptureSession* obtainCaptureSessionFromVendor()
+{
+    // Platform-specific library name
+    const char* libraryName = "libcapture-vendor.so";
+
+    void* handle = dlopen(libraryName, RTLD_LAZY);
+    if (!handle)
+    {
+        // Handle error: library not found
+        return nullptr;
+    }
+
+    CreateCaptureSessionFunc createFunc =
+        (CreateCaptureSessionFunc)dlsym(handle, "createCaptureSession");
+
+    if (!createFunc)
+    {
+        // Handle error: symbol not found
+        dlclose(handle);
+        return nullptr;
+    }
+
+    CaptureConfig config = {/* platform-specific configuration */};
+    ICaptureSession* session = createFunc(config);
+
+    if (!session)
+    {
+        // Handle error: factory returned null
+        dlclose(handle);
+        return nullptr;
+    }
+
+    // The application retains ownership of the session and the library handle
+    // Both must be cleaned up after pipeline teardown
+    return session;
+}
+```
+
+The application must call the vendor-provided destruction function (e.g., `destroyCaptureSession()`) after the pipeline has reached NULL and all acquired frames have been released, then close the library handle with `dlclose()`.
 
 ### 6.4 Vendor sink behavior
 
@@ -446,8 +504,9 @@ TEST(FrameCaptureIntegration, PreservesPlatformSinkAndAssociatesSession)
 {
     TestCaptureSession session;
     GstElement *playbin = gst_element_factory_make("playbin", nullptr);
-    GstElement *platformSink = obtainPlatformVideoSink(
-        testPlatformVideoSinkFactoryName());
+    GstElement *platformSink =
+        gst_element_factory_make(testPlatformVideoSinkFactoryName(), nullptr);
+    gst_object_ref_sink(platformSink);
     CapturePool pool;
 
     ASSERT_NE(playbin, nullptr);
