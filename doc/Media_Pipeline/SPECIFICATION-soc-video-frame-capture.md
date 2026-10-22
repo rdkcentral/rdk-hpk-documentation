@@ -10,7 +10,7 @@
 |---|---|---|---|
 | 0.6 | Draft for review | Changed ICaptureSession delivery from GstContext to Gst property based on feedback that GstContext is pipeline-wide, not element-specific. Added westeros-sink-soc.h contract changes for property handling. Uprev to v0.6. | Property-based delivery approach, westeros-sink-soc.h contract changes, property cons and mitigations, Section 6 removal |
 | 0.5 | Draft for review | Added ICaptureSession delivery mechanism documentation, clarifying comments to Westeros example showing platform-dependent factory selection, and factory function example. No API contract changes. | Delivery mechanism documentation, example clarity, and version bump. |
-| 0.4 | Draft for review | Kept the existing platform video sink as playbin's selected sink, supplied the capture session directly to that sink, permitted direct or private-helper capture integration, and added sink-compatibility checks. | Existing-sink association, context handling, scheduled-output attachment, preservation of normal sink behavior and properties, reference ownership, teardown, and integration tests. |
+| 0.4 | Draft for review | Kept the existing platform video sink as playbin's selected sink, supplied the capture session directly to that sink, permitted direct or private-helper capture integration, and added sink-compatibility checks. | Existing-sink association, property handling, scheduled-output attachment, preservation of normal sink behavior and properties, reference ownership, teardown, and integration tests. |
 | 0.3 | Draft for review | Expanded frame representation and acquisition safety, made pool and FD ownership explicit, and defined the complete per-pipeline GStreamer integration with construction and test examples. | Plane/object layout, acquisition tokens, failure invariants, process-local FD ownership, pool provisioning, playbin/session association, reference ownership, teardown, and conformance tests. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
@@ -19,15 +19,13 @@
 
 - Changed ICaptureSession delivery from GstContext to Gst property based on feedback that GstContext is pipeline-wide, not element-specific.
 - Added westeros-sink-soc.h contract changes for property handling, including required struct fields and contract function.
-- Documented property cons and mitigations (permanent configuration implication, public API, namespace pollution).
-- Removed Section 6 (conformance testing moved to Section 6.6).
+- Restructured Section 6 from 7 sections to 5 focused sections.
 - Uprev to v0.6.
 
 ### What changed in version 0.5
 
 - Added documentation for ICaptureSession delivery mechanism, specifying that SoC vendor provides a shared library with a factory function.
-- Added clarifying comments to the Westeros example in Section 6.5 to emphasize that the factory name is platform-dependent and supplied by the platform integration.
-- Added factory function example in Section 6.3 showing how MW calls the vendor factory to obtain ICaptureSession.
+- Added factory function example showing how MW calls the vendor factory to obtain ICaptureSession.
 - No API contract changes; interface signatures and method behaviors remain unchanged.
 
 ### What changed in version 0.4
@@ -45,7 +43,6 @@
 - Failed HAL calls leave outputs unchanged, close descriptors created by the failed attempt, roll back temporary locks, and create no new caller obligation. Different slots cannot expose overlapping byte ranges.
 - The previous explicit `gst_frame_capture_attach()`/`detach()` side channel is replaced by one explicitly selected `framecapture` video sink or sink-bin per playbin. A pipeline-local GObject property supplies that sink with its borrowed `ICaptureSession`.
 - `createPool()` completes capacity and backing admission before GStreamer enters `READY`. `READY` validates compatibility and connects native scheduled output to the existing pool; it does not allocate another pool.
-- MW takes ownership of the factory-created sink's floating reference before assigning it to playbin, then releases only its own reference after playbin retains the sink.
 - Section 6 adds complete construction and rollback code plus a vendor integration-test template covering property validation, reference ownership, scheduled-output teardown, and concurrent-pipeline isolation.
 
 ### What changed in version 0.2
@@ -98,14 +95,13 @@ This adds to the existing SoC decode stack; it does not replace it.
 
 For integration and review, the SoC vendor supplies:
 
-1. the platform policy that selects the concrete video sink factory and that sink's supported input caps;
-2. support for the `rdk-capture-session` GObject property on that sink;
-3. a runnable plumbing prototype showing selection, property receipt before `READY`, playbin assignment, normal presentation, and teardown;
-4. the concrete `CaptureCapabilities` values;
-5. the fixed pool layout and supported slot counts;
-6. evidence that pipeline-local association, native selection, locking, FD export, exhaustion, sink teardown, late release, normal presentation, and existing sink behavior meet this specification; and
-7. any platform constraint that makes Video Frame Capture unsupported; and
-8. **ICaptureSession delivery mechanism**: The SoC vendor provides a shared library with a factory function to create ICaptureSession instances. The factory function signature is:
+1. support for the `rdk-capture-session` GObject property on westerossink;
+2. a runnable plumbing prototype showing property receipt before `READY`, playbin assignment, normal presentation, and teardown;
+3. the concrete `CaptureCapabilities` values;
+4. the fixed pool layout and supported slot counts;
+5. evidence that pipeline-local association, native selection, locking, FD export, exhaustion, sink teardown, late release, normal presentation, and existing sink behavior meet this specification; and
+6. any platform constraint that makes Video Frame Capture unsupported; and
+7. **ICaptureSession delivery mechanism**: The SoC vendor provides a shared library with a factory function to create ICaptureSession instances. The factory function signature is:
 
 ```cpp
 ICaptureSession* createCaptureSession(const CaptureConfig& config);
@@ -113,7 +109,7 @@ ICaptureSession* createCaptureSession(const CaptureConfig& config);
 
 The library naming convention is platform-specific (e.g., `libcapture-<vendor>.so`). MW loads the library using the platform's normal library discovery mechanism (e.g., `dlopen()`), resolves the factory symbol, and calls it to obtain an ICaptureSession instance. The application retains ownership of the session and must destroy it (via the vendor-provided destruction function or by calling the factory's `destroyCaptureSession()` method) after the pipeline has reached NULL and all acquired frames have been released. The session lifetime must exceed the sink's READY state; the sink borrows the session pointer and does not take ownership.
 
-9. **WesterosSinkSoC ICaptureSession integration**: The SoC vendor must extend their westeros-sink-soc.h contract to support ICaptureSession delivery via the `rdk-capture-session` GObject property as specified in Section 6.6. This includes:
+8. **WesterosSinkSoC ICaptureSession integration**: The SoC vendor must extend their westeros-sink-soc.h contract to support ICaptureSession delivery via the `rdk-capture-session` GObject property as specified in Section 6.3. This includes:
    - Adding `captureSession` and `captureSessionEnabled` fields to `GstWesterosSinkSoc`
    - Implementing `gst_westeros_sink_soc_set_capture_session()`
    - Connecting capture during NULL→READY
@@ -666,8 +662,6 @@ An invalid, moved-from, out-of-range, stale, or currently unlocked slot index, o
 The **SoC vendor** supplies both `ICaptureSession` and the GStreamer integration. Scheduler notifications, writable-slot management, decoder handles, and copy/conversion details remain private between those components.
 
 Capture has no independent start/stop state or selection policy. It follows valid native scheduler selections after decoder consumption. A valid selection remains acquirable while scheduled output is paused at stationary STC; a state transition alone does not manufacture or advance one.
-
-No factory is implied by this interface.
 
 ## 9. Conformance checklist
 
