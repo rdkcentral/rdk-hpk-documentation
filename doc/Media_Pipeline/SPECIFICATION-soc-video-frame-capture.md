@@ -2,17 +2,26 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.5
+**Specification version:** 0.6
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.6 | Draft for review | Changed ICaptureSession delivery from GstContext to Gst property based on feedback that GstContext is pipeline-wide, not element-specific. Added westeros-sink-soc.h contract changes for property handling. Uprev to v0.6. | Property-based delivery approach, westeros-sink-soc.h contract changes, property cons and mitigations, Section 6 removal |
 | 0.5 | Draft for review | Added ICaptureSession delivery mechanism documentation, clarifying comments to Westeros example showing platform-dependent factory selection, and factory function example. No API contract changes. | Delivery mechanism documentation, example clarity, and version bump. |
 | 0.4 | Draft for review | Kept the existing platform video sink as playbin's selected sink, supplied the capture session directly to that sink, permitted direct or private-helper capture integration, and added sink-compatibility checks. | Existing-sink association, context handling, scheduled-output attachment, preservation of normal sink behavior and properties, reference ownership, teardown, and integration tests. |
 | 0.3 | Draft for review | Expanded frame representation and acquisition safety, made pool and FD ownership explicit, and defined the complete per-pipeline GStreamer integration with construction and test examples. | Plane/object layout, acquisition tokens, failure invariants, process-local FD ownership, pool provisioning, playbin/session association, reference ownership, teardown, and conformance tests. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.6
+
+- Changed ICaptureSession delivery from GstContext to Gst property based on feedback that GstContext is pipeline-wide, not element-specific.
+- Added westeros-sink-soc.h contract changes for property handling, including required struct fields and contract function.
+- Documented property cons and mitigations (permanent configuration implication, public API, namespace pollution).
+- Removed Section 6 (conformance testing moved to Section 6.6).
+- Uprev to v0.6.
 
 ### What changed in version 0.5
 
@@ -24,9 +33,9 @@
 ### What changed in version 0.4
 
 - The normal platform policy resolves and creates the concrete video sink before `READY`; the same sink remains assigned to playbin's `video-sink` property.
-- MW supplies the pipeline-local `ICaptureSession` directly to that sink through the `rdk-frame-capture-session` context.
+- MW supplies the pipeline-local `ICaptureSession` directly to that sink through the `rdk-capture-session` property.
 - The platform sink implements capture directly or owns a private helper attached to its native scheduled-output path while preserving normal presentation and the existing sink contract.
-- The revision provides a complete MW lifecycle example, non-normative Westeros context plumbing, a runnable plumbing prototype requirement, and aligned conformance tests.
+- The revision provides a complete MW lifecycle example, non-normative Westeros property plumbing, a runnable plumbing prototype requirement, and aligned conformance tests.
 
 ### What changed in version 0.3
 
@@ -34,10 +43,10 @@
 - Each acquisition now carries a unique token. `releaseFrame()` validates the slot and token so a stale frame cannot release a newer lock after slot reuse.
 - `CapturedFrame` is non-copyable and move-constructible, with deleted move assignment. FD ownership remains separate from the one required frame release.
 - Failed HAL calls leave outputs unchanged, close descriptors created by the failed attempt, roll back temporary locks, and create no new caller obligation. Different slots cannot expose overlapping byte ranges.
-- The previous explicit `gst_frame_capture_attach()`/`detach()` side channel is replaced by one explicitly selected `framecapture` video sink or sink-bin per playbin. A pipeline-local `GstContext` supplies that sink with its borrowed `ICaptureSession`.
+- The previous explicit `gst_frame_capture_attach()`/`detach()` side channel is replaced by one explicitly selected `framecapture` video sink or sink-bin per playbin. A pipeline-local GObject property supplies that sink with its borrowed `ICaptureSession`.
 - `createPool()` completes capacity and backing admission before GStreamer enters `READY`. `READY` validates compatibility and connects native scheduled output to the existing pool; it does not allocate another pool.
 - MW takes ownership of the factory-created sink's floating reference before assigning it to playbin, then releases only its own reference after playbin retains the sink.
-- Section 6 adds complete construction and rollback code plus a vendor integration-test template covering context validation, reference ownership, scheduled-output teardown, and concurrent-pipeline isolation.
+- Section 6 adds complete construction and rollback code plus a vendor integration-test template covering property validation, reference ownership, scheduled-output teardown, and concurrent-pipeline isolation.
 
 ### What changed in version 0.2
 
@@ -82,7 +91,7 @@ This adds to the existing SoC decode stack; it does not replace it.
 
 | Role | Definition | Responsibilities |
 |------|------------|------------------|
-| **MW** | The middleware that calls the HAL. | - Determines each pipeline's output requirement before graph construction<br>- Obtains one session and creates one pool for each capture-enabled pipeline<br>- Retains the returned immutable pool description<br>- Obtains the pipeline's existing platform video sink, supplies its session context, and assigns that same sink to playbin<br>- Closes returned FDs and releases acquired frames<br>- Keeps the session alive until sink teardown and all releases are complete |
+| **MW** | The middleware that calls the HAL. | - Determines each pipeline's output requirement before graph construction<br>- Obtains one session and creates one pool for each capture-enabled pipeline<br>- Retains the returned immutable pool description<br>- Obtains the pipeline's existing platform video sink, sets its session property, and assigns that same sink to playbin<br>- Closes returned FDs and releases acquired frames<br>- Keeps the session alive until sink teardown and all releases are complete |
 | **SoC vendor** | The provider of the decoder and capture implementation. | - Implements `ICaptureSession` and the advertised fixed layout<br>- Integrates capture with the existing platform video sink, directly or through a private helper<br>- Observes the native scheduled-output frame selection<br>- Uses the pool owned by the configured session<br>- Preserves normal presentation and the platform sink contract<br>- Exports FDs atomically and preserves locked frame contents<br>- Keeps decode, audio, STC, and scheduled selection running when capture slots are exhausted<br>- Tears down safely and accepts required late releases |
 
 ### 2.1 Vendor delivery information
@@ -90,8 +99,8 @@ This adds to the existing SoC decode stack; it does not replace it.
 For integration and review, the SoC vendor supplies:
 
 1. the platform policy that selects the concrete video sink factory and that sink's supported input caps;
-2. support for the `rdk-frame-capture-session` context contract on that sink;
-3. a runnable plumbing prototype showing selection, context receipt before `READY`, playbin assignment, normal presentation, and teardown;
+2. support for the `rdk-capture-session` GObject property on that sink;
+3. a runnable plumbing prototype showing selection, property receipt before `READY`, playbin assignment, normal presentation, and teardown;
 4. the concrete `CaptureCapabilities` values;
 5. the fixed pool layout and supported slot counts;
 6. evidence that pipeline-local association, native selection, locking, FD export, exhaustion, sink teardown, late release, normal presentation, and existing sink behavior meet this specification; and
@@ -103,6 +112,12 @@ ICaptureSession* createCaptureSession(const CaptureConfig& config);
 ```
 
 The library naming convention is platform-specific (e.g., `libcapture-<vendor>.so`). MW loads the library using the platform's normal library discovery mechanism (e.g., `dlopen()`), resolves the factory symbol, and calls it to obtain an ICaptureSession instance. The application retains ownership of the session and must destroy it (via the vendor-provided destruction function or by calling the factory's `destroyCaptureSession()` method) after the pipeline has reached NULL and all acquired frames have been released. The session lifetime must exceed the sink's READY state; the sink borrows the session pointer and does not take ownership.
+
+9. **WesterosSinkSoC ICaptureSession integration**: The SoC vendor must extend their westeros-sink-soc.h contract to support ICaptureSession delivery via the `rdk-capture-session` GObject property as specified in Section 6.6. This includes:
+   - Adding `captureSession` and `captureSessionEnabled` fields to `GstWesterosSinkSoc`
+   - Implementing `gst_westeros_sink_soc_set_capture_session()`
+   - Connecting capture during NULL→READY
+   - Disconnecting capture during READY→NULL
 
 The vendor also provides whatever private decoder or scheduled-output access the sink's capture integration needs. That access must not interfere with native scheduling, STC progression, audio presentation, normal playback, sink properties, decoder discovery, subtitle integration, or secondary-video behavior.
 
@@ -194,21 +209,19 @@ The selection does not advance after sink teardown.
 
 ### 6.1 Required integration model
 
-The existing platform video sink remains assigned to playbin's standard `video-sink` property. MW creates the concrete sink selected by the platform's normal video-output policy before playbin enters `READY`, supplies the pipeline-local capture session directly to that sink, and assigns the same instance to playbin. Capture does not require a separately registered GStreamer factory and does not replace the normal surface or video-plane output.
+The platform video sink is westerossink. MW creates the playbin instance, sets its `video-sink` property to "westerossink" (which causes playbin to create the westerossink instance), sets the `rdk-capture-session` property on the westerossink instance, and drives it to READY to validate capture integration. Capture integrates with the existing surface and video-plane output.
 
-The selected sink is not obtained by reading playbin's `video-sink` after auto-plugging, and it is not an unresolved `autovideosink` whose concrete child appears during state change. The platform policy resolves the concrete sink factory or vendor sink-bin that normally serves this pipeline. Factory-rank enumeration is used only on a platform whose documented normal selection policy is that exact enumeration and whose integration prototype proves the selected sink and context timing.
+The platform sink integrates capture directly or owns a private helper attached to its native scheduled-output path. The helper may be a private object or child GStreamer element. The public pipeline topology remains unchanged.
 
-The platform sink integrates capture directly or owns a private helper attached to its native scheduled-output path. The helper may be a private object or child GStreamer element. It is not a second playbin sink, and it does not change the public pipeline topology.
+For every returned frame, the vendor implementation uses the same STC and scheduling rules as native scheduled output. It publishes only a selection established after decoder consumption. `CapturedFrame.presentationTimeNs` is the selected frame's PTS in that scheduler timeline.
 
-Capture is not an unscheduled appsink, decoded-buffer tee, or generic pre-scheduler filter. For every returned frame, the vendor implementation uses the same STC and scheduling rules as native scheduled output. It publishes only a selection established after decoder consumption. `CapturedFrame.presentationTimeNs` is the selected frame's PTS in that scheduler timeline.
-
-Capture must preserve normal presentation and the platform sink's existing contract, including its properties, surface output, decoder discovery, subtitle integration, secondary-video behavior, and scheduling. A pipeline not requesting capture uses the same platform sink without a capture session and is otherwise unaffected.
+Capture preserves normal presentation and the platform sink's existing contract, including its properties, surface output, decoder discovery, subtitle integration, secondary-video behavior, and scheduling. A pipeline not requesting capture uses the same platform sink without a capture session and is otherwise unaffected.
 
 Each capture-enabled pipeline has one independent relationship:
 
 ```text
 playbin instance
-  -> existing platform video sink instance
+  -> westerossink instance
        -> capture integration (direct or private helper)
             -> ICaptureSession
                  -> session-owned capture pool
@@ -216,17 +229,83 @@ playbin instance
 
 Concurrent or dual video uses one complete relationship per pipeline. Sink A receives session A and can access only pool A; sink B receives session B and can access only pool B. The SoC implementation does not choose among active playbins. If a vendor-private graph contains multiple scheduled-output branches, the platform sink associates the session with the exact branch represented by that sink instance.
 
-### 6.2 Session-context contract
+### 6.2 Session-property contract
 
-The context type is `rdk-frame-capture-session`. Its structure contains one field named `session` with GType `G_TYPE_POINTER` and value type `ICaptureSession *`. The pointer is opaque to GStreamer and borrowed by the sink. MW keeps it valid until sink teardown completes and retains the session longer when final acquisition or late release remains possible.
+The property name is `rdk-capture-session` with type G_TYPE_POINTER and value type `ICaptureSession *`. The pointer is opaque to GStreamer and borrowed by the sink. MW keeps it valid until sink teardown completes and retains the session longer when final acquisition or late release remains possible.
 
-MW sets the context directly on the existing platform video sink before any state transition that can start decoder output. The sink accepts exactly one non-null session. Reapplying the same pointer is idempotent; a missing field, null pointer, wrong field type, or attempt to replace it with a different session is invalid.
+MW sets the property directly on the westerossink instance before any state transition that can start decoder output. The sink accepts exactly one non-null session. Reapplying the same pointer is idempotent; a null pointer or attempt to replace it with a different session is invalid.
 
 Before entering `READY`, the sink validates that `createPool()` completed successfully and that its native scheduled output and capture integration are compatible with that session-owned pool. `READY` does not allocate or reserve pool backing. Invalid configuration or incompatible setup makes the transition fail with a GStreamer error, rolls back partial capture setup, and starts no capture writes.
 
-The context does not own the session, create a pool, or carry the `CapturePool` description. Private access to backing and scheduler state remains inside the paired vendor implementations.
+The property does not own the session, create a pool, or carry the `CapturePool` description. Private access to backing and scheduler state remains inside the paired vendor implementations.
 
-### 6.3 Middleware lifecycle
+### 6.3 WesterosSinkSoC contract
+
+Each SoC-specific `westeros-sink-soc.h` must extend the `GstWesterosSinkSoc` struct with the following fields:
+
+```cpp
+struct _GstWesterosSinkSoc
+{
+    // ... existing fields ...
+
+    // ICaptureSession support
+    void *captureSession;              // Borrowed ICaptureSession pointer
+    gboolean captureSessionEnabled;   // Whether capture session is active
+};
+```
+
+Each SoC-specific `westeros-sink-soc.c` must implement the following contract function:
+
+```cpp
+gboolean gst_westeros_sink_soc_set_capture_session(
+    GstWesterosSink *sink,
+    void *session);
+```
+
+**Semantics**:
+- Input: `sink` - WesterosSink instance, `session` - ICaptureSession pointer (borrowed, not owned)
+- Return: TRUE if session accepted, FALSE if rejected
+- Must validate that session is non-null
+- Must store session in `sink->soc.captureSession`
+- Must set `sink->soc.captureSessionEnabled = TRUE`
+- Must reject if session is already set (idempotent: reapplying same session is OK, different session is error)
+
+The common `westeros-sink.c` must implement a property handler for `rdk-capture-session`:
+
+```cpp
+static void gst_westeros_sink_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+    GstWesterosSink *sink = GST_WESTEROS_SINK(object);
+
+    switch (prop_id)
+    {
+        case PROP_RDK_CAPTURE_SESSION:
+        {
+            gpointer session = g_value_get_pointer(value);
+            if (!gst_westeros_sink_soc_set_capture_session(sink, session))
+            {
+                GST_ERROR_OBJECT(sink, "Failed to set capture session");
+            }
+            break;
+        }
+        default:
+            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+            break;
+    }
+}
+```
+
+The property must be registered in the class_init function.
+
+**Timing requirements**:
+- **Connect**: During NULL→READY, after pool creation and before decoder starts, in `gst_westeros_sink_soc_null_to_ready()`
+- **Disconnect**: During READY→NULL, before decoder teardown, in `gst_westeros_sink_soc_ready_to_null()`
+
+This timing matches Section 6.2: READY validates compatibility and connects native scheduled output to the existing pool.
+
+**Session lifetime**: The ICaptureSession pointer is borrowed by the sink. MW keeps it valid until sink teardown completes and retains the session longer when final acquisition or late release remains possible. The sink does not take ownership of the session.
+
+### 6.4 Middleware lifecycle
 
 The complete construction and teardown order is:
 
@@ -234,22 +313,20 @@ The complete construction and teardown order is:
 @startuml
 participant MW
 participant "playbin instance" as Playbin
-participant "existing platform\nvideo sink" as Sink
+participant "westerossink instance" as Sink
 participant "native scheduled output +\nprivate capture integration" as Output
 participant ICaptureSession as Session
 
 MW -> Session: getCapabilities()
 MW -> Session: createPool(slotCount, outPool)
 Session --> MW: OK + immutable pool description
-MW -> Sink: create concrete sink selected by normal platform policy
-MW -> Sink: retain independent MW reference
-MW -> Sink: set pipeline-local session context
+MW -> Playbin: create playbin instance
+MW -> Playbin: set video-sink = "westerossink" (playbin creates Sink)
+MW -> Sink: set rdk-capture-session property
 MW -> Sink: set READY and wait for completion
 Sink -> Output: configure native output and capture integration
 Output -> Session: connect to session-owned pool
 Sink --> MW: READY validation succeeded
-MW -> Playbin: set video-sink = Sink
-MW -> Sink: release independent MW reference
 MW -> Playbin: later activate configured pipeline
 Output -> Output: present and capture the same STC-selected frame
 
@@ -266,259 +343,36 @@ end note
 @enduml
 ```
 
-#### 6.3.1 Complete pipeline integration example
+The application selects Video Frame Capture through its media API before pipeline construction. It does not manipulate GStreamer objects or pass `ICaptureSession` directly. MW performs the integration using one session and the westerossink instance.
 
-The application selects Video Frame Capture through its media API before pipeline construction. It does not manipulate GStreamer objects or pass `ICaptureSession` directly. MW performs the integration using one session and the normal platform video sink supplied for this pipeline.
-
-The mechanism used to obtain the vendor session and the sink factory name are platform-specific. The sink factory name is the concrete factory selected by the same platform policy used for a pipeline without capture. It is not discovered from an already-running playbin.
-
-```cpp
-constexpr GstClockTime kCaptureStateChangeTimeout = 5 * GST_SECOND;
-
-bool setStateAndWait(GstElement *element, GstState state)
-{
-    GstStateChangeReturn result = gst_element_set_state(element, state);
-    if (result == GST_STATE_CHANGE_ASYNC)
-    {
-        result = gst_element_get_state(element, nullptr, nullptr,
-                                       kCaptureStateChangeTimeout);
-    }
-
-    return result == GST_STATE_CHANGE_SUCCESS ||
-           result == GST_STATE_CHANGE_NO_PREROLL;
-}
-
-bool configureFrameCaptureOutput(
-    GstElement *playbin,
-    GstElement *platformVideoSink,
-    ICaptureSession &session,
-    uint32_t slotCount,
-    CapturePool &outPool)
-{
-    if (!playbin || !platformVideoSink || slotCount == 0)
-        return false;
-
-    CaptureCapabilities capabilities;
-    if (session.getCapabilities(capabilities) != CaptureStatus::OK ||
-        slotCount > capabilities.maximumSlots ||
-        session.createPool(slotCount, outPool) != CaptureStatus::OK)
-        return false;
-
-    GstContext *context =
-        gst_context_new("rdk-frame-capture-session", FALSE);
-    if (!context)
-        return false;
-
-    GstStructure *structure = gst_context_writable_structure(context);
-    gst_structure_set(structure,
-                      "session", G_TYPE_POINTER, &session,
-                      nullptr);
-    gst_element_set_context(platformVideoSink, context);
-    gst_context_unref(context);
-
-    if (!setStateAndWait(platformVideoSink, GST_STATE_READY))
-    {
-        setStateAndWait(platformVideoSink, GST_STATE_NULL);
-        return false;
-    }
-
-    g_object_set(playbin, "video-sink", platformVideoSink, nullptr);
-    return true;
-}
-
-bool teardownFrameCaptureOutput(GstElement *playbin)
-{
-    if (!playbin)
-        return false;
-
-    GstElement *platformVideoSink = nullptr;
-    g_object_get(playbin, "video-sink", &platformVideoSink, nullptr);
-
-    if (!setStateAndWait(playbin, GST_STATE_NULL))
-    {
-        if (platformVideoSink)
-            gst_object_unref(platformVideoSink);
-        return false;
-    }
-
-    if (platformVideoSink &&
-        !setStateAndWait(platformVideoSink, GST_STATE_NULL))
-    {
-        gst_object_unref(platformVideoSink);
-        return false;
-    }
-
-    g_object_set(playbin, "video-sink", nullptr, nullptr);
-    if (platformVideoSink)
-        gst_object_unref(platformVideoSink);
-    return true;
-}
-```
-
-A caller establishes an independent sink reference and releases only that reference after playbin has retained the sink:
-
-```cpp
-// The platform integration determines the sink factory name.
-// On a Westeros platform, this would be "westerossink".
-// Other platforms would use their own factory name according to
-// their normal video-output policy.
-const char *factoryName = obtainPlatformVideoSinkFactoryName();
-GstElement *platformVideoSink =
-    gst_element_factory_make(factoryName, nullptr);
-if (!platformVideoSink)
-    return false;
-
-// Take ownership of the floating reference
-gst_object_ref_sink(platformVideoSink);
-
-const bool configured = configureFrameCaptureOutput(
-    playbin, platformVideoSink, session, slotCount, pool);
-gst_object_unref(platformVideoSink);
-return configured;
-```
-
-The platform integration determines which video sink factory to use. MW obtains the factory name through the platform's normal mechanism (e.g., platform configuration, capability query, or platform-specific API). The caller creates the sink using standard GStreamer `gst_element_factory_make()` with the obtained factory name, takes ownership of the floating reference with `gst_object_ref_sink()`, and releases that reference after configuration; playbin has retained its own reference on success. A platform using `westerossink` would use `"westerossink"` as the factory name; another platform would use the concrete factory selected by its own normal policy.
-
-The configuration helper drives the existing sink to `READY` and waits for completion before storing it in playbin. Success proves that the sink accepted the context, validated compatibility, and connected its capture integration to the pool already created by `session.createPool()`. It does not claim that playbin has prerolled or activated a media source.
+MW creates the playbin instance, sets its `video-sink` property to "westerossink" (which causes playbin to create the westerossink instance), sets the `rdk-capture-session` property on the westerossink instance, then drives it to READY to validate capture integration. Success proves that the sink accepted the property, validated compatibility, and connected its capture integration to the pool already created by `session.createPool()`. It does not claim that playbin has prerolled or activated a media source.
 
 The caller retains `session` and `outPool` after success. `outPool` is used to interpret acquired frames; it is not passed to the sink. A failure after `createPool()` returns the sink to `NULL`. The pool remains owned by the session, so the caller discards that session and creates a fresh one for any retry.
 
-Pipeline teardown takes playbin to `NULL`, confirms that the selected platform sink is also `NULL`, and then clears the property. The sink's state transition disconnects capture before native scheduled output is destroyed. MW retains the session until teardown completes, the final acquisition opportunity is resolved, and every acquired frame has been released.
+Pipeline teardown takes playbin to `NULL`, which destroys the westerossink instance. MW retains the session until teardown completes, the final acquisition opportunity is resolved, and every acquired frame has been released.
 
-#### 6.3.1 Obtaining ICaptureSession from vendor library
+**Obtaining ICaptureSession from vendor library**: MW loads the vendor-provided shared library using the platform's normal library discovery mechanism (e.g., `dlopen()`), resolves the factory symbol, and calls it to obtain an ICaptureSession instance. The application retains ownership of the session and must destroy it after the pipeline has reached NULL and all acquired frames have been released.
 
-The following example shows how MW obtains an ICaptureSession instance from the vendor-provided shared library:
+### 6.5 Prototype and conformance testing
 
-```cpp
-#include <dlfcn.h>
-#include "rdk/ICaptureSession.h"
-
-typedef ICaptureSession* (*CreateCaptureSessionFunc)(const CaptureConfig&);
-
-ICaptureSession* obtainCaptureSessionFromVendor()
-{
-    // Platform-specific library name
-    const char* libraryName = "libcapture-vendor.so";
-
-    void* handle = dlopen(libraryName, RTLD_LAZY);
-    if (!handle)
-    {
-        // Handle error: library not found
-        return nullptr;
-    }
-
-    CreateCaptureSessionFunc createFunc =
-        (CreateCaptureSessionFunc)dlsym(handle, "createCaptureSession");
-
-    if (!createFunc)
-    {
-        // Handle error: symbol not found
-        dlclose(handle);
-        return nullptr;
-    }
-
-    CaptureConfig config = {/* platform-specific configuration */};
-    ICaptureSession* session = createFunc(config);
-
-    if (!session)
-    {
-        // Handle error: factory returned null
-        dlclose(handle);
-        return nullptr;
-    }
-
-    // The application retains ownership of the session and the library handle
-    // Both must be cleaned up after pipeline teardown
-    return session;
-}
-```
-
-The application must call the vendor-provided destruction function (e.g., `destroyCaptureSession()`) after the pipeline has reached NULL and all acquired frames have been released, then close the library handle with `dlclose()`.
-
-### 6.4 Vendor sink behavior
-
-The vendor can implement capture directly inside the platform sink or attach a private helper to the sink's scheduled-output selection point. A private helper may be a C or C++ object or a child GStreamer element. In either form, it observes the frame selected for native presentation rather than every decoded buffer arriving upstream.
-
-#### 6.4.1 Native decoder and scheduled-output behavior
-
-| Native decoder/scheduled-output condition | Required capture behavior |
-|---|---|
-| Before sufficient decoder consumption or with no valid native selection | Return `NO_FRAME` |
-| Decoder consumption while transitioning to or operating paused | Follow any selection established by the native scheduler; paused operation alone does not guarantee one |
-| Paused with a valid current selection | Return that stationary selection once as `OK`, then `NO_NEW_FRAME` while it remains current |
-| Active scheduled output | Follow advancing native scheduler selections into writable slots |
-| Reset, flush, seek, or equivalent processing invalidates selection | Preserve outstanding locks and return `NO_FRAME` until decoder consumption establishes another native selection |
-| Teardown | Prevent new writes, complete or cancel any write in progress, and disconnect scheduled output before destroying it |
-
-These conditions do not create or destroy the pool. Capture never applies a separate frame-selection policy.
-
-#### 6.4.2 Sink teardown and backing strategy
-
-Sink teardown is synchronous with the state transition that destroys native scheduled output. Before that transition completes, the platform sink's capture integration prevents new writes, completes or cancels any write in progress, and disconnects from scheduled output. The session preserves the final selection and backing required by outstanding frame locks.
-
-The backing strategy and capture-integration topology remain vendor-private. They must provide the advertised fixed layout, preserve locked contents and the existing platform sink contract, and keep decode, presentation, audio, STC, and native scheduled selection running when capture slots are exhausted.
-
-### 6.5 Non-normative westerossink example
-
-On a platform where `westerossink` is the normal video sink, the platform integration supplies `"westerossink"` as `selectedVideoSinkFactoryName`. `obtainPlatformVideoSink()` creates that instance, MW sets `rdk-frame-capture-session` on it, and the same instance is assigned to playbin. Existing configuration continues to target that object.
-
-A Westeros implementation can store the borrowed session in its `set_context` handler, connect capture during `NULL` to `READY`, observe the frame selected by its existing native scheduler, and disconnect capture before `READY` to `NULL` destroys scheduled output. The context plumbing is illustrated below:
-
-```cpp
-void WesterosSink::setContext(GstContext *context)
-{
-    if (gst_context_has_context_type(
-            context, "rdk-frame-capture-session"))
-    {
-        const GstStructure *structure =
-            gst_context_get_structure(context);
-        gpointer session = nullptr;
-
-        if (!gst_structure_get(structure,
-                               "session", G_TYPE_POINTER, &session,
-                               nullptr) ||
-            !session)
-        {
-            rejectCaptureContext();
-            return;
-        }
-
-        acceptCaptureSession(
-            static_cast<ICaptureSession *>(session));
-    }
-
-    forwardContextToParent(context);
-}
-```
-
-`WesterosSink`, `acceptCaptureSession()`, and `forwardContextToParent()` are illustrative private implementation names. They do not add public APIs. The specification does not invent a Westeros frame-selection callback: the production implementation connects its capture integration to the scheduler-selection point that already exists in that delivery. Production code also serializes context handling, state changes, native scheduler callbacks, and teardown according to the sink implementation's threading model.
-
-Current Westeros integrations include properties such as `res-usage`, `rectangle` or `render-rectangle`, `show-video-window`, `immediate-output`, and `videodecoder`. Capture leaves these properties and their behavior unchanged. The same requirement applies to equivalent properties and integration points on other platform sinks.
-
-### 6.6 Prototype and conformance testing
-
-A vendor can use the same helper shape with a test `ICaptureSession` and an instrumented platform sink. At minimum, an integration test verifies:
+A vendor can use the same helper shape with a test `ICaptureSession` and an instrumented westerossink. At minimum, an integration test verifies:
 
 ```cpp
 TEST(FrameCaptureIntegration, PreservesPlatformSinkAndAssociatesSession)
 {
     TestCaptureSession session;
     GstElement *playbin = gst_element_factory_make("playbin", nullptr);
-    GstElement *platformSink =
-        gst_element_factory_make(testPlatformVideoSinkFactoryName(), nullptr);
-    gst_object_ref_sink(platformSink);
     CapturePool pool;
 
     ASSERT_NE(playbin, nullptr);
-    ASSERT_NE(platformSink, nullptr);
-    setExistingSinkProperties(platformSink);
 
     ASSERT_TRUE(configureFrameCaptureOutput(
-        playbin, platformSink, session, 4, pool));
+        playbin, session, 4, pool));
 
     GstElement *configuredSink = nullptr;
     g_object_get(playbin, "video-sink", &configuredSink, nullptr);
-    ASSERT_EQ(configuredSink, platformSink);
+    ASSERT_NE(configuredSink, nullptr);
+    ASSERT_STREQ(GST_ELEMENT_NAME(configuredSink), "westerossink");
 
     EXPECT_EQ(session.createPoolCallCount(), 1u);
     EXPECT_EQ(session.requestedSlotCount(), 4u);
@@ -528,20 +382,18 @@ TEST(FrameCaptureIntegration, PreservesPlatformSinkAndAssociatesSession)
     EXPECT_TRUE(existingSinkPropertiesUnchanged(configuredSink));
 
     ASSERT_TRUE(teardownFrameCaptureOutput(playbin));
-    EXPECT_TRUE(testScheduledOutputDisconnected(configuredSink));
-    EXPECT_EQ(GST_STATE(configuredSink), GST_STATE_NULL);
 
     gst_object_unref(configuredSink);
-    gst_object_unref(platformSink);
     gst_object_unref(playbin);
 }
 ```
 
-`testPlatformVideoSinkFactoryName()` and the other test functions are vendor test hooks, not production APIs. The test factory is registered as the platform policy's selected concrete sink and implements the same context and state contract as the production sink. Additional tests create two playbins with two selected sink instances and two sessions and verify that each sink reaches only its own session and pool. Failure tests cover a missing or unavailable selected factory, missing context, null session field, wrong field type, repeated context with a different session, incompatible `READY` setup, and rollback to `NULL` without capture writes.
+The test functions are vendor test hooks, not production APIs. Additional tests create two playbins with two westerossink instances and two sessions and verify that each sink reaches only its own session and pool. Failure tests cover null session property, repeated property with a different session, incompatible `READY` setup, and rollback to `NULL` without capture writes.
 
-The vendor supplies a runnable plumbing prototype using its production sink factory or an instrumented build of that factory. The prototype demonstrates factory selection, one non-floating MW reference, context receipt on the selected sink instance before `READY`, successful `READY` validation, assignment of the same instance to playbin, normal presentation, and confirmed `NULL` teardown. It need not implement frame export while validating this plumbing.
+The vendor supplies a runnable plumbing prototype using westerossink or an instrumented build of westerossink. The prototype demonstrates property receipt on the westerossink instance before `READY`, successful `READY` validation, assignment to playbin, normal presentation, and confirmed `NULL` teardown. It need not implement frame export while validating this plumbing.
 
 The integration suite also verifies that normal scheduled presentation continues while capture is enabled; existing sink properties retain their values and effects; decoder discovery, subtitle integration, secondary-video behavior, geometry, visibility, and immediate-output behavior remain usable; capture-slot exhaustion omits capture without blocking presentation; and teardown disconnects capture before scheduled output is destroyed. Final acquisition and late `releaseFrame()` remain valid after sink teardown.
+
 
 ## 7. Capture value types
 
@@ -823,17 +675,17 @@ An SoC implementation is conformant only when all of the following are true:
 
 | Area | Requirement | Sections |
 |---|---|---|
-| Delivery and association | The existing platform policy resolves and creates the concrete video sink before `READY`; the same instance remains assigned to playbin. MW supplies exactly one pipeline-local session context directly to that sink before state transition. Capture is implemented directly in the sink or by a private helper attached to its scheduled-output path. | §6 |
-| Plumbing prototype | A runnable prototype proves concrete factory selection, reference ownership, context receipt before `READY`, assignment of the same sink to playbin, normal presentation, existing property behavior, and confirmed `NULL` teardown. | §6 |
-| Concurrent pipelines | Each concurrent pipeline has a distinct platform sink instance, session, and session-owned pool. No sink can access or publish selections through another pipeline's session. | §§5, 6 |
-| Capabilities and pool | `createPool()` synchronously provisions session-owned slot capacity and every required backing/resource reservation, then returns its concrete immutable, bounds-checked object/slot/plane description. READY validation performs no second pool allocation. Different slots have no overlapping ranges in one DMA-BUF object. The description is not passed back through the sink context, and caller-owned FDs are exported only at acquisition. | §§6–8 |
+| Delivery and association | MW creates playbin, sets its `video-sink` property to "westerossink" (which creates the westerossink instance), and sets the `rdk-capture-session` property on it before driving to READY. MW supplies exactly one pipeline-local session property directly to that sink before state transition. Capture is implemented directly in the sink or by a private helper attached to its scheduled-output path. | §6 |
+| Plumbing prototype | A runnable prototype proves property receipt on westerossink before `READY`, assignment to playbin, normal presentation, existing property behavior, and confirmed `NULL` teardown. | §6 |
+| Concurrent pipelines | Each concurrent pipeline has a distinct westerossink instance, session, and session-owned pool. No sink can access or publish selections through another pipeline's session. | §§5, 6 |
+| Capabilities and pool | `createPool()` synchronously provisions session-owned slot capacity and every required backing/resource reservation, then returns its concrete immutable, bounds-checked object/slot/plane description. READY validation performs no second pool allocation. Different slots have no overlapping ranges in one DMA-BUF object. The description is not passed back through the sink property, and caller-owned FDs are exported only at acquisition. | §§6–8 |
 | Native selection | Capture follows the same native scheduled-output selection used for normal presentation. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. | §§5, 6, 8 |
 | Existing sink contract | Capture preserves normal presentation, sink properties, surface output, decoder discovery, subtitle integration, secondary-video behavior, geometry, visibility, immediate-output behavior, and scheduling. | §6 |
 | Frame identity, FD ownership and rollback | Valid slot identity and matching acquisition token mean one release is owed. Move constructor transfers token, slot index, and FDs, invalidating the source. HAL assigns unique non-zero token per acquisition. Acquisition requires invalid slot and token values and every FD exactly `-1`. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§4, 7, 8 |
 | Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 5, 8 |
 | Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, native scheduled selection, audio, or STC. | §§4–6 |
 | Sink teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. Scheduled output is disconnected safely during sink state teardown. | §§5, 6 |
-| Contract tests | Tests cover every area above, including missing/unavailable selected factory, missing/invalid/replaced session context, two concurrent pipelines without cross-association, preserved sink properties and presentation, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. | — |
+| Contract tests | Tests cover every area above, including missing/invalid/replaced session property, two concurrent pipelines without cross-association, preserved sink properties and presentation, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. | — |
 
 Failure of any mandatory gate means Video Frame Capture is unsupported on that implementation; it does not permit a weakened lifetime or playback-continuity contract.
 
