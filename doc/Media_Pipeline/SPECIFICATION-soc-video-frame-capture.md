@@ -2,18 +2,28 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.6
+**Specification version:** 0.7
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.7 | Draft for review | Added mandatory EGL/OpenGL ES and Vulkan requirements for direct DMA-BUF import, texturing, FD ownership, and graphics-resource cleanup. | Exact layout coverage, modifier-aware import, external-texture and YCbCr sampling, FD ownership, destruction order, and vendor capability declaration. |
 | 0.6 | Draft for review | Changed ICaptureSession delivery from GstContext to Gst property based on feedback that GstContext is pipeline-wide, not element-specific. Added westeros-sink-soc.h contract changes for property handling. Uprev to v0.6. | Property-based delivery approach, westeros-sink-soc.h contract changes, Section 6 restructuring to 5 focused sections |
 | 0.5 | Draft for review | Added ICaptureSession delivery mechanism documentation, clarifying comments to Westeros example showing platform-dependent factory selection, and factory function example. No API contract changes. | Delivery mechanism documentation, example clarity, and version bump. |
 | 0.4 | Draft for review | Kept the existing platform video sink as playbin's selected sink, supplied the capture session directly to that sink, permitted direct or private-helper capture integration, and added sink-compatibility checks. | Existing-sink association, property handling, scheduled-output attachment, preservation of normal sink behavior and properties, reference ownership, teardown, and integration tests. |
 | 0.3 | Draft for review | Expanded frame representation and acquisition safety, made pool and FD ownership explicit, and defined the complete per-pipeline GStreamer integration with construction and test examples. | Plane/object layout, acquisition tokens, failure invariants, process-local FD ownership, pool provisioning, playbin/session association, reference ownership, teardown, and conformance tests. |
 | 0.2 | Draft for review | Changed frame acquisition so the HAL returns each newly selected frame once instead of repeatedly returning the same slot. Clarified that several previously returned frames may remain locked at the same time. | Frame acquisition and release, behavior when there is no newer frame, slot exhaustion, flush, and teardown. |
 | 0.1 | Initial draft | Introduced the capture session, DMA-BUF pool, GStreamer attachment, frame selection, and lifetime contract. | Complete specification. |
+
+### What changed in version 0.7
+
+- Required direct import of every advertised capture format, modifier, and concrete plane/object layout through both EGL/OpenGL ES and Vulkan.
+- Added modifier-aware DMA-BUF import, external-texture and YCbCr sampling, and correctly interpreted RGB(A) requirements.
+- Defined EGL and Vulkan FD ownership, failure rollback, graphics-resource destruction, and HAL release ordering.
+- Added a vendor graphics capability declaration without extending the HAL or public API.
+- Moved the frame/plane/object conceptual model into Section 7 before the concrete representation examples.
+- Uprev to v0.7.
 
 ### What changed in version 0.6
 
@@ -69,10 +79,11 @@ MW
 SoC vendor
  ├── implements ICaptureSession
  ├── integrates capture with the existing platform video sink
- └── connects its session-owned pool to native scheduled output
+ ├── connects its session-owned pool to native scheduled output
+ └── provides EGL/OpenGL ES and Vulkan import for the fixed capture layout
 ```
 
-MW means the middleware component that calls the HAL. Transport and rendering after the HAL returns a frame are not part of this specification.
+MW means the middleware component that calls the HAL. This specification covers graphics import and texture sampling of an acquired frame; later application composition and display are outside its scope.
 
 ---
 
@@ -89,7 +100,7 @@ This adds to the existing SoC decode stack; it does not replace it.
 | Role | Definition | Responsibilities |
 |------|------------|------------------|
 | **MW** | The middleware that calls the HAL. | - Determines each pipeline's output requirement before graph construction<br>- Obtains one session and creates one pool for each capture-enabled pipeline<br>- Retains the returned immutable pool description<br>- Obtains the pipeline's existing platform video sink, sets its session property, and assigns that same sink to playbin<br>- Closes returned FDs and releases acquired frames<br>- Keeps the session alive until sink teardown and all releases are complete |
-| **SoC vendor** | The provider of the decoder and capture implementation. | - Implements `ICaptureSession` and the advertised fixed layout<br>- Integrates capture with the existing platform video sink, directly or through a private helper<br>- Observes the native scheduled-output frame selection<br>- Uses the pool owned by the configured session<br>- Preserves normal presentation and the platform sink contract<br>- Exports FDs atomically and preserves locked frame contents<br>- Keeps decode, audio, STC, and scheduled selection running when capture slots are exhausted<br>- Tears down safely and accepts required late releases |
+| **SoC vendor** | The provider of the decoder, capture, and graphics import implementation. | - Implements `ICaptureSession` and the advertised fixed layout<br>- Integrates capture with the existing platform video sink, directly or through a private helper<br>- Observes the native scheduled-output frame selection<br>- Uses the pool owned by the configured session<br>- Provides EGL/OpenGL ES and Vulkan direct import and sampling for the fixed layout<br>- Preserves normal presentation and the platform sink contract<br>- Exports FDs atomically and preserves locked frame contents<br>- Keeps decode, audio, STC, and scheduled selection running when capture slots are exhausted<br>- Tears down safely and accepts required late releases |
 
 ### 2.1 Vendor delivery information
 
@@ -114,6 +125,15 @@ The library naming convention is platform-specific (e.g., `libcapture-<vendor>.s
    - Implementing `gst_westeros_sink_soc_set_capture_session()`
    - Connecting capture during NULL→READY
    - Disconnecting capture during READY→NULL
+9. a graphics capability matrix for the fixed capture layout, declaring:
+   - EGL/OpenGL ES extension or core-equivalent functionality;
+   - Vulkan extension or core-equivalent functionality;
+   - EGL-supported DRM formats and modifiers, including the reported external-only status;
+   - Vulkan `VkFormat` and DRM-modifier pairs, sampled-image support, external-memory importability, disjoint-plane support where applicable, and sampler-YCbCr conversion support;
+   - direct support for the exact plane count and order, offsets, strides, and shared, separate, or mixed DMA-BUF object mapping returned by `createPool()`; and
+   - YCbCr matrix, full or narrow range, and chroma-siting support for the advertised capture format.
+
+The graphics capability matrix is integration evidence. It does not add fields to `CaptureCapabilities`, `CapturePool`, `ICaptureSession`, or any public API.
 
 The vendor also provides whatever private decoder or scheduled-output access the sink's capture integration needs. That access must not interfere with native scheduling, STC progression, audio presentation, normal playback, sink properties, decoder discovery, subtitle integration, or secondary-video behavior.
 
@@ -125,6 +145,7 @@ The vendor also provides whatever private decoder or scheduled-output access the
 - Association with native scheduled output and its frame selection.
 - Frame-plane, DMA-BUF object, crop, format, modifier, and timestamp metadata.
 - Atomic frame acquisition, FD ownership, frame locks, and release.
+- Direct EGL/OpenGL ES and Vulkan import, texturing, graphics-resource lifetime, and cleanup for the advertised capture layout.
 - Synchronization, slot exhaustion, sink teardown, and late release.
 
 ### 3.1 Terminology
@@ -142,25 +163,6 @@ The contract uses these terms exclusively:
 | **Pool** | The concrete slot reservation owned by one session. `CapturePool` is MW's immutable description of its DMA-BUF object metadata and slot layouts; the description contains no FDs. |
 
 The document does not use “buffer” as a synonym for either slot or frame. “Decoder output buffer” is used only when referring to a vendor-native object outside the capture-pool contract.
-
-### 3.2 Conceptual model
-
-The relationships are directional and do not imply one-to-one cardinality:
-
-```
-Frame (selected content and timing)
-  └── Slot layout
-       ├── Frame plane 0 ──references──> DMA-BUF object A ──exported as──> FD for A
-       ├── Frame plane 1 ──references──> DMA-BUF object A ──same object, no second FD
-       └── Frame plane 2 ──references──> DMA-BUF object B ──exported as──> FD for B
-```
-
-- A **Frame** is decoded content written to one reusable slot at a specific STC selection.
-- Its **slot layout** contains one logical record for each DRM plane.
-- Each **frame plane** references exactly one **DMA-BUF object** and describes its byte range and stride within that allocation.
-- Several planes may reference the same object at different offsets, or each plane may reference a different object. Mixed arrangements are valid.
-- A successful acquisition exports one FD for each distinct object referenced by the selected slot, never one FD per plane by implication.
-- The process-local FD value is not object identity. `dmaBufObjectIndex` is the join key between plane layout and exported handle records.
 
 ## 4. Mandatory ownership model
 
@@ -180,7 +182,7 @@ A successful acquisition also guarantees that decoder writes, cache maintenance,
 
 ### 5.1 Pipeline-scoped lifetime
 
-MW knows whether a pipeline requires frame capture before graph construction. Each capture-enabled pipeline has one dedicated `ICaptureSession` and one session-owned pool. MW provisions that pool before the GStreamer integration in Section 6 and retains its immutable description as defined by `createPool()` in Section 8.
+MW knows whether a pipeline requires frame capture before graph construction. Each capture-enabled pipeline has one dedicated `ICaptureSession` and one session-owned pool. MW provisions that pool before the GStreamer integration in Section 6 and retains its immutable description as defined by `createPool()` in Section 9.
 
 A session belongs to one pipeline and is never reassociated or reused. Its lifetime extends beyond sink teardown until the final acquisition opportunity is resolved or abandoned and every acquired frame is released.
 
@@ -188,11 +190,11 @@ A session belongs to one pipeline and is never reassociated or reused. Its lifet
 
 The session passively tracks the native STC scheduler's current captured selection, whether that selection has already been acquired, and every active frame lock. Selection identity is independent of reusable slot identity: a released slot may later hold a different selection that returns `OK` once.
 
-A slot is writable only when it has no frame lock and no write in progress. Before reusing an unlocked current slot, the session atomically invalidates the old selection so concurrent acquisition returns `NO_FRAME` rather than observing an overwrite. Section 6.4.1 defines scheduler-state behavior; Section 8 defines acquisition and release semantics.
+A slot is writable only when it has no frame lock and no write in progress. Before reusing an unlocked current slot, the session atomically invalidates the old selection so concurrent acquisition returns `NO_FRAME` rather than observing an overwrite. Section 9 defines acquisition and release semantics.
 
 ### 5.3 Post-teardown behavior
 
-The platform sink first completes the disconnection contract in Section 6.4.2. The session, final current selection, and locked slots then remain valid while MW completes these obligations:
+The platform sink first completes the disconnection contract in Section 6.4. The session, final current selection, and locked slots then remain valid while MW completes these obligations:
 
 1. An unacquired final selection remains available once; transient `NO_RESOURCES` leaves it available for retry.
 2. An already acquired final selection returns `NO_NEW_FRAME`, and no valid final selection returns `NO_FRAME`.
@@ -504,7 +506,26 @@ A `CapturedFrame` is empty only when its `slotIndex` is invalid, its `acquisitio
 
 FDs are exported only when a frame is acquired. MW owns and closes them. Closing an FD does not release the frame lock, and `releaseFrame()` does not inspect FD values.
 
-### 7.1 Valid frame representations
+### 7.1 Conceptual model
+
+The relationships are directional and do not imply one-to-one cardinality:
+
+```
+Frame (selected content and timing)
+  └── Slot layout
+       ├── Frame plane 0 ──references──> DMA-BUF object A ──exported as──> FD for A
+       ├── Frame plane 1 ──references──> DMA-BUF object A ──same object, no second FD
+       └── Frame plane 2 ──references──> DMA-BUF object B ──exported as──> FD for B
+```
+
+- A **Frame** is decoded content written to one reusable slot at a specific STC selection.
+- Its **slot layout** contains one logical record for each DRM plane.
+- Each **frame plane** references exactly one **DMA-BUF object** and describes its byte range and stride within that allocation.
+- Several planes may reference the same object at different offsets, or each plane may reference a different object. Mixed arrangements are valid.
+- A successful acquisition exports one FD for each distinct object referenced by the selected slot, never one FD per plane by implication.
+- The process-local FD value is not object identity. `dmaBufObjectIndex` is the join key between plane layout and exported handle records.
+
+### 7.2 Valid frame representations
 
 The following examples use illustrative process-local FD values. Each object appears once in `dmaBufObjects`; each successful acquisition exports each referenced object once.
 
@@ -590,11 +611,11 @@ exportedDmaBufs = {
 };
 ```
 
-### 7.2 DRM NV12 linear example
+### 7.3 DRM NV12 linear example
 
 For this example, `CaptureCapabilities` reports `DRM_FORMAT_NV12` and `DRM_FORMAT_MOD_LINEAR`; the pool supplies the plane/object layout shown below. Linux `drm_fourcc.h` defines NV12 as a two-plane format and the modifier as linear storage. An NV12 slot may represent plane 0 (luma Y) and plane 1 (interleaved chroma UV) using either Example B, where both planes reference one DMA-BUF object at different offsets and acquisition exports one FD, or Example C, where each plane references a separate object and acquisition exports two object-indexed FDs. The modifier does not determine DMA-BUF object or FD cardinality; the plane-to-object mapping in the slot layout does. These examples define representational capability, while an implementation must still advertise and provide an arrangement importable through every required graphics path.
 
-### 7.3 Fixed capture layout
+### 7.4 Fixed capture layout
 
 Each implementation supports one fixed capture contract. `getCapabilities()` reports its format, modifier, and limits. `createPool()` reports the concrete object, slot, and plane layout. The two records belong to the same session and together describe the layout; neither duplicates the other's fields.
 
@@ -612,7 +633,122 @@ The capability values and concrete pool layout remain fixed until the session is
 
 If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represented by the implemented capture layout, capture returns `UNSUPPORTED` or `FATAL_ERROR` and stops updating its current selection. It does not silently disable capture while continuing only normal platform-sink output; MW chooses any later pipeline reconstruction. Unrelated normal-output pipelines remain available. Runtime capture-slot replacement is outside this specification. One `ICaptureSession` has one logical slot reservation for its complete lifetime.
 
-## 8. Session interface
+## 8. Graphics import and texturing requirements
+
+### 8.1 Common requirements
+
+A conforming implementation supports both EGL/OpenGL ES and Vulkan import paths for its fixed capture contract. In each path, the imported resource directly references the acquired frame's DMA-BUF backing. An intermediate copy or conversion into different backing does not satisfy this requirement.
+
+Both paths support the exact combination described by the session's `CaptureCapabilities` and `CapturePool`: DRM format and modifier; plane count and DRM plane order; every plane's object index, offset, length, and stride; and the shared-object, separate-object, or mixed DMA-BUF mapping. A combination is supported only when it can be sampled, not merely queried, allocated, or imported.
+
+For a YUV capture layout, sampling returns correctly interpreted RGB(A) using the source matrix, full or narrow sample range, and chroma siting. The graphics implementation performs that interpretation during external-texture or sampler-YCbCr sampling; the consumer is not required to sample raw YUV planes or select the conversion.
+
+The importing graphics resources and the frame lock have the same content-validity boundary. Graphics work that can access the frame completes before those resources are destroyed, and every importing graphics resource is destroyed before the matching `releaseFrame()` permits slot reuse. Successful HAL acquisition already guarantees that decoder writes, cache maintenance, and SoC-side synchronization are complete as specified in Section 4; this contract adds no native-fence extension requirement.
+
+Extension functionality promoted into a core API version satisfies the corresponding requirement. The vendor capability declaration identifies whether each requirement is provided by an extension or by core functionality.
+
+### 8.2 EGL DMA-BUF image import
+
+The EGL implementation provides the functionality defined by:
+
+- `EGL_EXT_image_dma_buf_import`, including the `EGL_LINUX_DMA_BUF_EXT` image target and the DRM format and plane FD, offset, and pitch attributes;
+- `EGL_EXT_image_dma_buf_import_modifiers`, including per-plane modifier low/high attributes and `eglQueryDmaBufFormatsEXT()` / `eglQueryDmaBufModifiersEXT()`; and
+- EGL image creation and destruction through `eglCreateImage()` / `eglDestroyImage()`, or the equivalent `eglCreateImageKHR()` / `eglDestroyImageKHR()` functionality defined by `EGL_KHR_image_base`.
+
+`EGL_LINUX_DMA_BUF_EXT` is the image target defined by `EGL_EXT_image_dma_buf_import`; it is not an extension name.
+
+MW constructs the image attributes from the capture records as follows:
+
+- `CaptureCapabilities.drmFormat` supplies `EGL_LINUX_DRM_FOURCC_EXT`;
+- each DRM plane uses the FD for its `dmaBufObjectIndex`, repeating that FD in the attribute list when several planes reference the same DMA-BUF object;
+- `FramePlane.offsetBytes` and `strideBytes` supply the matching plane OFFSET and PITCH attributes;
+- `CaptureCapabilities.drmModifier` supplies every plane's `EGL_DMA_BUF_PLANE*_MODIFIER_LO_EXT` and `EGL_DMA_BUF_PLANE*_MODIFIER_HI_EXT` attributes; and
+- the source colour metadata available to the vendor integration supplies `EGL_YUV_COLOR_SPACE_HINT_EXT`, `EGL_SAMPLE_RANGE_HINT_EXT`, `EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT`, and `EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT`.
+
+`eglQueryDmaBufFormatsEXT()` and `eglQueryDmaBufModifiersEXT()` report the advertised format and modifier. Their result also identifies whether the combination is external-only; external-only support is valid because Section 8.3 requires the external-texture path.
+
+EGL image creation does not transfer ownership of the supplied DMA-BUF FDs. After `eglCreateImage()` or `eglCreateImageKHR()` returns, MW closes every supplied FD copy that is no longer needed for another import attempt, on both success and failure. A successful EGL image retains the imported backing until `eglDestroyImage()` or `eglDestroyImageKHR()`.
+
+A failed EGL import closes every MW-owned FD and destroys every EGL image created by that attempt. It leaves no graphics resource associated with the frame.
+
+### 8.3 OpenGL ES external-texture binding and sampling
+
+The OpenGL ES implementation provides:
+
+- `GL_OES_EGL_image` and `glEGLImageTargetTexture2DOES()`;
+- `GL_OES_EGL_image_external`, `GL_TEXTURE_EXTERNAL_OES`, and `samplerExternalOES`;
+- `GL_OES_EGL_image_external_essl3` for ESSL 3 external-texture shaders; and
+- the core texture operations `glGenTextures()`, `glBindTexture()`, `glTexParameteri()`, and `glDeleteTextures()`.
+
+MW creates one external texture for each EGL image used to expose the frame. All resources in one frame use `GL_TEXTURE_EXTERNAL_OES`. After binding that target, MW associates the EGL image with the texture by calling `glEGLImageTargetTexture2DOES()` and configures texture parameters valid for an external texture. Sampling through `samplerExternalOES` returns the interpreted RGB(A) values required by Section 8.1.
+
+The resource order is:
+
+1. create the EGL image from the acquired DMA-BUF layout;
+2. create and bind the GL texture, then associate the EGL image with `glEGLImageTargetTexture2DOES()`;
+3. retain the frame and its EGL/GL resources until all graphics work using them has completed;
+4. delete the texture with `glDeleteTextures()`;
+5. destroy the EGL image with `eglDestroyImage()` or `eglDestroyImageKHR()`; and
+6. call `releaseFrame()` only after the texture and EGL image no longer reference the frame.
+
+Failure after partial construction deletes created textures, destroys created EGL images, closes all MW-owned FDs, and preserves the frame lock until that rollback is complete.
+
+### 8.4 Vulkan DMA-BUF image import and sampling
+
+The Vulkan implementation provides the functionality defined by:
+
+- `VK_KHR_external_memory`;
+- `VK_KHR_external_memory_fd`;
+- `VK_EXT_external_memory_dma_buf`, including `VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT`;
+- `VK_EXT_image_drm_format_modifier`;
+- `VK_KHR_get_memory_requirements2` and `VK_KHR_bind_memory2`, or their core equivalents; and
+- `VK_KHR_sampler_ycbcr_conversion`, or Vulkan 1.1 core functionality, for YUV capture formats.
+
+The complete query, import, and texturing path provides:
+
+- `vkEnumerateDeviceExtensionProperties()` or core-version checks to establish the required functionality;
+- `vkGetPhysicalDeviceFeatures2()` to confirm sampler-YCbCr conversion support where required;
+- `vkGetPhysicalDeviceFormatProperties2()` with `VkDrmFormatModifierPropertiesListEXT` to identify sampled-image support for the DRM modifier;
+- `vkGetPhysicalDeviceImageFormatProperties2()` with external-memory and DRM-modifier query structures to validate DMA-BUF import for the required image usage;
+- `vkCreateImage()` with `VkExternalMemoryImageCreateInfo` and `VkImageDrmFormatModifierExplicitCreateInfoEXT` populated from the concrete modifier plane layouts;
+- `vkGetMemoryFdPropertiesKHR()` for each DMA-BUF handle to be imported;
+- `vkGetImageMemoryRequirements2()` for whole-image or disjoint-plane memory requirements;
+- `vkAllocateMemory()` with `VkImportMemoryFdInfoKHR` and `VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT`;
+- `vkBindImageMemory2()`, including `VkBindImagePlaneMemoryInfo` for disjoint multi-planar images where required;
+- `vkCreateImageView()`; and
+- for YUV images, `vkCreateSamplerYcbcrConversion()` with `VkSamplerYcbcrConversionCreateInfo` populated from the source matrix, range, component mapping, and chroma siting, `VkSamplerYcbcrConversionInfo` on the image-view and sampler creation paths, and `vkCreateSampler()`.
+
+The queried format/modifier properties include sampled-image usage and the exact shared, separate, or mixed allocation arrangement represented by the capture pool. DRM image planes, DMA-BUF objects, Vulkan format planes, and DRM-modifier memory planes are distinct concepts; their counts are not assumed to be equal. The vendor declares the `VkFormat` and binding model that represent its fixed DRM format, modifier, and concrete pool layout.
+
+A successful `vkAllocateMemory()` carrying `VkImportMemoryFdInfoKHR` transfers ownership of that FD to the Vulkan implementation. MW does not close or reuse that FD afterward. When allocation fails before ownership transfers, MW closes the still-owned FD. If one DMA-BUF object must be imported into more than one Vulkan memory allocation, each ownership-transferring import uses its own valid duplicated FD.
+
+The Vulkan resource order is:
+
+1. query support and create the external, modifier-aware image;
+2. import and bind the memory required for each DMA-BUF object or Vulkan memory plane;
+3. create the required sampler-YCbCr conversion, image view, and sampler;
+4. retain the frame and all Vulkan resources until submitted graphics work using them has completed;
+5. destroy samplers and image views that depend on the conversion or image with `vkDestroySampler()` and `vkDestroyImageView()`;
+6. destroy the conversion with `vkDestroySamplerYcbcrConversion()` after its dependent objects;
+7. destroy the image with `vkDestroyImage()`;
+8. free imported memory with `vkFreeMemory()`; and
+9. call `releaseFrame()` only after every importing Vulkan resource has been destroyed or freed.
+
+Failure after partial construction unwinds resources in reverse dependency order. It destroys every created Vulkan object, frees every allocated memory object, closes every FD whose ownership did not transfer, and preserves the frame lock until rollback is complete.
+
+### 8.5 Vendor capability declaration
+
+The vendor supplies one matrix row for its advertised capture format, modifier, and concrete layout. The row declares:
+
+- the EGL format/modifier query result and external-only flag;
+- `GL_OES_EGL_image`, external-texture, and ESSL 3 support;
+- the Vulkan `VkFormat`, modifier, sampled-image features, external-memory importability, disjoint-plane support where applicable, and sampler-YCbCr conversion support;
+- support for the concrete plane count/order, offsets, strides, and plane-to-DMA-BUF-object mapping; and
+- confirmation that the layout is directly importable, sampleable as correctly interpreted RGB(A), and releasable through both graphics paths.
+
+This matrix is integration evidence. It does not add runtime capability fields or replace the normative requirements above.
+
+## 9. Session interface
 
 ```cpp
 class ICaptureSession
@@ -664,7 +800,7 @@ The **SoC vendor** supplies both `ICaptureSession` and the GStreamer integration
 
 Capture has no independent start/stop state or selection policy. It follows valid native scheduler selections after decoder consumption. A valid selection remains acquirable while scheduled output is paused at stationary STC; a state transition alone does not manufacture or advance one.
 
-## 9. Conformance checklist
+## 10. Conformance checklist
 
 An SoC implementation is conformant only when all of the following are true:
 
@@ -673,14 +809,15 @@ An SoC implementation is conformant only when all of the following are true:
 | Delivery and association | MW creates the westerossink instance, assigns it to playbin's `video-sink` property, sets the `rdk-capture-session` property on it, and drives it to READY. MW supplies exactly one pipeline-local session property directly to that sink before state transition. Capture is implemented directly in the sink or by a private helper attached to its scheduled-output path. | §6 |
 | Plumbing prototype | A runnable prototype proves property receipt on westerossink before `READY`, assignment to playbin, normal presentation, existing property behavior, and confirmed `NULL` teardown. | §6 |
 | Concurrent pipelines | Each concurrent pipeline has a distinct westerossink instance, session, and session-owned pool. No sink can access or publish selections through another pipeline's session. | §§5, 6 |
-| Capabilities and pool | `createPool()` synchronously provisions session-owned slot capacity and every required backing/resource reservation, then returns its concrete immutable, bounds-checked object/slot/plane description. READY validation performs no second pool allocation. Different slots have no overlapping ranges in one DMA-BUF object. The description is not passed back through the sink property, and caller-owned FDs are exported only at acquisition. | §§6–8 |
-| Native selection | Capture follows the same native scheduled-output selection used for normal presentation. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. | §§5, 6, 8 |
+| Capabilities and pool | `createPool()` synchronously provisions session-owned slot capacity and every required backing/resource reservation, then returns its concrete immutable, bounds-checked object/slot/plane description. READY validation performs no second pool allocation. Different slots have no overlapping ranges in one DMA-BUF object. The description is not passed back through the sink property, and caller-owned FDs are exported only at acquisition. | §§6, 7, 9 |
+| Native selection | Capture follows the same native scheduled-output selection used for normal presentation. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. | §§5, 6, 9 |
+| Graphics import and texturing | Both EGL/OpenGL ES and Vulkan directly import and sample the exact advertised format, modifier, plane layout, and DMA-BUF object mapping. Sampling yields correctly interpreted RGB(A). EGL and Vulkan FD ownership is observed, partial construction rolls back completely, importing resources are destroyed after graphics completion and before HAL frame release, and the vendor supplies the graphics capability matrix. | §8 |
 | Existing sink contract | Capture preserves normal presentation, sink properties, surface output, decoder discovery, subtitle integration, secondary-video behavior, geometry, visibility, immediate-output behavior, and scheduling. | §6 |
-| Frame identity, FD ownership and rollback | Valid slot identity and matching acquisition token mean one release is owed. Move constructor transfers token, slot index, and FDs, invalidating the source. HAL assigns unique non-zero token per acquisition. Acquisition requires invalid slot and token values and every FD exactly `-1`. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§4, 7, 8 |
-| Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 5, 8 |
+| Frame identity, FD ownership and rollback | Valid slot identity and matching acquisition token mean one release is owed. Move constructor transfers token, slot index, and FDs, invalidating the source. HAL assigns unique non-zero token per acquisition. Acquisition requires invalid slot and token values and every FD exactly `-1`. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§4, 7, 9 |
+| Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 5, 8, 9 |
 | Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, native scheduled selection, audio, or STC. | §§4–6 |
 | Sink teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. Scheduled output is disconnected safely during sink state teardown. | §§5, 6 |
-| Contract tests | Tests cover every area above, including missing/invalid/replaced session property, two concurrent pipelines without cross-association, preserved sink properties and presentation, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. | — |
+| HAL and sink contract tests | Tests cover missing/invalid/replaced session property, two concurrent pipelines without cross-association, preserved sink properties and presentation, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. Graphics conformance evidence is the capability matrix required by Section 8.5. | — |
 
 Failure of any mandatory gate means Video Frame Capture is unsupported on that implementation; it does not permit a weakened lifetime or playback-continuity contract.
 
