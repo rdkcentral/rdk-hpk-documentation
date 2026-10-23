@@ -8,7 +8,7 @@
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.7 | Draft for review | Added mandatory EGL/OpenGL ES and Vulkan requirements for direct DMA-BUF import, texturing, FD ownership, and graphics-resource cleanup. | Exact layout coverage, modifier-aware import, external-texture and YCbCr sampling, FD ownership, destruction order, and vendor capability declaration. |
+| 0.7 | Draft for review | Added mandatory EGL/OpenGL ES and Vulkan requirements and clarified the logical capture reservation model. | Graphics import and lifetime, retention-capacity admission, logical slot and object keys, acquisition-specific FDs, and stable backing while locked. |
 | 0.6 | Draft for review | Changed ICaptureSession delivery from GstContext to Gst property based on feedback that GstContext is pipeline-wide, not element-specific. Added westeros-sink-soc.h contract changes for property handling. Uprev to v0.6. | Property-based delivery approach, westeros-sink-soc.h contract changes, Section 6 restructuring to 5 focused sections |
 | 0.5 | Draft for review | Added ICaptureSession delivery mechanism documentation, clarifying comments to Westeros example showing platform-dependent factory selection, and factory function example. No API contract changes. | Delivery mechanism documentation, example clarity, and version bump. |
 | 0.4 | Draft for review | Kept the existing platform video sink as playbin's selected sink, supplied the capture session directly to that sink, permitted direct or private-helper capture integration, and added sink-compatibility checks. | Existing-sink association, property handling, scheduled-output attachment, preservation of normal sink behavior and properties, reference ownership, teardown, and integration tests. |
@@ -23,6 +23,7 @@
 - Defined EGL and Vulkan FD ownership, failure rollback, graphics-resource destruction, and HAL release ordering.
 - Added a vendor graphics capability declaration without extending the HAL or public API.
 - Moved the frame/plane/object conceptual model into Section 7 before the concrete representation examples.
+- Clarified that `CapturePool` admits concurrent retention and describes a fixed layout; it does not require a separate copied-frame pool or permanently assigned DMA-BUF backing.
 - Uprev to v0.7.
 
 ### What changed in version 0.6
@@ -52,7 +53,7 @@
 - `CapturedFrame` is non-copyable and move-constructible, with deleted move assignment. FD ownership remains separate from the one required frame release.
 - Failed HAL calls leave outputs unchanged, close descriptors created by the failed attempt, roll back temporary locks, and create no new caller obligation. Different slots cannot expose overlapping byte ranges.
 - The previous explicit `gst_frame_capture_attach()`/`detach()` side channel is replaced by one explicitly selected `framecapture` video sink or sink-bin per playbin. A pipeline-local GObject property supplies that sink with its borrowed `ICaptureSession`.
-- `createPool()` completes capacity and backing admission before GStreamer enters `READY`. `READY` validates compatibility and connects native scheduled output to the existing pool; it does not allocate another pool.
+- `createPool()` admits retention capacity and the fixed layout before GStreamer enters `READY`. `READY` validates compatibility and connects native scheduled output to the accepted capture contract.
 - Section 6 adds complete construction and rollback code plus a vendor integration-test template covering property validation, reference ownership, scheduled-output teardown, and concurrent-pipeline isolation.
 
 ### What changed in version 0.2
@@ -72,14 +73,14 @@ This specification defines the in-process contract between **MW** and the **SoC 
 ```text
 MW
  ├── knows the pipeline output requirement before graph construction
- ├── calls ICaptureSession and retains the returned pool description
+ ├── requests capture capacity and retains the returned layout
  ├── supplies the session to the existing platform video sink
  └── owns returned FDs and matching frame releases
 
 SoC vendor
  ├── implements ICaptureSession
  ├── integrates capture with the existing platform video sink
- ├── connects its session-owned pool to native scheduled output
+ ├── connects the capture session to native scheduled output
  └── provides EGL/OpenGL ES and Vulkan import for the fixed capture layout
 ```
 
@@ -91,7 +92,7 @@ MW means the middleware component that calls the HAL. This specification covers 
 
 This specification defines how the SoC vendor exposes decoded clear-video frames to MW.
 
-`ICaptureSession` provisions the capture slots and tracks their ownership while frames are retained. The SoC vendor chooses how those slots are backed and supplied to the scheduled-output path.
+`ICaptureSession` admits the capture capacity and tracks logical slots while frames are retained. The SoC vendor chooses how those slots are backed from its private native output.
 
 This adds to the existing SoC decode stack; it does not replace it.
 
@@ -99,8 +100,8 @@ This adds to the existing SoC decode stack; it does not replace it.
 
 | Role | Definition | Responsibilities |
 |------|------------|------------------|
-| **MW** | The middleware that calls the HAL. | - Determines each pipeline's output requirement before graph construction<br>- Obtains one session and creates one pool for each capture-enabled pipeline<br>- Retains the returned immutable pool description<br>- Obtains the pipeline's existing platform video sink, sets its session property, and assigns that same sink to playbin<br>- Closes returned FDs and releases acquired frames<br>- Keeps the session alive until sink teardown and all releases are complete |
-| **SoC vendor** | The provider of the decoder, capture, and graphics import implementation. | - Implements `ICaptureSession` and the advertised fixed layout<br>- Integrates capture with the existing platform video sink, directly or through a private helper<br>- Observes the native scheduled-output frame selection<br>- Uses the pool owned by the configured session<br>- Provides EGL/OpenGL ES and Vulkan direct import and sampling for the fixed layout<br>- Preserves normal presentation and the platform sink contract<br>- Exports FDs atomically and preserves locked frame contents<br>- Keeps decode, audio, STC, and scheduled selection running when capture slots are exhausted<br>- Tears down safely and accepts required late releases |
+| **MW** | The middleware that calls the HAL. | - Determines each pipeline's output requirement before graph construction<br>- Obtains one session and calls `createPool()` once to request concurrent retention capacity<br>- Retains the returned immutable layout<br>- Obtains the pipeline's existing platform video sink, sets its session property, and assigns that same sink to playbin<br>- Closes returned FDs and releases acquired frames<br>- Keeps the session alive until sink teardown and all releases are complete |
+| **SoC vendor** | The provider of the decoder, capture, and graphics import implementation. | - Implements `ICaptureSession` and the advertised fixed layout<br>- Integrates capture with the existing platform video sink, directly or through a private helper<br>- Owns native queue and backing management<br>- Observes the native scheduled-output frame selection<br>- Provides EGL/OpenGL ES and Vulkan direct import and sampling for the fixed layout<br>- Preserves normal presentation and the platform sink contract<br>- Exports FDs atomically and preserves locked frame contents<br>- Keeps decode, audio, STC, and scheduled selection running when capture slots are exhausted<br>- Tears down safely and accepts required late releases |
 
 ### 2.1 Vendor delivery information
 
@@ -156,23 +157,27 @@ The contract uses these terms exclusively:
 |---|---|
 | **Current selection** | The frame chosen by native scheduled output for the current STC/display position. |
 | **Frame** | The current selection's timestamp, visible region, slot, and exported FDs. One successful acquisition creates one frame lock. |
-| **Slot layout** | The fixed plane layout for one reusable pool slot. |
+| **Slot** | One logical position in the bounded set of frames that may be retained concurrently. It is not necessarily a physical buffer or native queue index. |
+| **Slot layout** | The fixed plane description used when a frame is bound to a logical slot. |
 | **Frame plane** | One DRM image plane and its byte range and stride within a DMA-BUF object. It owns no FD. |
-| **DMA-BUF object** | One DMA-BUF allocation. One object may back one or more planes or slots. |
-| **Exported DMA-BUF** | One valid raw FD in the MW process for a DMA-BUF object. On successful acquisition, ownership has transferred to MW; `fd >= 0` is owned and must be closed, and `-1` is invalid. The FD is not a frame lock. |
-| **Pool** | The concrete slot reservation owned by one session. `CapturePool` is MW's immutable description of its DMA-BUF object metadata and slot layouts; the description contains no FDs. |
+| **DMA-BUF object** | One logical object entry in the fixed layout. |
+| **DMA-BUF object index** | The key that joins frame planes to an acquisition's exported FD. It is not persistent physical allocation identity. |
+| **Exported DMA-BUF** | The acquisition-specific binding between one object index and one valid MW-process FD. On successful acquisition, `fd >= 0` is owned and must be closed, and `-1` is invalid. The FD is not a frame lock. |
+| **Pool** | The concurrent retention capacity and immutable object, slot, and plane layout accepted for one session. `CapturePool` contains no FDs and does not require a second native queue or copied frames. |
 
 The document does not use “buffer” as a synonym for either slot or frame. “Decoder output buffer” is used only when referring to a vendor-native object outside the capture-pool contract.
 
 ## 4. Mandatory ownership model
 
-The following behavior is normative; the allocation strategy is an SoC vendor decision:
+The following behavior is normative; native queue and backing management remain private to the SoC vendor:
 
-> `ICaptureSession` provisions the capture slots and owns their retention/lock state. The SoC vendor may back them with decoder DPB buffers, a separate capture pool, or another implementation. Regardless of strategy, a locked slot's contents must remain valid and must not be overwritten until its matching `releaseFrame()`. Pipeline teardown must not invalidate an outstanding acquired frame; resources needed to complete its late release remain valid until the session is closed.
+> `createPool()` confirms that the requested number of captured frames can be retained safely. How the vendor provides that capacity is private and may use existing native buffers; a separate capture-buffer allocation is not required. `ICaptureSession` owns the logical slot and lock state.
 
 MW owns the session from the caller side and releases each acquired frame exactly once. The SoC vendor owns the slot state and backing implementation.
 
-The decoder and capture path must not overwrite a locked slot or invalidate an acquired frame during teardown. Capture-slot exhaustion must not block decode, native scheduled selection, audio presentation, or STC progression. The backing strategy is a vendor choice.
+The backing bound to an acquired frame must remain unchanged until its matching `releaseFrame()`. After successful release, a later acquisition may reuse the logical slot with different backing and newly exported FDs. Pipeline teardown must not invalidate an outstanding acquired frame; resources needed to complete its late release remain valid until the session is closed.
+
+Capture-slot exhaustion must not block decode, native scheduled selection, audio presentation, or STC progression.
 
 FD lifetime and frame-content lifetime are separate. MW owns and explicitly closes every FD returned by a successful acquisition. Closing an FD does not release the frame lock, and an open FD does not preserve stable contents after release. MW completes every downstream use before calling `releaseFrame()`; after release, it must not access that frame and the SoC may reuse the slot.
 
@@ -182,7 +187,7 @@ A successful acquisition also guarantees that decoder writes, cache maintenance,
 
 ### 5.1 Pipeline-scoped lifetime
 
-MW knows whether a pipeline requires frame capture before graph construction. Each capture-enabled pipeline has one dedicated `ICaptureSession` and one session-owned pool. MW provisions that pool before the GStreamer integration in Section 6 and retains its immutable description as defined by `createPool()` in Section 9.
+MW knows whether a pipeline requires frame capture before graph construction. Each capture-enabled pipeline has one dedicated `ICaptureSession`. Before the GStreamer integration in Section 6, MW calls `createPool()` to confirm the required concurrent retention capacity and obtain the immutable layout defined in Section 9.
 
 A session belongs to one pipeline and is never reassociated or reused. Its lifetime extends beyond sink teardown until the final acquisition opportunity is resolved or abandoned and every acquired frame is released.
 
@@ -222,10 +227,10 @@ playbin instance
   -> westerossink instance
        -> capture integration (direct or private helper)
             -> ICaptureSession
-                 -> session-owned capture pool
+                 -> admitted capture reservation and layout
 ```
 
-Concurrent or dual video uses one complete relationship per pipeline. Sink A receives session A and can access only pool A; sink B receives session B and can access only pool B. The SoC implementation does not choose among active playbins. If a vendor-private graph contains multiple scheduled-output branches, the platform sink associates the session with the exact branch represented by that sink instance.
+Concurrent or dual video uses one complete relationship per pipeline. Sink A receives session A and can access only reservation A; sink B receives session B and can access only reservation B. The SoC implementation does not choose among active playbins. If a vendor-private graph contains multiple scheduled-output branches, the platform sink associates the session with the exact branch represented by that sink instance.
 
 ### 6.2 Session-property contract
 
@@ -233,7 +238,7 @@ The property name is `rdk-capture-session` with type G_TYPE_POINTER and value ty
 
 MW sets the property directly on the westerossink instance before any state transition that can start decoder output. The sink accepts exactly one non-null session. Reapplying the same pointer is idempotent; a null pointer or attempt to replace it with a different session is invalid.
 
-Before entering `READY`, the sink validates that `createPool()` completed successfully and that its native scheduled output and capture integration are compatible with that session-owned pool. `READY` does not allocate or reserve pool backing. Invalid configuration or incompatible setup makes the transition fail with a GStreamer error, rolls back partial capture setup, and starts no capture writes.
+Before entering `READY`, the sink validates that `createPool()` completed successfully and that native scheduled output can satisfy the accepted retention capacity and fixed layout. Invalid configuration or incompatible setup makes the transition fail with a GStreamer error, rolls back partial capture setup, and starts no capture writes.
 
 The property does not own the session, create a pool, or carry the `CapturePool` description. Private access to backing and scheduler state remains inside the paired vendor implementations.
 
@@ -299,7 +304,7 @@ The property must be registered in the class_init function.
 - **Connect**: During NULL→READY, after pool creation and before decoder starts, in `gst_westeros_sink_soc_null_to_ready()`
 - **Disconnect**: During READY→NULL, before decoder teardown, in `gst_westeros_sink_soc_ready_to_null()`
 
-This timing matches Section 6.2: READY validates compatibility and connects native scheduled output to the existing pool.
+This timing matches Section 6.2: READY validates compatibility and connects native scheduled output to the accepted capture contract.
 
 **Session lifetime**: The ICaptureSession pointer is borrowed by the sink. MW keeps it valid until sink teardown completes and retains the session longer when final acquisition or late release remains possible. The sink does not take ownership of the session.
 
@@ -324,7 +329,7 @@ MW -> Playbin: set video-sink = Sink
 MW -> Sink: set rdk-capture-session property
 MW -> Sink: set READY and wait for completion
 Sink -> Output: configure native output and capture integration
-Output -> Session: connect to session-owned pool
+Output -> Session: connect scheduled output to capture session
 Sink --> MW: READY validation succeeded
 MW -> Playbin: later activate configured pipeline
 Output -> Output: present and capture the same STC-selected frame
@@ -344,9 +349,9 @@ end note
 
 The application selects Video Frame Capture through its media API before pipeline construction. It does not manipulate GStreamer objects or pass `ICaptureSession` directly. MW performs the integration using one session and the westerossink instance.
 
-MW creates the westerossink instance, assigns it to playbin's `video-sink` property, sets the `rdk-capture-session` property on the westerossink instance, then drives it to READY to validate capture integration. Success proves that the sink accepted the property, validated compatibility, and connected its capture integration to the pool already created by `session.createPool()`. It does not claim that playbin has prerolled or activated a media source.
+MW creates the westerossink instance, assigns it to playbin's `video-sink` property, sets the `rdk-capture-session` property on the westerossink instance, then drives it to READY to validate capture integration. Success proves that the sink accepted the property and can connect native scheduled output to the accepted capture contract. It does not claim that playbin has prerolled or activated a media source.
 
-The caller retains `session` and `outPool` after success. `outPool` is used to interpret acquired frames; it is not passed to the sink. A failure after `createPool()` returns the sink to `NULL`. The pool remains owned by the session, so the caller discards that session and creates a fresh one for any retry.
+The caller retains `session` and `outPool` after success. `outPool` is the immutable layout used to interpret acquired frames; it is not passed to the sink. A failure after `createPool()` returns the sink to `NULL`, and the caller discards that session and creates a fresh one for any retry.
 
 Pipeline teardown takes playbin to `NULL`, which destroys the westerossink instance. MW retains the session until teardown completes, the final acquisition opportunity is resolved, and every acquired frame has been released.
 
@@ -486,19 +491,21 @@ struct CapturedFrame
 
 The value types follow these rules:
 
-- `backingSize` describes the capacity of each logical slot; it does not require a particular physical allocation strategy.
+- `backingSize` gives the fixed dimensions supported by each logical slot; it does not identify physical backing.
+- `DmaBufObject.sizeBytes` gives the minimum size of the object bound to that object key for an acquisition; it does not pre-create or identify a physical allocation.
 - MW owns each successful `fd >= 0`, closes it explicitly, and sets it to `-1`. `-1` means invalid. Destructors do not close FDs.
 - `CapturedFrame` is non-copyable. A valid `slotIndex` and matching `acquisitionToken` mean exactly one `releaseFrame()` is owed, independently of FD ownership.
 - The HAL assigns a unique non-zero `acquisitionToken` for each successful acquisition. The token is opaque; MW must not interpret or reconstruct it.
 - Moving a frame through the move constructor transfers its metadata, FDs, token, and release obligation without `dup()` or `close()`. The source FDs become `-1`, its `slotIndex` becomes `kInvalidCaptureSlotIndex`, and its `acquisitionToken` becomes `kInvalidAcquisitionToken`.
 - Move assignment is deleted to avoid undefined behavior when the destination is non-empty. To reuse an existing instance, callers must release its frame lock, close and invalidate its FDs, return it to the empty state, and pass it to `acquireCurrentFrame()`; transferring ownership to a different object requires the move constructor.
-- Pool `slotIndex` and `objectIndex` values equal their positions in `slotLayouts` and `dmaBufObjects`. They are unique and contiguous from zero; no pool slot may use `kInvalidCaptureSlotIndex`.
+- Pool `slotIndex` and `objectIndex` values equal their positions in `slotLayouts` and `dmaBufObjects`. They are unique and contiguous from zero; no pool slot may use `kInvalidCaptureSlotIndex`. They are layout and bookkeeping keys, not native queue indices, FD identities, or persistent allocation identities.
 - `planeIndex` follows the plane order defined by the reported DRM format. Import code maps that order to its graphics API.
 - Each plane references one valid object. Validate its range without overflow: `offsetBytes <= sizeBytes` and `lengthBytes <= sizeBytes - offsetBytes`. The range and stride must fit the advertised layout.
-- For any two planes that belong to different slots and reference the same DMA-BUF object, their half-open byte ranges `[offsetBytes, offsetBytes + lengthBytes)` must not overlap. Planes within one slot may share an object as defined by that format, but storage exposed by different slots is disjoint.
+- For any two planes that belong to different slots and can be bound within the same physical DMA-BUF object, their half-open byte ranges `[offsetBytes, offsetBytes + lengthBytes)` must not overlap. Planes within one slot may share an object as defined by that format. Binding simultaneously locked slots to distinct physical allocations also provides the required content isolation.
 - For every `OK` frame, validate `visibleRegion` without overflow: `x <= backingSize.width`, `size.width <= backingSize.width - x`, `y <= backingSize.height`, and `size.height <= backingSize.height - y`.
 - Plane and object metadata remain fixed for the pool lifetime. Storage not exposed as a DRM plane remains part of its DMA-BUF object.
-- On `OK`, `exportedDmaBufs` contains exactly one entry for each distinct object referenced by the selected slot, with no duplicate or unrelated object. Object index—not FD value—is the join key.
+- On `OK`, `exportedDmaBufs` contains exactly one entry for each distinct object referenced by the selected slot, with no duplicate or unrelated object. The selected slot's planes are resolved by joining `FramePlane.dmaBufObjectIndex` to `ExportedDmaBuf.dmaBufObjectIndex` in that frame.
+- Each locked frame has its own stable object-to-FD bindings. After release and slot reuse, the same logical object keys may bind different physical allocations and newly exported FDs.
 
 Plane count, object count, and FD count are independent.
 
@@ -520,10 +527,10 @@ Frame (selected content and timing)
 
 - A **Frame** is decoded content written to one reusable slot at a specific STC selection.
 - Its **slot layout** contains one logical record for each DRM plane.
-- Each **frame plane** references exactly one **DMA-BUF object** and describes its byte range and stride within that allocation.
+- Each **frame plane** references exactly one **DMA-BUF object** role and describes its byte range and stride within the object bound for that acquisition.
 - Several planes may reference the same object at different offsets, or each plane may reference a different object. Mixed arrangements are valid.
 - A successful acquisition exports one FD for each distinct object referenced by the selected slot, never one FD per plane by implication.
-- The process-local FD value is not object identity. `dmaBufObjectIndex` is the join key between plane layout and exported handle records.
+- Neither the process-local FD value nor `dmaBufObjectIndex` is physical allocation identity. `dmaBufObjectIndex` joins the fixed plane layout to that acquisition's exported handle records.
 
 ### 7.2 Valid frame representations
 
@@ -627,9 +634,9 @@ For the requested slot count, `CapturePool` describes:
 - each DMA-BUF object's index and size; and
 - each slot's indexed planes, object references, offsets, lengths, and strides.
 
-Every slot supports `backingSize`; that size must not exceed `maximumContentSize`. `slotLayouts.size()` equals the requested count, which must not exceed `maximumSlots`. For each DMA-BUF object, `createPool()` must validate that no byte range referenced by one slot overlaps a byte range referenced by another slot. A pool with cross-slot overlap is invalid and must not be returned as `OK`.
+Every slot supports `backingSize`; that size must not exceed `maximumContentSize`. `slotLayouts.size()` equals the requested count, which must not exceed `maximumSlots`. If different slots can be bound within the same physical DMA-BUF object, `createPool()` must validate that their referenced byte ranges do not overlap. Alternatively, distinct physical allocations for simultaneously locked slots provide the required content isolation.
 
-The capability values and concrete pool layout remain fixed until the session is closed. Resolution or crop changes update `CapturedFrame.visibleRegion`; they do not replace the slot reservation.
+The format, modifier, dimensions, plane topology, offsets, strides, object sizes and roles, and slot count remain fixed until the session is closed. Physical DMA-BUF identity and FD values are acquisition-specific and may change after release. Resolution or crop changes update `CapturedFrame.visibleRegion`; they do not replace the slot reservation.
 
 If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represented by the implemented capture layout, capture returns `UNSUPPORTED` or `FATAL_ERROR` and stops updating its current selection. It does not silently disable capture while continuing only normal platform-sink output; MW chooses any later pipeline reconstruction. Unrelated normal-output pipelines remain available. Runtime capture-slot replacement is outside this specification. One `ICaptureSession` has one logical slot reservation for its complete lifetime.
 
@@ -639,7 +646,7 @@ If content exceeds `CaptureCapabilities.maximumContentSize` or cannot be represe
 
 A conforming implementation supports both EGL/OpenGL ES and Vulkan import paths for its fixed capture contract. In each path, the imported resource directly references the acquired frame's DMA-BUF backing. An intermediate copy or conversion into different backing does not satisfy this requirement.
 
-Both paths support the exact combination described by the session's `CaptureCapabilities` and `CapturePool`: DRM format and modifier; plane count and DRM plane order; every plane's object index, offset, length, and stride; and the shared-object, separate-object, or mixed DMA-BUF mapping. A combination is supported only when it can be sampled, not merely queried, allocated, or imported.
+Both paths combine the immutable `CaptureCapabilities` and `CapturePool` layout with the selected frame's acquisition-specific object-to-FD bindings. They support the exact DRM format and modifier; plane count and DRM plane order; every plane's object index, offset, length, and stride; and the shared-object, separate-object, or mixed DMA-BUF mapping. Import does not assume persistent DMA-BUF identity across acquisitions. A combination is supported only when it can be sampled, not merely queried, allocated, or imported.
 
 For a YUV capture layout, sampling returns correctly interpreted RGB(A) using the source matrix, full or narrow sample range, and chroma siting. The graphics implementation performs that interpretation during external-texture or sampler-YCbCr sampling; the consumer is not required to sample raw YUV planes or select the conversion.
 
@@ -770,9 +777,9 @@ public:
 };
 ```
 
-`getCapabilities()` reports exactly the fixed `drmFormat`, `drmModifier`, `maximumContentSize`, and `maximumSlots` for the session. It does not report plane count/order, DMA-BUF objects, plane mappings, offsets, lengths, strides, or actual pool backing size. `OK` fully populates `out`; every non-`OK` result leaves it unchanged.
+`getCapabilities()` reports exactly the fixed `drmFormat`, `drmModifier`, `maximumContentSize`, and `maximumSlots` for the session. It does not report plane count/order, DMA-BUF objects, plane mappings, offsets, lengths, strides, or the concrete capture dimensions. `OK` fully populates `out`; every non-`OK` result leaves it unchanged.
 
-`createPool()` accepts `slotCount` only when `slotCount > 0` and `slotCount <= maximumSlots`; otherwise it returns `INVALID_ARGUMENT` and leaves `outPool` unchanged. The call may complete successfully only once per session; a later call returns `INVALID_ARGUMENT`. On `OK`, it synchronously provisions the requested session-owned slot capacity and every backing/resource reservation required for the sink to enter `READY` and capture into those slots. It returns the concrete immutable pool layout: `backingSize`, DMA-BUF object indices/sizes, and each slot's plane indices, object references, offsets, lengths, and strides. It does not repeat format or modifier and contains no FDs. Every plane range must pass the overflow-safe validation in Section 7. `backingSize` must not exceed `maximumContentSize`, and the returned layout must be valid for the same session's format and modifier. Every non-`OK` result leaves `outPool` unchanged, releases partial provisioning, and creates no pool.
+`createPool()` accepts `slotCount` only when `slotCount > 0` and `slotCount <= maximumSlots`; otherwise it returns `INVALID_ARGUMENT` and leaves `outPool` unchanged. The call may complete successfully only once per session; a later call returns `INVALID_ARGUMENT`. On `OK`, it synchronously admits the requested logical retention capacity and guarantees that up to `slotCount` distinct captured selections can remain locked without stalling normal playback. It returns the concrete immutable pool layout: `backingSize`, DMA-BUF object indices/sizes, and each slot's plane indices, object references, offsets, lengths, and strides. It does not repeat format or modifier, contains no FDs, and need not bind slots to physical backing or allocate additional frame buffers. Every plane range must pass the overflow-safe validation in Section 7. `backingSize` must not exceed `maximumContentSize`, and the returned layout must be valid for the same session's format and modifier. Every non-`OK` result leaves `outPool` unchanged, releases any partial admission, and creates no pool.
 
 The capability result and pool belong to the same session and are interpreted together. Format, modifier, and limits remain fixed for that session. MW keeps both records while it needs to interpret the pool; no extra capability fields or duplicated pool fields are implied.
 
@@ -780,11 +787,11 @@ The SoC vendor chooses how to provide the slots. `maximumSlots` is the greatest 
 
 `acquireCurrentFrame()` requires an empty `outFrame`: `slotIndex == kInvalidCaptureSlotIndex`, `acquisitionToken == kInvalidAcquisitionToken`, and every `ExportedDmaBuf.fd == -1`. These are the exact empty-state conditions defined in Section 7; any other FD value, including a negative value other than `-1`, is non-empty. A valid slot index and matching token mean that output still owes a release even if all its FDs are already closed and set to `-1`. Passing a non-empty output returns `INVALID_ARGUMENT` without changing it.
 
-For an empty output, the method examines the current native selection. A new selection is temporarily locked, all required FDs are exported, and the complete result—including the valid slot index and release obligation—is moved into `outFrame` before returning `OK`. Every returned FD is valid in the MW process, is independently owned by MW before the call returns, and remains valid if the vendor implementation closes any descriptor from which it was obtained. The vendor may obtain, duplicate, export, or transport the descriptor through in-process or vendor-service-specific mechanisms; those mechanisms and their descriptor lifetimes are private and are not part of this interface. No valid selection returns `NO_FRAME`; an already returned selection returns `NO_NEW_FRAME`. Every non-`OK` result leaves `outFrame` unchanged and creates no release obligation.
+For an empty output, the method examines the current native selection. A new selection is temporarily locked and bound to a free logical slot or equivalent admitted bookkeeping entry. One FD for each distinct object required by that frame is exported, and the complete result—including the valid slot index and release obligation—is moved into `outFrame` before returning `OK`. That logical-to-native binding remains unchanged until release. Every returned FD is valid in the MW process, is independently owned by MW before the call returns, and remains valid if the vendor implementation closes any descriptor from which it was obtained. The vendor may obtain, duplicate, export, or transport the descriptor through in-process or vendor-service-specific mechanisms; those mechanisms and their descriptor lifetimes are private and are not part of this interface. No valid selection returns `NO_FRAME`; an already returned selection returns `NO_NEW_FRAME`. Every non-`OK` result leaves `outFrame` unchanged and creates no release obligation.
 
 If descriptor creation/export fails because a transient resource is unavailable, including descriptor exhaustion, `acquireCurrentFrame()` returns `NO_RESOURCES`. Before returning, the vendor implementation explicitly closes every FD created for that attempt, removes the temporary lock, leaves the selection not returned, and does not move any result into `outFrame`. No matching release is required and the selection remains retriable. An unrecoverable session/backing failure returns `FATAL_ERROR` with the same all-or-nothing cleanup. `FATAL_ERROR` is not retriable; capture is unavailable for the remainder of the session. An implementation that cannot roll back atomically is non-conformant.
 
-`createPool()` is the synchronous provisioning point for the session-owned slots and the backing/resource capacity represented by `outPool`. After it returns `OK`, sink validation at `READY` must not require another fallible pool allocation or reservation step. This does not pre-create or export caller-owned DMA-BUF FDs: for each successful acquisition, `acquireCurrentFrame()` creates/exports the FD handles needed to access the selected slot's DMA-BUF objects. A vendor may map a selected native allocation into a reserved logical slot when that scheduler selection is captured and crystallize/export its handles only at acquisition, but the capacity and fixed layout were already admitted by `createPool()`. No newly created caller-owned FD handles from a failed attempt survive any non-`OK` result; any pre-existing value in `outFrame` remains the caller's unchanged responsibility.
+`createPool()` is the synchronous admission point for the logical retention capacity represented by `outPool`. After it returns `OK`, sink validation at `READY` must not require another fallible capacity-admission step. The vendor may use existing native backing or dedicated backing. The call does not pre-create or export caller-owned DMA-BUF FDs: for each successful acquisition, `acquireCurrentFrame()` exports the FD handles needed to access the selected frame's DMA-BUF objects. A vendor may bind a selected native allocation to a logical slot only when that scheduler selection is captured, but the capacity and fixed layout were already admitted by `createPool()`. No newly created caller-owned FD handles from a failed attempt survive any non-`OK` result; any pre-existing value in `outFrame` remains the caller's unchanged responsibility.
 
 On `OK`, MW owns every descriptor in `outFrame.exportedDmaBufs` and must close each one explicitly. Descriptor closure neither releases nor satisfies the HAL frame lock. The lock protects frame contents until the caller invokes the one matching `releaseFrame()` after all use has ended.
 
@@ -792,7 +799,7 @@ The SoC implementation determines whether a native scheduler selection is new us
 
 Every `OK` acquisition establishes one lock for one distinct captured selection. Several acquired frames may lock different slots concurrently, but there is at most one live lock per slot and one successful acquisition per selection. MW may share access through references or one shared owner around the non-copyable record and calls `releaseFrame()` once when final use ends.
 
-`releaseFrame(CapturedFrame &frame)` requires a valid slot index and a matching acquisition token. The HAL validates that the token corresponds to the current lock for that slot; a mismatched token indicates a stale or reconstructed frame and returns `INVALID_ARGUMENT`. On `OK`, it releases that slot lock and sets `frame.slotIndex` to `kInvalidCaptureSlotIndex` and `frame.acquisitionToken` to `kInvalidAcquisitionToken`. It does not inspect or close FDs, so MW must still close any open FDs separately. A successful release makes the frame invalid for content access even if an FD remains open.
+`releaseFrame(CapturedFrame &frame)` requires a valid slot index and a matching acquisition token. The HAL validates that the token corresponds to the current lock for that slot; a mismatched token indicates a stale or reconstructed frame and returns `INVALID_ARGUMENT`. On `OK`, it releases that slot lock, ends the logical-to-native binding, and sets `frame.slotIndex` to `kInvalidCaptureSlotIndex` and `frame.acquisitionToken` to `kInvalidAcquisitionToken`. Only then may the vendor make the native frame eligible for queue reuse or bind the slot's object roles to different backing. It does not inspect or close FDs, so MW must still close any open FDs separately. A successful release makes the frame invalid for content access even if an FD remains open.
 
 An invalid, moved-from, out-of-range, stale, or currently unlocked slot index, or a mismatched acquisition token, returns `INVALID_ARGUMENT`. Every non-`OK` result leaves both the frame and its existing lock state unchanged, so a valid frame retains exactly one release obligation. A slot cannot be reused while its lock remains active.
 
@@ -808,13 +815,13 @@ An SoC implementation is conformant only when all of the following are true:
 |---|---|---|
 | Delivery and association | MW creates the westerossink instance, assigns it to playbin's `video-sink` property, sets the `rdk-capture-session` property on it, and drives it to READY. MW supplies exactly one pipeline-local session property directly to that sink before state transition. Capture is implemented directly in the sink or by a private helper attached to its scheduled-output path. | §6 |
 | Plumbing prototype | A runnable prototype proves property receipt on westerossink before `READY`, assignment to playbin, normal presentation, existing property behavior, and confirmed `NULL` teardown. | §6 |
-| Concurrent pipelines | Each concurrent pipeline has a distinct westerossink instance, session, and session-owned pool. No sink can access or publish selections through another pipeline's session. | §§5, 6 |
-| Capabilities and pool | `createPool()` synchronously provisions session-owned slot capacity and every required backing/resource reservation, then returns its concrete immutable, bounds-checked object/slot/plane description. READY validation performs no second pool allocation. Different slots have no overlapping ranges in one DMA-BUF object. The description is not passed back through the sink property, and caller-owned FDs are exported only at acquisition. | §§6, 7, 9 |
+| Concurrent pipelines | Each concurrent pipeline has a distinct westerossink instance, session, capture reservation, and layout. Each sink publishes selections only through its own pipeline's session. | §§5, 6 |
+| Capacity and layout | `createPool()` admits the requested concurrent retention capacity before `READY` and returns its concrete immutable, bounds-checked object/slot/plane description. Existing native backing may satisfy that admission. Logical slots and object indices are bookkeeping and layout keys. Different slots have isolated contents, and caller-owned FDs are exported only at acquisition. | §§4, 6, 7, 9 |
 | Native selection | Capture follows the same native scheduled-output selection used for normal presentation. It returns `NO_FRAME` without a valid selection, `OK` once for a new selection, and `NO_NEW_FRAME` for a repeated selection. | §§5, 6, 9 |
 | Graphics import and texturing | Both EGL/OpenGL ES and Vulkan directly import and sample the exact advertised format, modifier, plane layout, and DMA-BUF object mapping. Sampling yields correctly interpreted RGB(A). EGL and Vulkan FD ownership is observed, partial construction rolls back completely, importing resources are destroyed after graphics completion and before HAL frame release, and the vendor supplies the graphics capability matrix. | §8 |
 | Existing sink contract | Capture preserves normal presentation, sink properties, surface output, decoder discovery, subtitle integration, secondary-video behavior, geometry, visibility, immediate-output behavior, and scheduling. | §6 |
 | Frame identity, FD ownership and rollback | Valid slot identity and matching acquisition token mean one release is owed. Move constructor transfers token, slot index, and FDs, invalidating the source. HAL assigns unique non-zero token per acquisition. Acquisition requires invalid slot and token values and every FD exactly `-1`. Move assignment is deleted. MW closes one FD per distinct object. Export failure rolls back and leaves output unchanged. | §§4, 7, 9 |
-| Frame locks and synchronization | One `OK` creates one lock. Successful release invalidates the slot identity but leaves FD ownership unchanged. Locked contents remain stable until MW completes use and releases the frame. | §§4, 5, 8, 9 |
+| Frame locks and synchronization | One `OK` creates one lock with stable physical backing and object-to-FD bindings. Successful release ends that binding and invalidates the slot identity while leaving FD ownership unchanged. A later acquisition may then bind the logical slot and object roles to different backing. | §§4, 5, 7–9 |
 | Exhaustion and playback | Slot exhaustion may omit capture selections but must not stop decode, native scheduled selection, audio, or STC. | §§4–6 |
 | Sink teardown | Final acquisition, transient retry, outstanding frame validity, late release, and session close follow the ordered teardown contract. Scheduled output is disconnected safely during sink state teardown. | §§5, 6 |
 | HAL and sink contract tests | Tests cover missing/invalid/replaced session property, two concurrent pipelines without cross-association, preserved sink properties and presentation, invalid/default/moved/released frame identity, move constructor, acquisition token validation, acquisition-output reuse, capability/pool pairing, layout bounds and cross-slot non-overlap, rollback, repeated/concurrent acquisition, exhaustion, sink teardown, final acquisition, and late release. Graphics conformance evidence is the capability matrix required by Section 8.5. | — |
