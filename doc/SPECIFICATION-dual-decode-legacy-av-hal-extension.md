@@ -530,7 +530,9 @@ For OTT applications using the GStreamer-managed playback model, the application
 
 This is the default behaviour for OTT application switches. There is no delayed-release path for transitions between GStreamer-managed OTT applications because the application process is responsible for ordering its own teardown and acquisition flow.
 
-ESSOS Resource Manager remains the fallback and arbitration mechanism when non-GStreamer applications, such as HDMI In or Composite In, continue to run while a GStreamer-based OTT application is being torn down. In that case the orderly-release path through ESSOS is still required so that a non-GStreamer application can acquire or retain AV resources before the GStreamer application has fully released them.
+For OTT applications, the platform shall continue to use the ESSOS Resource Manager for the orderly acquisition and release of video, audio, and SVP resources across the application lifecycle even when the outgoing GStreamer pipeline is shut down before the next OTT pipeline starts. The timing of HDMI In and Composite In players is external to the OTT application and cannot be assumed to follow a clean handover sequence, so the resource-manager path must remain valid for both the planned transition and the race that occurs when a competing non-GStreamer player requests the same AV resources while the OTT pipeline is still winding down.
+
+In the disorderly case, when a non-GStreamer application requests AV resources before the GStreamer-based OTT application has fully released them, ESSOS Resource Manager shall arbitrate the handover by revoking or reassigning the exiting player resources as required so that the entering non-GStreamer application can acquire or retain the necessary AV resources without mixed ownership.
 
 In dual-decode scenarios, if ESSOS Resource Manager revokes one video resource during a transition, the platform shall revoke all video resources owned by the exiting player together. This is required to prevent video from the exiting player being mixed with video from the entering player during handover.
 
@@ -546,7 +548,7 @@ For transitions between two GStreamer-managed OTT applications:
 - the exiting application shall release video decoders, audio decoders, and SVP allocators before the entering application acquires them; and
 - the entering application shall wait for release confirmation before activating the next resource acquisition.
 
-There is no delayed-release path for OTT application-to-OTT application transitions. The resource-management model is application-driven and shall be implemented as an orderly release and re-acquisition sequence.
+There is no delayed-release path for OTT application-to-OTT application transitions. The resource-management model is application-driven, but it shall still be expressed through the ESSOS Resource Manager so that the platform remains safe even when a competing non-GStreamer player arrives before the previous OTT pipeline has fully finished tearing down.
 
 Orderly-release path, where the exiting application releases resources before the entering application requests them:
 
@@ -746,16 +748,15 @@ An implementation is conformant only when all of the following are true:
 | 2 | Up to two playback pipelines in one application process can be represented by capability reporting when supported. |
 | 3 | `res-usage` is available early enough to select the appropriate video decoder before the `NULL` to `READY` resource request is issued. |
 | 4 | On asymmetric video-decoder platforms, `res-usage` distinguishes the high-specification UHD path from the lower-specification FHD path. |
-| 5 | GStreamer context and sink property signalling coexist, with the direct sink property taking precedence on conflict. |
-| 6 | ESSOS `assignedId` values are used by vendor plugins to open the selected video-decoder and audio-decoder instances. |
-| 7 | Audio decoder resources are treated symmetrically and are represented as multiple configured resources in ESSOS. |
-| 8 | Audio mixer ownership for main and secondary playback inputs is process-scoped, and an entering process is isolated from stale playback audio injected by an exiting process. |
-| 9 | Asymmetric SVP platforms signal SVP usage and provide separate UHD and FHD allocator resources in ESSOS configuration. |
-| 10 | Symmetric SVP platforms do not require usage-based allocator selection and may define allocator resources symmetrically. |
-| 11 | DRM-session provisioning occurs before pipeline construction and supports the platform's declared concurrent playback model. |
-| 12 | Transition handling prevents mixed ownership that would produce overlapping or blended video from exiting and entering players. |
-| 13 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
-| 14 | ESSOS Resource Manager support is available as the mandatory fallback resource-management model for cross-application transitions when the application resource manager does not provide smooth handover. |
+| 5 | ESSOS `assignedId` values are used by vendor plugins to open the selected video-decoder and audio-decoder instances. |
+| 6 | Audio decoder resources are treated symmetrically and are represented as multiple configured resources in ESSOS. |
+| 7 | Audio mixer ownership for main and secondary playback inputs is process-scoped, and an entering process is isolated from stale playback audio injected by an exiting process. |
+| 8 | Asymmetric SVP platforms signal SVP usage and provide separate UHD and FHD allocator resources in ESSOS configuration. |
+| 9 | Symmetric SVP platforms do not require usage-based allocator selection and may define allocator resources symmetrically. |
+| 10 | DRM-session provisioning occurs before pipeline construction and supports the platform's declared concurrent playback model. |
+| 11 | Transition handling prevents mixed ownership that would produce overlapping or blended video from exiting and entering players. |
+| 12 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
+| 13 | ESSOS Resource Manager support is available for switching between non-GStreamer-based applications, and between non-GStreamer-based and GStreamer-based applications, including the revoke-driven arbitration path required when the competing application requests AV resources before teardown completes. |
 
 Failure of any mandatory gate means concurrent playback is unsupported on that implementation or supported only within a narrower capability set explicitly declared by the platform.
 
