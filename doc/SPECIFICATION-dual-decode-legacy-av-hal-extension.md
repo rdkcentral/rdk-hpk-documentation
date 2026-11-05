@@ -670,44 +670,28 @@ sequenceDiagram
     participant G_OTT as Exiting GStreamer pipeline<br/>A/B
     participant V_OTT as Exiting Video<br/>Element A/B
     participant A_OTT as Exiting Audio<br/>Element A/B
-    participant S_OTT as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
-    participant APP_NG as Entering Non-GStreamer<br/>AV Player
-    participant G_NG as Platform pipeline<br/>A
-    participant V_NG as Entering Video<br/>Element A
-    participant A_NG as Entering Audio<br/>Element A
-    participant S_NG as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
+    participant APP_NG as Non-GStreamer<br/>AV Player
 
-    Note over V_OTT,S_OTT: Exiting OTT pipeline is still tearing down and may still own a live AV resource
-    Note over V_NG,S_NG: Entering non-GStreamer player requests resources while the OTT resource release is still in flight
+    Note over V_OTT,A_OTT: Exiting OTT pipeline is still tearing down and may still own AV resources
+    Note over APP_NG: Entering non-GStreamer player requests audio and video resources sequentially
 
     AM->>APP_NG: launch non-GStreamer player before OTT teardown completes
-    APP_NG->>G_NG: activate platform pipeline A
-    G_NG->>V_NG: request video resource A
-    V_NG->>RM: EssRMgrRequestResource(video, notifyCB)
-    RM->>V_OTT: revoke or reassign the exiting video resource to the entering player 
+    APP_NG->>RM: EssRMgrRequestResource(video, notifyCB)
+    RM->>V_OTT: revoke or reassign the exiting video resource to the entering player
     V_OTT-->>RM: revoke callback and release in progress
-    RM-->>V_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    G_NG->>A_NG: request audio resource A
-    A_NG->>RM: EssRMgrRequestResource(audio, notifyCB)
+    APP_NG->>RM: EssRMgrRequestResource(audio, notifyCB)
     RM->>A_OTT: revoke or reassign the exiting audio resource to the entering player
     A_OTT-->>RM: revoke callback and release in progress
-    RM-->>A_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G_NG->>S_NG: request SVP resource if required
-    S_NG->>RM: EssRMgrRequestResource(svp, notifyCB)
-    RM->>S_OTT: revoke or reassign the exiting SVP resource to the entering player
-    S_OTT-->>RM: revoke callback and release in progress
-    RM-->>S_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     APP_OTT->>G_OTT: exiting OTT teardown completes after arbitration
     G_OTT->>V_OTT: release remaining video references
     V_OTT->>RM: EssRMgrReleaseResource(video)
     G_OTT->>A_OTT: release remaining audio references
     A_OTT->>RM: EssRMgrReleaseResource(audio)
-    G_OTT->>S_OTT: release remaining SVP references
-    S_OTT->>RM: EssRMgrReleaseResource(svp)
 ```
 
 ### 12.4 Non-GStreamer-based AV player to GStreamer-managed OTT application
@@ -779,47 +763,25 @@ sequenceDiagram
     autonumber
     participant AM as Application manager
     participant APP_OTT as Entering GStreamer<br/>Application Process
-    participant G_OTT as Entering GStreamer pipeline<br/>A/B
-    participant V_OTT as Entering Video<br/>Element A/B
-    participant A_OTT as Entering Audio<br/>Element A/B
-    participant S_OTT as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP_NG as Exiting Non-GStreamer<br/>AV Player
-    participant G_NG as Exiting platform pipeline<br/>A
-    participant V_NG as Exiting Video<br/>Element A
-    participant A_NG as Exiting Audio<br/>Element A
-    participant S_NG as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
 
-    Note over V_NG,S_NG: Exiting non-GStreamer resource owner is still tearing down and may still hold AV resources
-    Note over V_OTT,S_OTT: Entering GStreamer pipeline begins acquisition before the previous player fully releases its ownership
+    Note over APP_NG: Exiting non-GStreamer player still owns the current audio and video resources
+    Note over APP_OTT: Entering GStreamer OTT application requests resources while the non-GStreamer player is still unwinding
 
-    AM->>APP_OTT: launch incoming OTT application before the non-GStreamer player has completed teardown
-    APP_OTT->>G_OTT: activate entering GStreamer pipeline A/B
-    G_OTT->>V_OTT: request video resources A/B
-    V_OTT->>RM: EssRMgrRequestResource(video A/B, notifyCB)
-    RM->>V_NG: revoke or reassign the exiting video resource to the entering OTT player
-    V_NG-->>RM: revoke callback and release in progress
-    RM-->>V_OTT: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    AM->>APP_OTT: launch incoming OTT application before non-GStreamer teardown is complete
+    APP_OTT->>RM: EssRMgrRequestResource(video A/B, notifyCB)
+    RM->>APP_NG: revoke or reassign the exiting video resource to the entering OTT player
+    APP_NG-->>RM: revoke callback and release in progress
+    RM-->>APP_OTT: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    G_OTT->>A_OTT: request audio resources A/B
-    A_OTT->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
-    RM->>A_NG: revoke or reassign the exiting audio resource to the entering OTT player
-    A_NG-->>RM: revoke callback and release in progress
-    RM-->>A_OTT: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    APP_OTT->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
+    RM->>APP_NG: revoke or reassign the exiting audio resource to the entering OTT player
+    APP_NG-->>RM: revoke callback and release in progress
+    RM-->>APP_OTT: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    G_OTT->>S_OTT: request SVP resources A/B if required
-    S_OTT->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM->>S_NG: revoke or reassign the exiting SVP resource to the entering OTT player
-    S_NG-->>RM: revoke callback and release in progress
-    RM-->>S_OTT: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    APP_NG->>G_NG: exiting non-GStreamer player completes teardown after arbitration
-    G_NG->>V_NG: release remaining video references
-    V_NG->>RM: EssRMgrReleaseResource(video)
-    G_NG->>A_NG: release remaining audio references
-    A_NG->>RM: EssRMgrReleaseResource(audio)
-    G_NG->>S_NG: release remaining SVP references
-    S_NG->>RM: EssRMgrReleaseResource(svp)
+    APP_NG->>RM: release any remaining video and audio resources after arbitration
+    RM-->>APP_NG: final resource release acknowledged
 ```
 
 ### 12.5 Non-GStreamer-based AV player to non-GStreamer-based AV player
