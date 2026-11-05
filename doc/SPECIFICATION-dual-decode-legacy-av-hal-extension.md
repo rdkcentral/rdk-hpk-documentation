@@ -8,7 +8,7 @@
 - [2. Roles and responsibilities](#2-roles-and-responsibilities)
 - [3. Scope](#3-scope)
 - [4. Architecture facts and assumptions](#4-architecture-facts-and-assumptions)
-- [5. GStreamer property extensions](#5-gstreamer-property-extensions)
+- [5. GStreamer context and `res-usage` documentation](#5-gstreamer-context-and-res-usage-documentation)
 - [6. Resource identification model](#6-resource-identification-model)
 - [7. Video decoder and video plane resource model](#7-video-decoder-and-video-plane-resource-model)
 - [8. Audio decoder resource model](#8-audio-decoder-resource-model)
@@ -28,7 +28,7 @@
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.1 | Draft for review | First version of the legacy AV HAL extension specification covering concurrent playback property extensions and AV resource-management requirements. | Property semantics, capability reporting, resource selection, transition behaviour, and ESSOS integration requirements. |
+| 0.1 | Draft for review | First version of the legacy AV HAL extension specification covering concurrent playback resource semantics and AV resource-management requirements. | Property semantics, capability reporting, resource selection, transition behaviour, and ESSOS integration requirements. |
 
 ### What this specification covers
 
@@ -114,7 +114,6 @@ graph LR
 ### Process and IPC boundaries
 
 - **Application Process** owns playback-pipeline construction for GStreamer-based players.
-- The application process directly interfaces with GStreamer and the platform vendor elements; it does not depend on a separate playback-middleware client/server layer.
 - **Application Process** does not communicate directly with **ESSOS Resource Manager** in the normal orderly path; the vendor elements request and release ESSOS resources on behalf of the pipeline.
 - **ESSOS Resource Manager** arbitrates resource assignment and returns resource instance identifiers.
 - **Video resource arbitration** is performed by either a dedicated Video Element or by westeros sink when the platform combines sink and decoder responsibilities.
@@ -240,7 +239,7 @@ The capability description and the ESSOS resource-manager configuration shall us
 
 ### 4.5 ESSOS Resource Manager
 
-ESSOS Resource Manager is the platform arbitration layer for video-decoder, audio-decoder, and SVP resources during both steady-state playback and player transitions.
+ESSOS Resource Manager is the platform arbitration layer for the video-decoder/display path, the audio-decoder/audio-output path, and SVP resources during both steady-state playback and player transitions.
 
 The application layer and vendor plugins shall use the ESSOS Resource Manager in the same way as the existing legacy resource-management flow: request an assigned resource instance, apply the returned `assignedId`, release the resource during teardown, and destroy the ESSOS connection only when resource-manager communication is no longer required.
 
@@ -248,11 +247,13 @@ The application layer and vendor plugins shall use the ESSOS Resource Manager in
 
 The platform-specific resource configuration shall document the concrete resource identifiers and any limits that apply to concurrent audio/video/SVP acquisition. Where the platform exposes asymmetric pools, the resource-manager definition shall clearly distinguish the relevant high-specification and low-specification pools.
 
-## 5. GStreamer property extensions
+## 5. GStreamer context and `res-usage` documentation
 
-### 5.1 Existing property usage
+This specification does not add a new GStreamer property. It documents the existing `res-usage` flag so that its role in dual-decode resource selection is explicit and consistent across implementations.
 
-`res-usage` is not a new property introduced by this specification. It is an existing GStreamer property that continues to be used as defined by the current implementation and is now expressly required for differentiating asymmetric video-decoder resources during dual-decode operation.
+### 5.1 Existing `res-usage` flag
+
+`res-usage` is an existing GStreamer property that continues to be used as defined by the current implementation. For dual-decode operation it is used to distinguish asymmetric video-decoder resources and to identify the intended resource profile for the video path.
 
 | Property | Type | Purpose | Required behaviour |
 |---|---|---|---|
@@ -526,13 +527,13 @@ This applies equally to encrypted video and encrypted audio data. Encrypted medi
 
 Resource management during AV player transitions shall prevent mixed ownership of decoder, plane, audio-decoder, or SVP resources.
 
-For OTT applications using the GStreamer-managed playback model, the application itself shall coordinate activation and inactivation of the exiting and entering pipelines. The entering application shall stop the exiting pipeline before attempting to acquire the same video, audio, or SVP resources for the next playback session.
+For OTT applications using the GStreamer-managed playback model, the application manager shall ensure that the outgoing GStreamer-based application is shut down before the next OTT application is launched. OTT applications do not coordinate directly with one another; the application manager defines the ordering of teardown and launch.
 
-This is the default behaviour for OTT application switches. There is no delayed-release path for transitions between GStreamer-managed OTT applications because the application process is responsible for ordering its own teardown and acquisition flow.
+This is the default behaviour for OTT application switches. There is no delayed-release path for transitions between GStreamer-managed OTT applications because the application manager is responsible for ordering the shutdown of the exiting application and the startup of the entering one.
 
 For OTT applications, the platform shall continue to use the ESSOS Resource Manager for the orderly acquisition and release of video, audio, and SVP resources across the application lifecycle even when the outgoing GStreamer pipeline is shut down before the next OTT pipeline starts. The timing of HDMI In and Composite In players is external to the OTT application and cannot be assumed to follow a clean handover sequence, so the resource-manager path must remain valid for both the planned transition and the race that occurs when a competing non-GStreamer player requests the same AV resources while the OTT pipeline is still winding down.
 
-In the disorderly case, when a non-GStreamer application requests AV resources before the GStreamer-based OTT application has fully released them, ESSOS Resource Manager shall arbitrate the handover by revoking or reassigning the exiting player resources as required so that the entering non-GStreamer application can acquire or retain the necessary AV resources without mixed ownership.
+In the disorderly case, when either a non-GStreamer application requests AV resources before the GStreamer-based OTT application has fully released them, or a GStreamer-based OTT application requests AV resources before a non-GStreamer-based application has relinquished them, ESSOS Resource Manager shall arbitrate the handover by revoking or reassigning the relevant resources as required so that the entering application can acquire or retain the necessary AV resources without mixed ownership.
 
 In dual-decode scenarios, if ESSOS Resource Manager revokes one video resource during a transition, the platform shall revoke all video resources owned by the exiting player together. This is required to prevent video from the exiting player being mixed with video from the entering player during handover.
 
