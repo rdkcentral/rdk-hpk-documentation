@@ -39,7 +39,7 @@
 - Audio decoder resource handling for symmetric decoders.
 - SVP allocator resource handling for asymmetric and symmetric platforms.
 - DRM resource expectations for concurrent playback.
-- AV player transition and resource-acquisition rules for Rialto and non-Rialto players.
+- AV player transition and resource-acquisition rules for application-managed GStreamer players and non-GStreamer players.
 
 ### What this specification does not cover
 
@@ -56,12 +56,8 @@ This specification defines the contract between the middleware playback stack, v
 
 ```mermaid
 graph LR
-    subgraph AP[Application Process]
-        App[Application Process] --> RC[Rialto Client]
-    end
-
-    subgraph RSP[Rialto Server Process]
-        RS[Rialto Server]
+    subgraph APP[Application Process]
+        App[Application Process]
         subgraph GSTP[GStreamer Pipeline A / B]
             GST[Pipeline flow]
             Ctx[GStreamer Context]
@@ -70,16 +66,16 @@ graph LR
             VARB["Video Element: video decoder or westeros sink"]
             AARB["Audio Element: audio decoder or audio sink"]
         end
-        RS --> GST
+        App --> GST
         GST --> DEC
         GST --> SVPP
         GST --> VARB
         GST --> AARB
-        RS --> Ctx
+        App --> Ctx
         Ctx -->|SVP Usage| DEC
         Ctx -->|SVP Usage| SVPP
-        RS --> YAML[Capability YAML]
-        DEC --> OCDM[Rialto OCDM Adaptor]
+        App --> YAML[Capability YAML]
+        DEC --> OCDM[OCDM Adaptor]
         SVPP --> SVPC[gst-svp-ext-common]
         SVPC --> SVPE[gst-svp-ext-soc<br/>SVP Allocator]
         OCDM --> SVPE
@@ -101,13 +97,11 @@ graph LR
         RM[ESSOS Resource Manager]
     end
 
-    RC -->|IPC| RS
     VARB -->|IPC| RM
     AARB -->|IPC| RM
     SVPE -->|IPC| RM
 
-    style AP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
-    style RSP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
+    style APP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
     style GSTP fill:#e6e6e6,stroke:#666,stroke-width:1px
     style LEG fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
     style OCP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
@@ -121,9 +115,9 @@ graph LR
 
 ### Process and IPC boundaries
 
-- **Application and Rialto Server** run in separate processes.
-- **Rialto Server** owns playback-pipeline construction for Rialto-based players.
-- **Rialto Server** does not communicate directly with **ESSOS Resource Manager** in this model.
+- **Application Process** owns playback-pipeline construction for GStreamer-based players.
+- The application process directly interfaces with GStreamer and the platform vendor elements; it does not depend on a separate playback-middleware client/server layer.
+- **Application Process** does not communicate directly with **ESSOS Resource Manager** in the normal orderly path; the vendor elements request and release ESSOS resources on behalf of the pipeline.
 - **ESSOS Resource Manager** arbitrates resource assignment and returns resource instance identifiers.
 - **Video resource arbitration** is performed by either a dedicated Video Element or by westeros sink when the platform combines sink and decoder responsibilities.
 - **Audio resource arbitration** is performed by either a dedicated Audio Element or by audio sink when the platform combines sink and decoder responsibilities.
@@ -133,7 +127,7 @@ graph LR
 
 This specification defines the contract between:
 
-- **Middleware layer team**, which owns Rialto Client, Rialto Server, and playback orchestration.
+- **Application layer / playback owner**, which creates and tears down the GStreamer-owned playback pipeline and owns application-level transition behaviour.
 - **SoC vendor**, which provides the decoder, sinks, SVP handling, DRM integration, and resource-aware vendor plugins.
 - **Vendor layer team**, which integrates the SoC delivery, capability YAML, and ESSOS resource-manager configuration.
 
@@ -151,15 +145,15 @@ The contract covers:
 - capability declaration and resource identification;
 - selection of high-specification and low-specification video resources;
 - audio-decoder and SVP resource allocation rules; and
-- behaviour during transitions between Rialto-based and non-Rialto-based AV players.
+- behaviour during transitions between GStreamer-managed OTT applications and non-GStreamer AV players.
 
 ## 2. Roles and responsibilities
 
 | Role | Definition | Responsibilities |
 |---|---|---|
-| **Middleware layer team** | Owns Rialto Client, Rialto Server, and playback orchestration. | Builds playback pipelines, sets sink properties, propagates GStreamer context, and coordinates player transitions. |
+| **Application layer / playback owner** | Owns the GStreamer-based playback pipeline and player transition logic. | Builds playback pipelines, tears down exiting pipelines, sets sink properties, propagates GStreamer context, and coordinates player transitions. |
 | **SoC vendor** | Provides vendor GStreamer elements and platform resource integration. | Implements westeros sink, audio sink, decoder selection, SVP usage handling, DRM integration, assigned-resource binding, and AV sync for dual decode. |
-| **Vendor layer team** | Integrates the SoC delivery into the platform image. | Supplies capability YAML, ESSOS resource-manager configuration, and any platform-specific resource identifiers consumed by middleware and vendor plugins. |
+| **Vendor layer team** | Integrates the SoC delivery into the platform image. | Supplies capability YAML, ESSOS resource-manager configuration, and any platform-specific resource identifiers consumed by application and vendor plugins. |
 
 ## 3. Scope
 
@@ -303,7 +297,7 @@ The following principles apply:
 
 ### 7.1 General requirements
 
-All AV players supporting dual video decode shall use Rialto middleware for the concurrent-playback use case.
+All AV players supporting dual video decode shall use the application-managed GStreamer path for the concurrent-playback use case.
 
 The platform shall support resource selection between a high-specification video decoder path and a low-specification video decoder path.
 
@@ -339,7 +333,7 @@ If ESSOS later issues a revoke event for that decoder, the owning element shall 
 
 When playback is torn down and ESSOS communication is no longer required, the owning element shall destroy its ESSOS Resource Manager connection.
 
-For legacy AV players not using Rialto:
+For legacy AV players not using the application-managed GStreamer path:
 
 - only one video decoder is typically requested;
 - the default usage value is the high-specification profile; and
@@ -355,7 +349,7 @@ The low-specification decoder and associated plane may omit support for Dolby Vi
 
 ### 8.1 General requirements
 
-All AV players supporting dual audio decode shall use Rialto middleware for the concurrent-playback use case.
+All AV players supporting dual audio decode shall use the application-managed GStreamer path for the concurrent-playback use case.
 
 Audio decoder resources are treated as symmetric. This specification does not require an extension to an audio-usage enumeration analogous to the video `res-usage` profile.
 
@@ -392,13 +386,13 @@ The audio resource-owning element shall follow the same ESSOS communication life
 
 When ESSOS communication is no longer required for that pipeline, the element shall destroy its ESSOS connection.
 
-For legacy AV players not using Rialto, only one audio decoder is typically requested.
+For legacy AV players not using the application-managed GStreamer path, only one audio decoder is typically requested.
 
 ## 9. Audio mixer resource model
 
 ### 9.1 Process-scoped mixer ownership
 
-Audio-mixer usage for main and secondary audio inputs is tied to the Linux process that is currently using the mixer resource, such as an application process or a Rialto Session Server process.
+Audio-mixer usage for main and secondary audio inputs is tied to the Linux process that is currently using the mixer resource, such as the application process or a dedicated playback process.
 
 For the purposes of this specification, process ownership applies to the media-stream inputs that feed the main and secondary mixer paths. It does not change the behaviour of other platform audio sources that are already allowed to mix through the existing audio system.
 
@@ -409,7 +403,7 @@ When a new Linux process starts using the audio mixer resource, the SoC vendor i
 This requirement applies to transitions involving both of these process categories:
 
 - an application process using the legacy playback path; and
-- a Rialto Session Server process using the Rialto-based playback path.
+- a separate playback process using the GStreamer-managed playback path.
 
 The purpose of this rule is to prevent stale or overlapping playback audio from an exiting process from leaking into the mixer while the entering process takes ownership of the playback audio path.
 
@@ -427,7 +421,7 @@ The SoC vendor shall provide mixer-input isolation such that a new owner of the 
 
 ### 10.1 General requirements
 
-All AV players supporting dual secure-video paths shall use Rialto middleware for the concurrent-playback use case.
+All AV players supporting dual secure-video paths shall use the application-managed GStreamer path for the concurrent-playback use case.
 
 Platforms shall declare whether their SVP allocator resources are asymmetric or symmetric.
 
@@ -456,7 +450,7 @@ The recommended logical usage values are:
 On such platforms:
 
 - ESSOS resource-manager configuration shall define both the UHD SVP pool resource and the FHD SVP pool resource;
-- the Rialto path shall propagate SVP usage through GStreamer context before the first secure-buffer consumer binds the allocator;
+- the application-managed GStreamer path shall propagate SVP usage through GStreamer context before the first secure-buffer consumer binds the allocator;
 - the first component that consumes the SVP buffer, such as a decryptor or SVP payload element, shall pass the usage to the vendor-side SVP integration; and
 - vendor code shall use the usage value together with the assigned resource identifier to bind the correct allocator resource.
 
@@ -481,12 +475,12 @@ Even on symmetric platforms, the SVP-owning element shall keep a persistent ESSO
 
 ### 10.6 Legacy behaviour
 
-For legacy AV players not using Rialto:
+For legacy AV players not using the application-managed GStreamer path:
 
 - only one SVP allocator is typically requested; and
 - the default expectation is the higher-specification allocator when such differentiation exists.
 
-### 10.7 Extensions to Rialto OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
+### 10.7 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
 
 TBC.
 
@@ -520,11 +514,11 @@ Platforms should document any practical concurrency limit, especially during tra
 
 Resource management during AV player transitions shall prevent mixed ownership of decoder, plane, audio-decoder, or SVP resources.
 
-The application manager or equivalent playback orchestrator shall coordinate activation and inactivation so that resources held by an exiting player are released before the entering player relies on them, unless a documented forced-revocation path is used.
+For OTT applications using the GStreamer-managed playback model, the application itself shall coordinate activation and inactivation of the exiting and entering pipelines. The entering application shall stop the exiting pipeline before attempting to acquire the same video, audio, or SVP resources for the next playback session.
 
-**Note:** ESSOS Resource Manager, which corresponds to the legacy vendor-layer revocation method in this specification, is the fallback resource-management model when the application resource manager does not provide smooth handover of video, audio, and SVP resources during transition from one application to another.
+This is the default behaviour for OTT application switches. There is no delayed-release path for transitions between GStreamer-managed OTT applications because the application process is responsible for ordering its own teardown and acquisition flow.
 
-This fallback method using ESSOS Resource Manager is a **mandatory** requirement because not all applications use Rialto and the platform therefore requires one resource-management model that can arbitrate mixed transitions across Rialto-based and non-Rialto-based applications.
+ESSOS Resource Manager remains the fallback and arbitration mechanism when non-GStreamer applications, such as HDMI In or Composite In, continue to run while a GStreamer-based OTT application is being torn down. In that case the orderly-release path through ESSOS is still required so that a non-GStreamer application can acquire or retain AV resources before the GStreamer application has fully released them.
 
 In dual-decode scenarios, if ESSOS Resource Manager revokes one video resource during a transition, the platform shall revoke all video resources owned by the exiting player together. This is required to prevent video from the exiting player being mixed with video from the entering player during handover.
 
@@ -532,29 +526,29 @@ Audio-mixer behaviour remains process-specific and shall follow the ownership an
 
 Within one AV pipeline, `EssRMgrCreate()` shall be called once during playback setup. Following the westeros-sink resource-manager pattern, the resource-owning element shall request its ESSOS-managed resource during the first transition from GStreamer `NULL` to `READY`. The grant may be delivered immediately through the request result or later through `EssRMgrNotifyCB`, which carries the relevant `EssRMgrEvent`. `EssRMgrDestroy()` shall be called only when ESSOS resource-manager communication is no longer required for that pipeline.
 
-### 12.2 Rialto-based AV player to Rialto-based AV player
+### 12.2 GStreamer-managed OTT application to GStreamer-managed OTT application
 
-For transitions between two Rialto-based players:
+For transitions between two GStreamer-managed OTT applications:
 
-- the application manager is responsible for coordinating release and reacquisition of AV resources;
-- the exiting Rialto Server shall release video decoders, audio decoders, and SVP allocators before the next Rialto Server acquires them; and
-- the entering player shall wait for release confirmation before activating resource acquisition.
+- the application process is responsible for ordering teardown of the exiting playback pipeline and initialisation of the entering playback pipeline;
+- the exiting application shall release video decoders, audio decoders, and SVP allocators before the entering application acquires them; and
+- the entering application shall wait for release confirmation before activating the next resource acquisition.
 
-If a platform uses a legacy vendor-layer revocation method instead of an orderly release, the implementation shall ensure that all video resources owned by the exiting player are revoked together when necessary to avoid blending video from the exiting player with video from the entering player.
+There is no delayed-release path for OTT application-to-OTT application transitions. The resource-management model is application-driven and shall be implemented as an orderly release and re-acquisition sequence.
 
-Orderly-release path, where the exiting player releases resources before the entering player requests them:
+Orderly-release path, where the exiting application releases resources before the entering application requests them:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AM as Application Resource<br/>Manager
-    participant RS1 as Entering Rialto<br/>Server
+    participant AM as OTT Application
+    participant APP1 as Entering GStreamer<br/>Application Process
     participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element A/B 
+    participant V1 as Entering Video<br/>Element A/B
     participant A1 as Entering Audio<br/>Element A/B
     participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
-    participant RS2 as Exiting Rialto<br/>Server
+    participant APP2 as Exiting GStreamer<br/>Application Process
     participant G2 as GStreamer pipeline<br/>A/B
     participant V2 as Exiting Video<br/>Element A/B
     participant A2 as Exiting Audio<br/>Element A/B
@@ -563,18 +557,18 @@ sequenceDiagram
     Note over V2,S2: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
     Note over V1,S1: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
 
-    AM->>RS2: inactivate exiting player
-    RS2->>G2: inactivate exiting pipeline A/B
+    AM->>APP2: stop exiting OTT application
+    APP2->>G2: stop exiting pipeline A/B
     G2->>V2: stop playback and release video resources A/B
     V2->>RM: EssRMgrReleaseResource(video A/B)
     G2->>A2: release audio resources A/B
     A2->>RM: EssRMgrReleaseResource(audio A/B)
     G2->>S2: release SVP resources A/B
     S2->>RM: EssRMgrReleaseResource(svp A/B)
-    RS2-->>AM: resource release complete
+    APP2-->>AM: resource release complete
 
-    AM->>RS1: activate entering player
-    RS1->>G1: activate entering pipeline A/B
+    AM->>APP1: activate entering OTT application
+    APP1->>G1: activate entering pipeline A/B
     G1->>V1: initialise pipeline A/B
     V1->>RM: EssRMgrCreate(notifyCB)
     G1->>V1: transition NULL -> READY
@@ -590,102 +584,50 @@ sequenceDiagram
     G1->>S1: transition NULL -> READY
     S1->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S1: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    RS1-->>AM: acquisition complete
+    APP1-->>AM: acquisition complete
 ```
 
-Delayed-release path, where the entering player requests resources before the exiting player has released them and ESSOS triggers revocation through `notifyCB`:
+### 12.3 GStreamer-managed OTT application to non-GStreamer-based AV player
+
+For transitions from a GStreamer-managed OTT application to a non-GStreamer-based AV player, the required behaviour is equivalent to the GStreamer-to-GStreamer case from a resource-safety perspective, except that the application is no longer the only actor.
+
+The platform shall support an orderly release path where:
+
+- the exiting GStreamer application releases AV resources before the entering non-GStreamer player requests them; or
+- if the non-GStreamer player is launched before the GStreamer application has fully torn down, ESSOS Resource Manager shall arbitrate the handover and revoke the exiting GStreamer resources if necessary.
+
+Orderly-release path, where the exiting GStreamer-based player releases resources before the entering non-GStreamer player requests them:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AM as Application Resource<br/>Manager
-    participant RS1 as Entering Rialto<br/>Server
-    participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element A/B
-    participant A1 as Entering Audio<br/>Element A/B
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
-    participant RM as ESSOS Resource<br/>Manager
-    participant RS2 as Exiting Rialto<br/>Server
-    participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element A/B
-    participant A2 as Exiting Audio<br/>Element A/B
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
-
-    Note over V2,S2: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
-    Note over V1,S1: Entering player Pipeline A/B performs EssRMgrCreate() once during startup, then requests resources
-
-    AM->>RS1: activate entering player before exit completes
-    RS1->>G1: activate entering pipeline A/B
-    G1->>V1: initialise pipeline A/B
-    V1->>RM: EssRMgrCreate(notifyCB)
-    G1->>V1: transition NULL -> READY
-    V1->>RM: EssRMgrRequestResource(video A/B, notifyCB)
-    RM-->>V2: notifyCB(EssRMgrEvent::Revoked)
-    V2->>RM: EssRMgrReleaseResource(video primary)
-    V2->>RM: EssRMgrReleaseResource(video secondary)
-    RM-->>V1: notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G1->>A1: initialise audio path A/B
-    A1->>RM: EssRMgrCreate(notifyCB)
-    G1->>A1: transition NULL -> READY
-    A1->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
-    RM-->>A2: notifyCB(EssRMgrEvent::Revoked)
-    A2->>RM: EssRMgrReleaseResource(audio A/B)
-    RM-->>A1: notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G1->>S1: initialise SVP path A/B if required
-    S1->>RM: EssRMgrCreate(notifyCB)
-    G1->>S1: transition NULL -> READY
-    S1->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM-->>S2: notifyCB(EssRMgrEvent::Revoked)
-    S2->>RM: EssRMgrReleaseResource(svp A/B)
-    RM-->>S1: notifyCB(EssRMgrEvent::Granted, assignedId)
-    RS1-->>AM: acquisition complete after revocation
-```
-
-### 12.3 Rialto-based AV player to non-Rialto-based AV player
-
-For transitions from a Rialto-based player to a non-Rialto-based player, the required behaviour is equivalent to the Rialto-to-Rialto case from a resource-safety perspective.
-
-The platform may use:
-
-- orderly release coordinated by the application manager;
-- a legacy vendor-layer revocation method,
-
-provided the selected method prevents overlapping ownership that could lead to mixed video output.
-
-Orderly-release path, where the exiting Rialto-based player releases resources before the entering non-Rialto player requests them:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant AM as Application Resource<br/>Manager
-    participant RS2 as Exiting Rialto<br/>Server
+    participant AM as OTT Application<br/>Manager
+    participant APP2 as Exiting GStreamer<br/>Application Process
     participant G2 as GStreamer pipeline<br/>A/B
     participant V2 as Exiting Video<br/>Element A/B
     participant A2 as Exiting Audio<br/>Element A/B
     participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
-    participant APP1 as Non Rialto App
-    participant G1 as GStreamer pipeline<br/>A
+    participant APP1 as Non-GStreamer App
+    participant G1 as Platform pipeline<br/>A
     participant V1 as Entering Video<br/>Element A
     participant A1 as Entering Audio<br/>Element A
     participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
 
-    Note over V2,S2: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
+    Note over V2,S2: EssRMgrCreate() already completed for exiting player pipeline during initial pipeline setup
     Note over V1,S1: EssRMgrCreate() is done once when the entering player pipeline is first established
 
-    AM->>RS2: inactivate Rialto-based player
-    RS2->>G2: inactivate exiting pipeline A/B
+    AM->>APP2: inactivate GStreamer-based OTT application
+    APP2->>G2: inactivate exiting pipeline A/B
     G2->>V2: release video resources A/B
     V2->>RM: EssRMgrReleaseResource(video A/B)
     G2->>A2: release audio resources A/B
     A2->>RM: EssRMgrReleaseResource(audio A/B)
     G2->>S2: release SVP resources A/B
     S2->>RM: EssRMgrReleaseResource(svp A/B)
-    RS2-->>AM: release complete
+    APP2-->>AM: release complete
 
-    AM->>APP1: launch non-Rialto player
+    AM->>APP1: launch non-GStreamer player
     APP1->>G1: activate pipeline A
     G1->>V1: initialise pipeline
     V1->>RM: EssRMgrCreate(notifyCB)
@@ -704,87 +646,38 @@ sequenceDiagram
     RM-->>S1: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
-Delayed-release path, where the entering non-Rialto player requests resources before the exiting Rialto-based player has released them and ESSOS triggers revocation through `notifyCB`:
+### 12.4 Non-GStreamer-based AV player to GStreamer-managed OTT application
+
+For transitions from a non-GStreamer-based player to a GStreamer-managed OTT application:
+
+- the exiting non-GStreamer player shall release AV resources through the current platform path when it is torn down;
+- the entering GStreamer-based application shall not rely on a delayed-release path; and
+- if the non-GStreamer player is still running during the GStreamer application's acquisition attempt, ESSOS Resource Manager shall arbitrate the handover and revoke the exiting non-GStreamer resources before the GStreamer application is granted the same AV resources.
+
+The orderly-release path is still required because non-GStreamer applications such as HDMI In or Composite In may be launched before the GStreamer application is able to tear down and release AV resources.
+
+Orderly-release path, where the exiting non-GStreamer player releases resources before the entering GStreamer application requests them:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AM as Application Resource<br/>Manager
-    participant RS2 as Exiting Rialto<br/>Server
-    participant G2 as GStreamer pipeline<br/>A/B
-    participant V2 as Exiting Video<br/>Element A/B
-    participant A2 as Exiting Audio<br/>Element A/B
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc 2 /B
-    participant RM as ESSOS Resource<br/>Manager
-    participant APP1 as Non Rialto App
-    participant G1 as GStreamer pipeline<br/>A
-    participant V1 as Entering Video<br/>Element A
-    participant A1 as Entering Audio<br/>Element A
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
-
-    Note over V2,S2: Existing exiting player Pipeline A/B already holds resources through an earlier EssRMgrCreate()
-    Note over V1,S1: Entering player pipeline performs EssRMgrCreate() once during startup, then requests resources
-
-    AM->>APP1: launch non-Rialto player before exit completes
-    APP1->>G1: activate pipeline A
-    G1->>V1: initialise pipeline
-    V1->>RM: EssRMgrCreate(notifyCB)
-    G1->>V1: transition NULL -> READY
-    V1->>RM: EssRMgrRequestResource(video, notifyCB)
-    RM-->>V2: notifyCB(EssRMgrEvent::Revoked)
-    V2->>RM: EssRMgrReleaseResource(video primary)
-    V2->>RM: EssRMgrReleaseResource(video secondary)
-    RM-->>V1: notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G1->>A1: initialise audio path
-    A1->>RM: EssRMgrCreate(notifyCB)
-    G1->>A1: transition NULL -> READY
-    A1->>RM: EssRMgrRequestResource(audio, notifyCB)
-    RM-->>A2: notifyCB(EssRMgrEvent::Revoked)
-    A2->>RM: EssRMgrReleaseResource(audio A/B)
-    RM-->>A1: notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G1->>S1: initialise SVP path if required
-    S1->>RM: EssRMgrCreate(notifyCB)
-    G1->>S1: transition NULL -> READY
-    S1->>RM: EssRMgrRequestResource(svp, notifyCB)
-    RM-->>S2: notifyCB(EssRMgrEvent::Revoked)
-    S2->>RM: EssRMgrReleaseResource(svp A/B)
-    RM-->>S1: notifyCB(EssRMgrEvent::Granted, assignedId)
-```
-
-### 12.4 Non-Rialto-based AV player to Rialto-based AV player
-
-For transitions from a non-Rialto-based player to a Rialto-based player:
-
-- release may need to occur through a legacy method because the exiting player may not explicitly release resources before shutdown;
-- if shutdown is delayed, ESSOS or the vendor layer may need to force revocation before the new Rialto-based player acquires the resource; and
-- if the entering Rialto-based player acquires the lower-specification video decoder first while the exiting non-Rialto player still owns the higher-specification decoder, the platform shall avoid any temporary mixed-video presentation.
-
-Platforms that cannot guarantee this through orderly release shall revoke all video resources owned by the exiting player together when needed.
-
-Orderly-release path, where the exiting non-Rialto player releases resources before the entering Rialto-based player requests them:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant AM as Application Resource<br/>Manager
-    participant APP2 as Non Rialto App
-    participant G2 as GStreamer pipeline<br/>A
+    participant AM as OTT Application<br/>Manager
+    participant APP2 as Non-GStreamer App
+    participant G2 as Platform pipeline<br/>A
     participant V2 as Exiting Video<br/>Element A
     participant A2 as Exiting Audio<br/>Element A
     participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
     participant RM as ESSOS Resource<br/>Manager
-    participant RS1 as Entering Rialto<br/>Server
+    participant APP1 as Entering GStreamer<br/>Application Process
     participant G1 as GStreamer pipeline<br/>A/B
     participant V1 as Entering Video<br/>Element A/B
     participant A1 as Entering Audio<br/>Element A/B
     participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
 
-    Note over V2,S2: EssRMgrCreate() already completed for exiting player pipeline during initial pipeline setup
-    Note over V1,S1: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
+    Note over V2,S2: Exiting non-GStreamer app owns AV resources through the current platform path
+    Note over V1,S1: Entering GStreamer pipeline performs EssRMgrCreate() once during startup, then requests resources
 
-    AM->>APP2: stop exiting non-Rialto player
+    AM->>APP2: stop exiting non-GStreamer player
     APP2->>G2: stop exiting pipeline A
     G2->>V2: release video resource
     V2->>RM: EssRMgrReleaseResource(video)
@@ -794,8 +687,8 @@ sequenceDiagram
     S2->>RM: EssRMgrReleaseResource(svp)
     APP2-->>AM: resource release complete
 
-    AM->>RS1: prepare incoming Rialto-based player
-    RS1->>G1: prepare entering pipeline A/B
+    AM->>APP1: prepare incoming GStreamer-based OTT application
+    APP1->>G1: prepare entering pipeline A/B
     G1->>V1: initialise pipeline A/B
     V1->>RM: EssRMgrCreate(notifyCB)
     G1->>V1: transition NULL -> READY
@@ -815,61 +708,13 @@ sequenceDiagram
     RM-->>S1: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
-Delayed-release path, where the entering Rialto-based player requests resources before the exiting non-Rialto player has released them and ESSOS triggers revocation through `notifyCB`:
+### 12.5 Non-GStreamer-based AV player to non-GStreamer-based AV player
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant AM as Application Resource<br/>Manager
-    participant APP2 as Non Rialto App
-    participant G2 as GStreamer pipeline<br/>A
-    participant V2 as Exiting Video<br/>Element A
-    participant A2 as Exiting Audio<br/>Element A
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A
-    participant RM as ESSOS Resource<br/>Manager
-    participant RS1 as Entering Rialto<br/>Server
-    participant G1 as GStreamer pipeline<br/>A/B
-    participant V1 as Entering Video<br/>Element A/B
-    participant A1 as Entering Audio<br/>Element A/B
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+For transitions between two non-GStreamer-based AV players, release occurs through the existing platform method.
 
-    Note over V2,S2: Existing exiting player pipeline already holds resources through an earlier EssRMgrCreate()
-    Note over V1,S1: Entering player Pipeline A/B performs EssRMgrCreate() once during startup, then requests resources
+This specification does not require application-managed GStreamer coordination in that case, but the platform shall still preserve exclusive ownership of the relevant AV resources.
 
-    AM->>RS1: prepare incoming Rialto-based player
-    RS1->>G1: prepare entering pipeline A/B
-    G1->>V1: initialise pipeline A/B
-    V1->>RM: EssRMgrCreate(notifyCB)
-    G1->>V1: transition NULL -> READY
-    V1->>RM: EssRMgrRequestResource(video A/B, notifyCB)
-    RM-->>V2: notifyCB(EssRMgrEvent::Revoked)
-    V2->>RM: EssRMgrReleaseResource(video)
-    RM-->>V1: notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G1->>A1: initialise audio path A/B
-    A1->>RM: EssRMgrCreate(notifyCB)
-    G1->>A1: transition NULL -> READY
-    A1->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
-    RM-->>A2: notifyCB(EssRMgrEvent::Revoked)
-    A2->>RM: EssRMgrReleaseResource(audio)
-    RM-->>A1: notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G1->>S1: initialise SVP path A/B if required
-    S1->>RM: EssRMgrCreate(notifyCB)
-    G1->>S1: transition NULL -> READY
-    S1->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM-->>S2: notifyCB(EssRMgrEvent::Revoked)
-    S2->>RM: EssRMgrReleaseResource(svp)
-    RM-->>S1: notifyCB(EssRMgrEvent::Granted, assignedId)
-```
-
-### 12.5 Non-Rialto-based AV player to non-Rialto-based AV player
-
-For transitions between two non-Rialto-based AV players, release occurs through the legacy platform method.
-
-This specification does not require Rialto-specific coordination in that case, but the platform shall still preserve exclusive ownership of the relevant AV resources.
-
-The transition shall work according to the current non-Rialto model already in place on the platform.
+The transition shall work according to the current non-GStreamer model already in place on the platform.
 
 ## 13. Audio behaviour in dual-decode modes
 
