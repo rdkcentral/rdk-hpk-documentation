@@ -33,9 +33,7 @@
 ### What this specification covers
 
 - AV sync for dual-decode use cases.
-- Westeros sink property extensions for `window-group-id` and `window-group-apply`.
-- Audio sink property extension for `audio-enable`.
-- Video decoder and video plane resource selection using `res-usage`.
+- Video decoder and video plane resource selection using the existing `res-usage` property.
 - Audio decoder resource handling for symmetric decoders.
 - SVP allocator resource handling for asymmetric and symmetric platforms.
 - DRM resource expectations for concurrent playback.
@@ -163,8 +161,7 @@ The contract covers:
 - Pipeline independence for play, pause, seek, and trick mode.
 - Independent AV sync per pipeline.
 - Capability reporting for concurrent decode, mixing, SVP, and DRM.
-- Westeros sink property extensions for grouped window application.
-- Audio sink property extension for decode-without-audible-output.
+- Existing resource-selection semantics using `res-usage` for asymmetric video-decoder selection.
 - ESSOS-managed video-decoder, audio-decoder, and SVP resources.
 - DRM-session expectations for concurrent playback.
 - Resource-acquisition rules during AV player transitions.
@@ -210,71 +207,49 @@ The capability YAML and ESSOS resource-manager configuration shall refer consist
 
 ### 4.4 Capability YAML
 
-TBC.
+Capability YAML shall describe the declared resource model in a stable manner and shall list the supported concurrent-playback features together with the platform-specific resource classes used by the middleware.
+
+The YAML shall be sufficient for the platform to distinguish:
+
+- whether dual video decode is supported;
+- whether dual audio decode is supported;
+- whether audio mixing is supported;
+- whether dual SVP support is present; and
+- whether dual DRM support is available for the relevant video and audio paths.
+
+Example structure:
+
+```yaml
+capabilities:
+  dualVideoDecode: true
+  dualAudioDecode: true
+  audioMixing: true
+  dualSvpSupport: true
+  dualDrmSupport: true
+  videoDecoderResources:
+    primary: high-spec
+    secondary: low-spec
+  svpResources:
+    primary: high-bandwidth
+    secondary: standard-bandwidth
+```
+
+The capability description and the ESSOS resource-manager configuration shall use the same logical names for the primary and secondary resource pools. Where a platform exposes limits on simultaneous playback, those limits shall be stated in the capability model and reflected in the accepted runtime transitions.
 
 ## 5. GStreamer property extensions
 
-### 5.1 Westeros sink property extensions
+### 5.1 Existing property usage
 
-`window-group-id` and `window-group-apply` are newly introduced properties. `res-usage` is an existing property that continues to be used as described in this specification.
-
-| Property | Type | Purpose | Required behaviour |
-|---|---|---|---|
-| `window-group-id` | Integer | Associates multiple westeros sink instances with one window-update group. | The default value shall be `-1`. If a sink has a non-default `window-group-id`, that sink participates in the identified group. |
-| `window-group-apply` | Trigger | Applies pending grouped rectangle changes to every sink in the group. | This is a one-shot property. After `window-group-id` has been set on the participating sinks, setting `window-group-apply` on one sink in the group shall apply the pending grouped rectangle changes atomically across the group. |
-| `res-usage` | Enum | Identifies the intended resource profile for the video path. | The property value shall continue to distinguish primary and secondary resource usage and shall participate in video-decoder selection as defined in Section 7. |
-
-#### 5.1.1 `window-group-id`
-
-`window-group-id` groups multiple westeros sink instances so that window-coordinate updates may be applied atomically across those instances.
-
-Example intent:
-
-```text
-Westeros Sink A -> group 1
-Westeros Sink B -> group 1
-rectangle change on Sink A
-rectangle change on Sink B
-    -> applied to Sink A and Sink B atomically when group apply is enabled
-```
-
-Atomic means that the changes to Sink A and Sink B occur such that, to the viewer, the rectangle changes appear to occur at the same time.
-
-#### 5.1.2 `window-group-apply`
-
-`window-group-apply` determines when grouped rectangle changes take effect.
-
-- The default `window-group-id` value shall be `-1`.
-- If `window-group-id` has been set on a sink, that sink is part of the identified group.
-- No grouped rectangle change shall take effect until `window-group-apply` is set on one of the sinks in that group.
-- `window-group-apply` is a one-shot apply action and does not require separate `true` and `false` states.
-- Each time RDK needs to update grouped rectangles, it shall set the new `window-group-id` on both westeros sinks and then set the one-shot `window-group-apply` property.
-- If no valid `window-group-id` is set, rectangle changes affect only the specified sink instance.
-
-### 5.2 Audio sink property extension
+`res-usage` is not a new property introduced by this specification. It is an existing GStreamer property that continues to be used as defined by the current implementation and is now expressly required for differentiating asymmetric video-decoder resources during dual-decode operation.
 
 | Property | Type | Purpose | Required behaviour |
 |---|---|---|---|
-| `audio-enable` | Boolean | Controls whether decoded audio is forwarded to the audio mixer. | The default value shall be `true`. When `true`, decoded audio shall be rendered through the normal mixer path. When `false`, decode shall continue, AV sync shall still be maintained, and audio output shall not be rendered or mixed. |
+| `res-usage` | Enum | Identifies the intended resource profile for the video path. | The property value shall continue to distinguish primary and secondary resource usage and shall participate in video-decoder selection as defined in Section 7. For asymmetric decoder platforms, `res-usage` distinguishes the high-specification UHD path from the lower-specification FHD path. |
 
-#### 5.2.1 `audio-enable`
-
-`audio-enable` supports focus modes where both pipelines continue decoding, but only one pipeline is audible.
-
-When `audio-enable` is `false`:
-
-- the audio decoder shall continue decoding;
-- the hidden audio stream shall continue to be consumed sufficiently to preserve AV synchronisation;
-- decoded audio shall not be injected into the audible mixer path; and
-- audio underflow events for that disabled stream shall not be reported.
-
-When a stream is initialised, `audio-enable` shall default to `true`.
-
-### 5.3 Property application timing
+### 5.2 Property application timing
 
 - `res-usage` shall be set before the pipeline moves from `NULL` to `READY`, because the resource-owning element may request its ESSOS-managed resource during that transition.
-- `window-group-id` shall be set on the participating sinks before grouped window changes are expected to take effect, and `window-group-apply` shall then be triggered as the one-shot apply action.
-- `audio-enable` may be adjusted while both pipelines remain active, provided the platform preserves the decode-and-sync semantics defined above.
+- On asymmetric video-decoder platforms, the selected `res-usage` shall be used to choose the correct high-specification or low-specification decoder instance before resource acquisition begins.
 
 ## 6. Resource identification model
 
@@ -482,17 +457,45 @@ For legacy AV players not using the application-managed GStreamer path:
 
 ### 10.7 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
 
-TBC.
+The OCDM adaptor, `gst-svp-ext-common`, and `gst-svp-ext-soc` shall carry the minimum set of attributes required to resolve the correct secure-resource instance for the active playback session.
+
+At a minimum, the secure-resource metadata shall include:
+
+- the logical usage class for the resource, such as primary or secondary video or SVP pool;
+- the selected ESSOS `assignedId` for the concrete resource instance;
+- the pipeline or process ownership identifier used to distinguish the entering and exiting sessions; and
+- any platform-specific key or allocator identifier required by the vendor implementation.
+
+The integration shall ensure that the resource-owning element requests the allocator or decryptor state in the same order used by the platform's existing secure-playback flow, and shall not allow a later session to reuse stale resource state from an earlier owner.
 
 ### 10.8 GStreamer context structure for carrying SVP pool information
 
-TBC.
+Where the platform requires usage information to be visible to elements other than the sink that received the direct property, the SVP usage information shall be carried in GStreamer context using a stable structure keyed by logical resource type.
+
+The structure shall include at least the following fields:
+
+- `usage` or equivalent logical resource class, such as `primary`, `secondary`, `fullResolution`, or `standardResolution`;
+- `assigned-id` or equivalent assigned ESSOS resource identifier;
+- `resource-type`, such as `video`, `audio`, or `svp`; and
+- `pipeline-role`, identifying the primary or secondary playback instance.
+
+A representative example is shown below:
+
+```text
+GstStructure: "svp-info"
+  usage = "fullResolution"
+  assigned-id = 3
+  resource-type = "svp"
+  pipeline-role = "primary"
+```
+
+The value passed in GStreamer context shall be read before the secure buffer is bound to the allocator, and the platform shall reject or fail positively when the context does not match an available resource instance.
 
 ## 11. DRM resource model
 
 ### 11.1 General requirements
 
-Dual-DRM support is required only for video paths. Audio remains clear for the DPI9 use case described by this specification.
+Dual-DRM support applies to both video and audio paths. In a dual-decode implementation, the platform may therefore require up to four concurrent DRM sessions: one for the primary video path, one for the primary audio path, one for the secondary video path, and one for the secondary audio path.
 
 DRM resources are not managed by ESSOS Resource Manager.
 
@@ -500,13 +503,8 @@ DRM resources are not managed by ESSOS Resource Manager.
 
 The platform shall provision the relevant key identifiers for the playback session before the GStreamer pipeline is constructed.
 
-Encrypted video data passed during decryption shall carry sufficient key-identification information for the DRM implementation to select the correct decryption key.
+This applies equally to encrypted video and encrypted audio data. Encrypted media passed during decryption shall carry sufficient key-identification information for the DRM implementation to select the correct decryption key.
 
-### 11.3 Concurrency expectations
-
-The DRM implementation shall support the number of simultaneous key sessions required by the concurrent playback design adopted on that platform.
-
-Platforms should document any practical concurrency limit, especially during transitions where the exiting player has not yet fully released DRM-related state before the new player begins initialisation.
 
 ## 12. AV player transitions and resource acquisition
 
@@ -721,7 +719,7 @@ The transition shall work according to the current non-GStreamer model already i
 This specification does not redefine the application-facing audio UX policy, but the platform shall support at least these behavioural classes when declared by capability YAML:
 
 - **Dual decode + dual mix**: both audio streams decoded and mixed, with independent volume control.
-- **Dual decode + single audible output**: both streams continue decoding, but one stream may be made inaudible through `audio-enable` or equivalent volume policy while AV sync is preserved.
+- **Dual decode + single audible output**: both streams continue decoding, but one stream may be muted through the platform's existing audio policy while AV sync is preserved.
 - **Single audio decode + dual video decode**: only the primary stream performs audio decode, while the platform still supports other platform audio inputs as defined by the existing mixer design.
 
 ## 14. Conformance and acceptance gates
@@ -732,20 +730,18 @@ An implementation is conformant only when all of the following are true:
 |---|---|
 | 1 | Existing single-pipeline behaviour remains unchanged unless extended by this specification. |
 | 2 | Up to two playback pipelines in one application process can be represented by capability reporting when supported. |
-| 3 | `window-group-id` defaults to `-1` and groups sink instances for atomic multi-window updates once a non-default group identifier is assigned. |
-| 4 | `window-group-apply` is a one-shot apply action that commits pending grouped rectangle changes atomically across the group. |
-| 5 | `audio-enable=false` preserves decode and AV sync while suppressing audible output and underflow reporting for that disabled stream. |
-| 6 | `res-usage` is available early enough to select the appropriate video decoder before the `NULL` to `READY` resource request is issued. |
-| 7 | GStreamer context and westeros sink property signalling coexist, with the direct sink property taking precedence on conflict. |
-| 8 | ESSOS `assignedId` values are used by vendor plugins to open the selected video-decoder and audio-decoder instances. |
-| 9 | Audio decoder resources are treated symmetrically and are represented as multiple configured resources in ESSOS. |
-| 10 | Audio mixer ownership for main and secondary playback inputs is process-scoped, and an entering process is isolated from stale playback audio injected by an exiting process. |
-| 11 | Asymmetric SVP platforms signal SVP usage and provide separate UHD and FHD allocator resources in ESSOS configuration. |
-| 12 | Symmetric SVP platforms do not require usage-based allocator selection and may define allocator resources symmetrically. |
-| 13 | DRM-session provisioning occurs before pipeline construction and supports the platform's declared concurrent playback model. |
-| 14 | Transition handling prevents mixed ownership that would produce overlapping or blended video from exiting and entering players. |
-| 15 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
-| 16 | ESSOS Resource Manager support is available as the mandatory fallback resource-management model for cross-application transitions when the application resource manager does not provide smooth handover. |
+| 3 | `res-usage` is available early enough to select the appropriate video decoder before the `NULL` to `READY` resource request is issued. |
+| 4 | On asymmetric video-decoder platforms, `res-usage` distinguishes the high-specification UHD path from the lower-specification FHD path. |
+| 5 | GStreamer context and sink property signalling coexist, with the direct sink property taking precedence on conflict. |
+| 6 | ESSOS `assignedId` values are used by vendor plugins to open the selected video-decoder and audio-decoder instances. |
+| 7 | Audio decoder resources are treated symmetrically and are represented as multiple configured resources in ESSOS. |
+| 8 | Audio mixer ownership for main and secondary playback inputs is process-scoped, and an entering process is isolated from stale playback audio injected by an exiting process. |
+| 9 | Asymmetric SVP platforms signal SVP usage and provide separate UHD and FHD allocator resources in ESSOS configuration. |
+| 10 | Symmetric SVP platforms do not require usage-based allocator selection and may define allocator resources symmetrically. |
+| 11 | DRM-session provisioning occurs before pipeline construction and supports the platform's declared concurrent playback model. |
+| 12 | Transition handling prevents mixed ownership that would produce overlapping or blended video from exiting and entering players. |
+| 13 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
+| 14 | ESSOS Resource Manager support is available as the mandatory fallback resource-management model for cross-application transitions when the application resource manager does not provide smooth handover. |
 
 Failure of any mandatory gate means DPI9 concurrent playback is unsupported on that implementation or supported only within a narrower capability set explicitly declared by the platform.
 
