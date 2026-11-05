@@ -1,4 +1,4 @@
-# DPI9 Legacy AV HAL Extension for dual decode
+# Legacy AV HAL Extension for dual decode
 
 ## Table of contents
 
@@ -28,7 +28,7 @@
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.1 | Draft for review | First version of the DPI9 legacy AV HAL extension specification covering concurrent playback property extensions and AV resource-management requirements. | Property semantics, capability reporting, resource selection, transition behaviour, and ESSOS integration requirements. |
+| 0.1 | Draft for review | First version of the legacy AV HAL extension specification covering concurrent playback property extensions and AV resource-management requirements. | Property semantics, capability reporting, resource selection, transition behaviour, and ESSOS integration requirements. |
 
 ### What this specification covers
 
@@ -50,7 +50,7 @@
 
 ## 0. System context and deployment model
 
-This specification defines the contract between the middleware playback stack, vendor GStreamer plugins, and platform resource-management components for DPI9 concurrent playback.
+This specification defines the contract between the middleware playback stack, vendor GStreamer plugins, and platform resource-management components for legacy concurrent dual-decode playback.
 
 ```mermaid
 graph LR
@@ -133,7 +133,7 @@ This specification defines the contract between:
 
 ## 1. Purpose
 
-This specification defines how DPI9 concurrent playback extends the legacy AV HAL surface without redesigning the legacy GStreamer pipeline model.
+This specification defines how concurrent playback extends the legacy AV HAL surface without redesigning the legacy GStreamer pipeline model.
 
 The goal is to support multiple playback pipelines in a single application process while preserving existing single-pipeline behaviour unless explicitly extended by this document.
 
@@ -178,7 +178,7 @@ The contract covers:
 ### 4.1 Architecture facts
 
 - A single application process may own multiple playback pipelines.
-- For DPI9 the initial requirement is a maximum of two playback sessions in one application process.
+- Maximum of two playback sessions in one application process.
 - Each pipeline operates independently and keeps its own play, pause, seek, and trick-mode state.
 - AV sync is maintained independently inside each pipeline. No AV synchronisation is required between pipelines.
 - During dual decode, AV sync remains the responsibility of the SoC vendor implementation.
@@ -206,6 +206,8 @@ Capability YAML shall report at least the following platform capabilities when s
 The capability YAML and ESSOS resource-manager configuration shall refer consistently to the same logical resources, including video decoder, audio decoder, video sink, audio sink, SVP allocator, and DRM-related platform identifiers where applicable.
 
 ### 4.4 Capability YAML
+
+[TBC - Link to Capabillity schema to be added]
 
 Capability YAML shall describe the declared resource model in a stable manner and shall list the supported concurrent-playback features together with the platform-specific resource classes used by the middleware.
 
@@ -282,7 +284,7 @@ The middleware shall propagate the `res-usage` value through GStreamer context i
 
 This dual signalling exists to support both of these cases:
 
-- DPI9-capable platforms, where vendor plugins rely on GStreamer context to choose the appropriate decoder resource before data flow begins.
+- Dual Decode-capable platforms, where vendor plugins rely on GStreamer context to choose the appropriate decoder resource before data flow begins.
 - Legacy platforms, where westeros sink property handling remains the deciding mechanism.
 
 When the GStreamer-context value and the westeros sink property differ, the westeros sink property value shall take precedence.
@@ -456,6 +458,8 @@ For legacy AV players not using the application-managed GStreamer path:
 - the default expectation is the higher-specification allocator when such differentiation exists.
 
 ### 10.7 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
+
+[TBC - The new APIs for OCDM Adaptor, gst-svp-ext-common and gst-svp-ext-soc to be defined]
 
 The OCDM adaptor, `gst-svp-ext-common`, and `gst-svp-ext-soc` shall carry the minimum set of attributes required to resolve the correct secure-resource instance for the active playback session.
 
@@ -743,7 +747,7 @@ An implementation is conformant only when all of the following are true:
 | 13 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
 | 14 | ESSOS Resource Manager support is available as the mandatory fallback resource-management model for cross-application transitions when the application resource manager does not provide smooth handover. |
 
-Failure of any mandatory gate means DPI9 concurrent playback is unsupported on that implementation or supported only within a narrower capability set explicitly declared by the platform.
+Failure of any mandatory gate means concurrent playback is unsupported on that implementation or supported only within a narrower capability set explicitly declared by the platform.
 
 ## 15. Clarifications and implementation notes
 
