@@ -238,6 +238,16 @@ capabilities:
 
 The capability description and the ESSOS resource-manager configuration shall use the same logical names for the primary and secondary resource pools. Where a platform exposes limits on simultaneous playback, those limits shall be stated in the capability model and reflected in the accepted runtime transitions.
 
+### 4.5 ESSOS Resource Manager
+
+ESSOS Resource Manager is the platform arbitration layer for video-decoder, audio-decoder, and SVP resources during both steady-state playback and player transitions.
+
+The application layer and vendor plugins shall use the ESSOS Resource Manager in the same way as the existing legacy resource-management flow: request an assigned resource instance, apply the returned `assignedId`, release the resource during teardown, and destroy the ESSOS connection only when resource-manager communication is no longer required.
+
+[TBC - Documentation of ESSOS Resource Manager APIs to be added; see https://github.com/rdkcmf/westeros/blob/master/essos/essos-resmgr.h]
+
+The platform-specific resource configuration shall document the concrete resource identifiers and any limits that apply to concurrent audio/video/SVP acquisition. Where the platform exposes asymmetric pools, the resource-manager definition shall clearly distinguish the relevant high-specification and low-specification pools.
+
 ## 5. GStreamer property extensions
 
 ### 5.1 Existing property usage
