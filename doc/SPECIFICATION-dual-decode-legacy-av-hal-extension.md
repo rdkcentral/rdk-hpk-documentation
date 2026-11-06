@@ -141,7 +141,7 @@ The contract covers:
 - capability declaration and resource identification;
 - selection of high-specification and low-specification video resources;
 - audio-decoder and SVP resource allocation rules; and
-- behaviour during transitions between GStreamer-managed OTT applications and non-GStreamer AV players.
+- behaviour during transitions between GStreamer-based applications and non-GStreamer AV players.
 
 ## 2. Roles and responsibilities
 
@@ -526,13 +526,15 @@ This applies equally to encrypted video and encrypted audio data. Encrypted medi
 
 Resource management during AV player transitions shall prevent mixed ownership of decoder, plane, audio-decoder, or SVP resources.
 
-For OTT applications using the GStreamer-managed playback model, the application manager shall ensure that the outgoing GStreamer-based application is shut down before the next OTT application is launched. OTT applications do not coordinate directly with one another; the application manager defines the ordering of teardown and launch.
+For applications using the GStreamer-managed playback model, the application manager shall ensure that the outgoing GStreamer-based application is shut down before the next GStreamer-based application is launched. GStreamer-based applications do not coordinate directly with one another; the application manager defines the ordering of teardown and launch.
 
-This is the default behaviour for OTT application switches. There is no delayed-release path for transitions between GStreamer-managed OTT applications because the application manager is responsible for ordering the shutdown of the exiting application and the startup of the entering one.
+This is the default behaviour for GStreamer-based application switches. There is no delayed-release path for transitions between GStreamer-based applications because the application manager is responsible for ordering the shutdown of the exiting application and the startup of the entering one.
 
-For OTT applications, the platform shall continue to use the ESSOS Resource Manager for the orderly acquisition and release of video, audio, and SVP resources across the application lifecycle even when the outgoing GStreamer pipeline is shut down before the next OTT pipeline starts. The timing of HDMI In and Composite In players is external to the OTT application and cannot be assumed to follow a clean handover sequence, so the resource-manager path must remain valid for both the planned transition and the race that occurs when a competing non-GStreamer player requests the same AV resources while the OTT pipeline is still winding down.
+For GStreamer-based applications, the platform shall rely on the application manager to ensure the outgoing pipeline is shut down before the next GStreamer pipeline starts. There is no requirement for SVP arbitration through the ESSOS Resource Manager between GStreamer-based applications because the application manager ensures the current pipeline is torn down before the next one is started.
 
-In the disorderly case, when either a non-GStreamer application requests AV resources before the GStreamer-based OTT application has fully released them, or a GStreamer-based OTT application requests AV resources before a non-GStreamer-based application has relinquished them, ESSOS Resource Manager shall arbitrate the handover by revoking or reassigning the relevant resources as required so that the entering application can acquire or retain the necessary AV resources without mixed ownership.
+For non-GStreamer applications, the existing platform path shall continue to manage video and audio ownership during the player lifecycle. Non-GStreamer applications do not acquire or use SVP resources, so there is no SVP revoke or reassign path associated with those players.
+
+In the disorderly case, when a non-GStreamer application requests AV resources before the GStreamer-based application has fully released them, ESSOS Resource Manager shall arbitrate the handover for video and audio only. No SVP arbitration is required because the exiting non-GStreamer application never owns SVP resources and the entering GStreamer-based application acquires SVP resources only after the application manager has ordered shutdown of the active GStreamer pipeline.
 
 In dual-decode scenarios, if ESSOS Resource Manager revokes one video resource during a transition, the platform shall revoke all video resources owned by the exiting player together. This is required to prevent video from the exiting player being mixed with video from the entering player during handover.
 
@@ -540,15 +542,15 @@ Audio-mixer behaviour remains process-specific and shall follow the ownership an
 
 Within one AV pipeline, `EssRMgrCreate()` shall be called once during playback setup. Following the westeros-sink resource-manager pattern, the resource-owning element shall request its ESSOS-managed resource during the first transition from GStreamer `NULL` to `READY`. The grant may be delivered immediately through the request result or later through `EssRMgrNotifyCB`, which carries the relevant `EssRMgrEvent`. `EssRMgrDestroy()` shall be called only when ESSOS resource-manager communication is no longer required for that pipeline.
 
-### 12.2 GStreamer-managed OTT application to GStreamer-managed OTT application
+### 12.2 GStreamer-based application to GStreamer-based application
 
-For transitions between two GStreamer-managed OTT applications:
+For transitions between two GStreamer-based applications:
 
 - the application process is responsible for ordering teardown of the exiting playback pipeline and initialisation of the entering playback pipeline;
-- the exiting application shall release video decoders, audio decoders, and SVP allocators before the entering application acquires them; and
+- the exiting application shall release video decoders and audio decoders before the entering application acquires them; and
 - the entering application shall wait for release confirmation before activating the next resource acquisition.
 
-There is no delayed-release path for OTT application-to-OTT application transitions. The resource-management model is application-driven, but it shall still be expressed through the ESSOS Resource Manager so that the platform remains safe even when a competing non-GStreamer player arrives before the previous OTT pipeline has fully finished tearing down.
+There is no delayed-release path for GStreamer-based application-to-GStreamer-based application transitions. The application manager defines the ordering of shutdown and launch, and the platform shall not require SVP arbitration through ESSOS Resource Manager for these transitions because the outgoing pipeline is shut down before the next GStreamer-based application acquires the same resources.
 
 Orderly-release path, where the exiting application releases resources before the entering application requests them:
 
@@ -560,28 +562,24 @@ sequenceDiagram
     participant G1 as GStreamer pipeline<br/>A/B
     participant V1 as Entering Video<br/>Element A/B
     participant A1 as Entering Audio<br/>Element A/B
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP2 as Exiting GStreamer<br/>Application Process
     participant G2 as GStreamer pipeline<br/>A/B
     participant V2 as Exiting Video<br/>Element A/B
     participant A2 as Exiting Audio<br/>Element A/B
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
 
-    Note over V2,S2: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
-    Note over V1,S1: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
+    Note over V2,A2: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
+    Note over V1,A1: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
 
-    AM->>APP2: stop exiting OTT application
+    AM->>APP2: stop exiting GStreamer-based application
     APP2->>G2: stop exiting pipeline A/B
     G2->>V2: stop playback and release video resources A/B
     V2->>RM: EssRMgrReleaseResource(video A/B)
     G2->>A2: release audio resources A/B
     A2->>RM: EssRMgrReleaseResource(audio A/B)
-    G2->>S2: release SVP resources A/B
-    S2->>RM: EssRMgrReleaseResource(svp A/B)
     APP2-->>AM: resource release complete
 
-    AM->>APP1: activate entering OTT application
+    AM->>APP1: activate entering GStreamer-based application
     APP1->>G1: activate entering pipeline A/B
     G1->>V1: initialise pipeline A/B
     V1->>RM: EssRMgrCreate(notifyCB)
@@ -593,22 +591,19 @@ sequenceDiagram
     G1->>A1: transition NULL -> READY
     A1->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
     RM-->>A1: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    G1->>S1: initialise SVP path A/B
-    S1->>RM: EssRMgrCreate(notifyCB)
-    G1->>S1: transition NULL -> READY
-    S1->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM-->>S1: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
     APP1-->>AM: acquisition complete
 ```
 
-### 12.3 GStreamer-managed OTT application to non-GStreamer-based AV player
+### 12.3 GStreamer-based application to non-GStreamer-based AV player
 
-For transitions from a GStreamer-managed OTT application to a non-GStreamer-based AV player, the required behaviour is equivalent to the GStreamer-to-GStreamer case from a resource-safety perspective, except that the application is no longer the only actor.
+For transitions from a GStreamer-based application to a non-GStreamer-based AV player, the required behaviour is equivalent to the GStreamer-to-GStreamer case from a resource-safety perspective, except that the application is no longer the only actor.
 
 The platform shall support an orderly release path where:
 
-- the exiting GStreamer application releases AV resources before the entering non-GStreamer player requests them; or
-- if the non-GStreamer player is launched before the GStreamer application has fully torn down, ESSOS Resource Manager shall arbitrate the handover and revoke the exiting GStreamer resources if necessary.
+- the exiting GStreamer-based application releases AV resources before the entering non-GStreamer player requests them; or
+- if the non-GStreamer player is launched before the GStreamer-based application has fully torn down, ESSOS Resource Manager shall arbitrate the handover and revoke the exiting GStreamer resources if necessary.
+
+There is no SVP revoke path for this transition because the exiting non-GStreamer player never owns SVP resources, and the GStreamer-based application is responsible for ordering its own pipeline teardown before the next application acquires the same AV resources.
 
 Orderly-release path, where the exiting GStreamer-based player releases resources before the entering non-GStreamer player requests them:
 
@@ -616,26 +611,23 @@ Orderly-release path, where the exiting GStreamer-based player releases resource
 sequenceDiagram
     autonumber
     participant AM as Application manager
-    participant APP_OTT_EXIT as Exiting GStreamer<br/>Application Process
-    participant G_OTT_EXIT as GStreamer pipeline<br/>A/B
-    participant V_OTT_EXIT as Exiting Video<br/>Element A/B
-    participant A_OTT_EXIT as Exiting Audio<br/>Element A/B
-    participant S_OTT_EXIT as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant APP_GST_EXIT as Exiting GStreamer<br/>Application Process
+    participant G_GST_EXIT as GStreamer pipeline<br/>A/B
+    participant V_GST_EXIT as Exiting Video<br/>Element A/B
+    participant A_GST_EXIT as Exiting Audio<br/>Element A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP_NG as Non-GStreamer<br/>AV Player
 
-    Note over APP_OTT_EXIT,S_OTT_EXIT: Exiting GStreamer OTT application is shutting down cleanly
-    Note over APP_NG: Entering non-GStreamer player is launched only after the OTT teardown is complete
+    Note over APP_GST_EXIT: Exiting GStreamer-based application is shutting down cleanly
+    Note over APP_NG: Entering non-GStreamer player is launched only after the GStreamer teardown is complete
 
-    AM->>APP_OTT_EXIT: stop exiting GStreamer-based OTT application
-    APP_OTT_EXIT->>G_OTT_EXIT: stop exiting pipeline A/B
-    G_OTT_EXIT->>V_OTT_EXIT: stop playback and release video resources A/B
-    V_OTT_EXIT->>RM: EssRMgrReleaseResource(video A/B)
-    G_OTT_EXIT->>A_OTT_EXIT: release audio resources A/B
-    A_OTT_EXIT->>RM: EssRMgrReleaseResource(audio A/B)
-    G_OTT_EXIT->>S_OTT_EXIT: release SVP resources A/B
-    S_OTT_EXIT->>RM: EssRMgrReleaseResource(svp A/B)
-    APP_OTT_EXIT-->>AM: resource release complete
+    AM->>APP_GST_EXIT: stop exiting GStreamer-based application
+    APP_GST_EXIT->>G_GST_EXIT: stop exiting pipeline A/B
+    G_GST_EXIT->>V_GST_EXIT: stop playback and release video resources A/B
+    V_GST_EXIT->>RM: EssRMgrReleaseResource(video A/B)
+    G_GST_EXIT->>A_GST_EXIT: release audio resources A/B
+    A_GST_EXIT->>RM: EssRMgrReleaseResource(audio A/B)
+    APP_GST_EXIT-->>AM: resource release complete
 
     AM->>APP_NG: launch non-GStreamer player
     APP_NG->>RM: EssRMgrRequestResource(video, notifyCB)
@@ -644,54 +636,53 @@ sequenceDiagram
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
-Disorderly-release path, where the entering non-GStreamer player requests AV resources before the exiting GStreamer-based OTT application has fully released them:
+Disorderly-release path, where the entering non-GStreamer player requests AV resources before the exiting GStreamer-based application has fully released them:
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant AM as Application manager
     participant RM as ESSOS Resource<br/>Manager
-    participant APP_OTT_EXIT as Exiting GStreamer<br/>Application Process
-    participant G_OTT_EXIT as Exiting GStreamer pipeline<br/>A/B
-    participant V_OTT_EXIT as Exiting Video<br/>Element A/B
-    participant A_OTT_EXIT as Exiting Audio<br/>Element A/B
-    participant S_OTT_EXIT as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant APP_GST_EXIT as Exiting GStreamer<br/>Application Process
+    participant G_GST_EXIT as Exiting GStreamer pipeline<br/>A/B
+    participant V_GST_EXIT as Exiting Video<br/>Element A/B
+    participant A_GST_EXIT as Exiting Audio<br/>Element A/B
     participant APP_NG as Non-GStreamer<br/>AV Player
 
-    Note over APP_OTT_EXIT,S_OTT_EXIT: Exiting OTT pipeline is still tearing down and has not yet fully released all AV resources
+    Note over APP_GST_EXIT: Exiting GStreamer pipeline is still tearing down and has not yet fully released all AV resources
     Note over APP_NG: Entering non-GStreamer player requests video and audio resources sequentially
 
-    AM->>APP_NG: launch non-GStreamer player before OTT teardown has completed
+    AM->>APP_NG: launch non-GStreamer player before GStreamer teardown has completed
     APP_NG->>RM: EssRMgrRequestResource(video, notifyCB)
-    RM->>V_OTT_EXIT: revoke or reassign the exiting video resource to the entering player
-    V_OTT_EXIT-->>RM: revoke callback and release in progress
+    RM->>V_GST_EXIT: revoke or reassign the exiting video resource to the entering player
+    V_GST_EXIT-->>RM: revoke callback and release in progress
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     APP_NG->>RM: EssRMgrRequestResource(audio, notifyCB)
-    RM->>A_OTT_EXIT: revoke or reassign the exiting audio resource to the entering player
-    A_OTT_EXIT-->>RM: revoke callback and release in progress
+    RM->>A_GST_EXIT: revoke or reassign the exiting audio resource to the entering player
+    A_GST_EXIT-->>RM: revoke callback and release in progress
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP_OTT_EXIT->>G_OTT_EXIT: final teardown of exiting pipeline completes after arbitration
-    G_OTT_EXIT->>V_OTT_EXIT: release remaining video references
-    V_OTT_EXIT->>RM: EssRMgrReleaseResource(video A/B)
-    G_OTT_EXIT->>A_OTT_EXIT: release remaining audio references
-    A_OTT_EXIT->>RM: EssRMgrReleaseResource(audio A/B)
-    G_OTT_EXIT->>S_OTT_EXIT: release remaining SVP references
-    S_OTT_EXIT->>RM: EssRMgrReleaseResource(svp A/B)
+    APP_GST_EXIT->>G_GST_EXIT: final teardown of exiting pipeline completes after arbitration
+    G_GST_EXIT->>V_GST_EXIT: release remaining video references
+    V_GST_EXIT->>RM: EssRMgrReleaseResource(video A/B)
+    G_GST_EXIT->>A_GST_EXIT: release remaining audio references
+    A_GST_EXIT->>RM: EssRMgrReleaseResource(audio A/B)
 ```
 
-### 12.4 Non-GStreamer-based AV player to GStreamer-managed OTT application
+### 12.4 Non-GStreamer-based AV player to GStreamer-based application
 
-For transitions from a non-GStreamer-based player to a GStreamer-managed OTT application:
+For transitions from a non-GStreamer-based player to a GStreamer-based application:
 
 - the exiting non-GStreamer player shall release AV resources through the current platform path when it is torn down;
 - the entering GStreamer-based application shall not rely on a delayed-release path; and
-- if the non-GStreamer player is still running during the GStreamer application's acquisition attempt, ESSOS Resource Manager shall arbitrate the handover and revoke the exiting non-GStreamer resources before the GStreamer application is granted the same AV resources.
+- if the non-GStreamer player is still running during the GStreamer application's acquisition attempt, ESSOS Resource Manager shall arbitrate the handover and revoke the exiting non-GStreamer resources before the GStreamer-based application is granted the same AV resources.
 
-The orderly-release path is still required because non-GStreamer applications such as HDMI In or Composite In may be launched before the GStreamer application is able to tear down and release AV resources.
+The orderly-release path is still required because non-GStreamer applications such as HDMI In or Composite In may be launched before the GStreamer-based application is able to tear down and release AV resources.
 
-Orderly-release path, where the exiting non-GStreamer player releases resources before the entering GStreamer application requests them:
+No SVP arbitration is required for this transition because the exiting non-GStreamer application never owns SVP resources and the entering GStreamer-based application acquires SVP resources only after the outgoing GStreamer pipeline is shut down by the application manager.
+
+Orderly-release path, where the exiting non-GStreamer player releases resources before the entering GStreamer-based application requests them:
 
 ```mermaid
 sequenceDiagram
@@ -699,74 +690,62 @@ sequenceDiagram
     participant AM as Application manager
     participant APP_NG as Exiting Non-GStreamer<br/>AV Player
     participant RM as ESSOS Resource<br/>Manager
-    participant APP_OTT_ENTER as Entering GStreamer<br/>Application Process
-    participant G_OTT_ENTER as GStreamer pipeline<br/>A/B
-    participant V_OTT_ENTER as Entering Video<br/>Element A/B
-    participant A_OTT_ENTER as Entering Audio<br/>Element A/B
-    participant S_OTT_ENTER as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant APP_GST_ENTER as Entering GStreamer<br/>Application Process
+    participant G_GST_ENTER as GStreamer pipeline<br/>A/B
+    participant V_GST_ENTER as Entering Video<br/>Element A/B
+    participant A_GST_ENTER as Entering Audio<br/>Element A/B
 
     Note over APP_NG: Exiting non-GStreamer player is still the current owner of the audio and video resources
-    Note over APP_OTT_ENTER,S_OTT_ENTER: Entering GStreamer OTT application waits until the previous player has released ownership
+    Note over APP_GST_ENTER: Entering GStreamer-based application waits until the previous player has released ownership
 
     AM->>APP_NG: stop exiting non-GStreamer player
     APP_NG->>RM: EssRMgrReleaseResource(video)
     APP_NG->>RM: EssRMgrReleaseResource(audio)
     APP_NG-->>AM: resource release complete
 
-    AM->>APP_OTT_ENTER: launch incoming GStreamer-based OTT application
-    APP_OTT_ENTER->>G_OTT_ENTER: activate entering pipeline A/B
-    G_OTT_ENTER->>V_OTT_ENTER: initialise video path A/B
-    V_OTT_ENTER->>RM: EssRMgrCreate(notifyCB)
-    V_OTT_ENTER->>RM: EssRMgrRequestResource(video A/B, notifyCB)
-    RM-->>V_OTT_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    AM->>APP_GST_ENTER: launch incoming GStreamer-based application
+    APP_GST_ENTER->>G_GST_ENTER: activate entering pipeline A/B
+    G_GST_ENTER->>V_GST_ENTER: initialise video path A/B
+    V_GST_ENTER->>RM: EssRMgrCreate(notifyCB)
+    V_GST_ENTER->>RM: EssRMgrRequestResource(video A/B, notifyCB)
+    RM-->>V_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    G_OTT_ENTER->>A_OTT_ENTER: initialise audio path A/B
-    A_OTT_ENTER->>RM: EssRMgrCreate(notifyCB)
-    A_OTT_ENTER->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
-    RM-->>A_OTT_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G_OTT_ENTER->>S_OTT_ENTER: initialise SVP path A/B if required
-    S_OTT_ENTER->>RM: EssRMgrCreate(notifyCB)
-    S_OTT_ENTER->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM-->>S_OTT_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    G_GST_ENTER->>A_GST_ENTER: initialise audio path A/B
+    A_GST_ENTER->>RM: EssRMgrCreate(notifyCB)
+    A_GST_ENTER->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
+    RM-->>A_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
-Disorderly-release path, where the entering GStreamer-managed OTT application requests AV resources before the exiting non-GStreamer-based player has fully released them:
+Disorderly-release path, where the entering GStreamer-based application requests AV resources before the exiting non-GStreamer-based player has fully released them:
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant AM as Application manager
-    participant APP_OTT_ENTER as Entering GStreamer<br/>Application Process
-    participant G_OTT_ENTER as GStreamer pipeline<br/>A/B
-    participant V_OTT_ENTER as Entering Video<br/>Element A/B
-    participant A_OTT_ENTER as Entering Audio<br/>Element A/B
-    participant S_OTT_ENTER as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant APP_GST_ENTER as Entering GStreamer<br/>Application Process
+    participant G_GST_ENTER as GStreamer pipeline<br/>A/B
+    participant V_GST_ENTER as Entering Video<br/>Element A/B
+    participant A_GST_ENTER as Entering Audio<br/>Element A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP_NG as Exiting Non-GStreamer<br/>AV Player
 
     Note over APP_NG: Exiting non-GStreamer player still owns the current audio and video resources
-    Note over APP_OTT_ENTER,S_OTT_ENTER: Entering GStreamer OTT application requests resources while the non-GStreamer player is still unwinding
-    Note over APP_OTT_ENTER,S_OTT_ENTER: The exiting application never owns SVP resources
+    Note over APP_GST_ENTER: Entering GStreamer-based application requests resources while the non-GStreamer player is still unwinding
+    Note over APP_GST_ENTER: The exiting application never owns SVP resources
 
-    AM->>APP_OTT_ENTER: launch incoming OTT application before non-GStreamer teardown is complete
-    APP_OTT_ENTER->>G_OTT_ENTER: activate entering pipeline A/B
-    G_OTT_ENTER->>V_OTT_ENTER: request video resources A/B
-    V_OTT_ENTER->>RM: EssRMgrRequestResource(video A/B, notifyCB)
-    RM->>APP_NG: revoke or reassign the exiting video resource to the entering OTT player
+    AM->>APP_GST_ENTER: launch incoming GStreamer-based application before non-GStreamer teardown is complete
+    APP_GST_ENTER->>G_GST_ENTER: activate entering pipeline A/B
+    G_GST_ENTER->>V_GST_ENTER: request video resources A/B
+    V_GST_ENTER->>RM: EssRMgrRequestResource(video A/B, notifyCB)
+    RM->>APP_NG: revoke or reassign the exiting video resource to the entering GStreamer-based application
     APP_NG-->>RM: revoke callback and release in progress
-    RM-->>V_OTT_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    RM-->>V_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    G_OTT_ENTER->>A_OTT_ENTER: request audio resources A/B
-    A_OTT_ENTER->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
-    RM->>APP_NG: revoke or reassign the exiting audio resource to the entering OTT player
+    G_GST_ENTER->>A_GST_ENTER: request audio resources A/B
+    A_GST_ENTER->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
+    RM->>APP_NG: revoke or reassign the exiting audio resource to the entering GStreamer-based application
     APP_NG-->>RM: revoke callback and release in progress
-    RM-->>A_OTT_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    G_OTT_ENTER->>S_OTT_ENTER: request SVP resources A/B if required
-    S_OTT_ENTER->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM-->>S_OTT_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    Note over RM,S_OTT_ENTER: No revoke occurs for SVP because the exiting non-GStreamer player never acquired SVP resources
+    RM-->>A_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     APP_NG->>RM: final release of remaining video and audio resources after arbitration
     RM-->>APP_NG: final resource release acknowledged
