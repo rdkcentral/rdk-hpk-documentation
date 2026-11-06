@@ -650,11 +650,6 @@ Disorderly-release path, where the entering non-GStreamer player requests AV res
 sequenceDiagram
     autonumber
     participant AM as Application manager
-    participant APP_OTT_ENTER as Entering GStreamer<br/>Application Process
-    participant G_OTT_ENTER as GStreamer pipeline<br/>A/B
-    participant V_OTT_ENTER as Entering Video<br/>Element A/B
-    participant A_OTT_ENTER as Entering Audio<br/>Element A/B
-    participant S_OTT_ENTER as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP_OTT_EXIT as Exiting GStreamer<br/>Application Process
     participant G_OTT_EXIT as Exiting GStreamer pipeline<br/>A/B
@@ -751,7 +746,7 @@ sequenceDiagram
     participant APP_NG as Exiting Non-GStreamer<br/>AV Player
 
     Note over APP_NG: Exiting non-GStreamer player still owns the current audio and video resources
-    Note over APP_OTT_ENTER,S_OTT_ENTER: Entering GStreamer OTT application requests resources while the non-GStreamer player is still unwinding
+    Note over APP_OTT_ENTER,S_OTT_ENTER: Entering GStreamer OTT application requests resources while the non-GStreamer player is still unwinding; the exiting app never owns SVP resources
 
     AM->>APP_OTT_ENTER: launch incoming OTT application before non-GStreamer teardown is complete
     APP_OTT_ENTER->>G_OTT_ENTER: activate entering pipeline A/B
@@ -769,9 +764,8 @@ sequenceDiagram
 
     G_OTT_ENTER->>S_OTT_ENTER: request SVP resources A/B if required
     S_OTT_ENTER->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM->>APP_NG: revoke or reassign the exiting SVP resource to the entering OTT player
-    APP_NG-->>RM: revoke callback and release in progress
     RM-->>S_OTT_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    Note over RM,S_OTT_ENTER: No revoke occurs for SVP because the exiting non-GStreamer player never acquired SVP resources
 
     APP_NG->>RM: final release of remaining video and audio resources after arbitration
     RM-->>APP_NG: final resource release acknowledged
