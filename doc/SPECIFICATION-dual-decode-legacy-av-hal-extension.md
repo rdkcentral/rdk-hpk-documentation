@@ -746,7 +746,8 @@ sequenceDiagram
     participant APP_NG as Exiting Non-GStreamer<br/>AV Player
 
     Note over APP_NG: Exiting non-GStreamer player still owns the current audio and video resources
-    Note over APP_OTT_ENTER,S_OTT_ENTER: Entering GStreamer OTT application requests resources while the non-GStreamer player is still unwinding; the exiting app never owns SVP resources
+    Note over APP_OTT_ENTER,S_OTT_ENTER: Entering GStreamer OTT application requests resources while the non-GStreamer player is still unwinding
+    Note over APP_OTT_ENTER,S_OTT_ENTER: The exiting application never owns SVP resources
 
     AM->>APP_OTT_ENTER: launch incoming OTT application before non-GStreamer teardown is complete
     APP_OTT_ENTER->>G_OTT_ENTER: activate entering pipeline A/B
