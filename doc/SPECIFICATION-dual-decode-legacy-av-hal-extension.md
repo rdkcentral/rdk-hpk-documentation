@@ -412,53 +412,37 @@ All AV players supporting dual secure-video paths shall use the application-mana
 
 Platforms shall declare whether their SVP allocator resources are asymmetric or symmetric.
 
-### 10.2 ESSOS Resource Manager configuration
+### 10.2 Platform SVP pool declaration
 
-The ESSOS Resource Manager configuration shall advertise two SVP allocator resources for the dual-decode use case.
+The platform shall declare the available SVP pools for the dual-decode use case without requiring a dedicated ESSOS Resource Manager IPC path for SVP allocator selection.
 
-### 10.3 Example ESSOS configuration entries
-
-For a symmetric configuration, the essrmgr.conf file is expected to contain two SVP resource entries in the following form:
-
-```text
-svpa: hardware
-svpa: hardware
-```
-
-### 10.4 Asymmetric SVP resources
+### 10.3 Asymmetric SVP resources
 
 On platforms where SVP allocator resources are asymmetric, middleware shall signal SVP usage through GStreamer context.
 
 The recommended logical usage values are:
 
-- `EssRMgrSVPAUse_fullResolution` for the UHD-capable pool; and
-- `EssRMgrSVPAUse_none` for the FHD-capable pool.
+- `fullResolution` for the UHD-capable pool; and
+- `standardResolution` for the FHD-capable pool.
 
 On such platforms:
 
-- ESSOS resource-manager configuration shall define both the UHD SVP pool resource and the FHD SVP pool resource;
-- the application-managed GStreamer path shall propagate SVP usage through GStreamer context before the first secure-buffer consumer binds the allocator;
+- the platform shall expose both the primary and secondary SVP pool definitions through the secure allocator metadata available to the pipeline;
+- the application-managed GStreamer path shall propagate the selected SVP usage through GStreamer context before the first secure-buffer consumer binds the allocator;
 - the first component that consumes the SVP buffer, such as a decryptor or SVP payload element, shall pass the usage to the vendor-side SVP integration; and
-- vendor code shall use the usage value together with the assigned resource identifier to bind the correct allocator resource.
+- vendor code shall use the usage value together with the pipeline role and pool identifier to bind the correct allocator resource.
 
-An asymmetric configuration may, for example, contain entries in the following form in essrmgr.conf:
-
-```text
-svpa: hardware
-svpa: hardware, limitedQuality
-```
-
-The SVP resource-owning element shall create its ESSOS connection once for the lifetime of the playback pipeline, request the SVP allocator during the initial pipeline-establishment path before secure playback depends on that allocator, and handle grant or revoke using the same ESSOS request/callback/release pattern used for video.
+The selected secure-resource instance shall therefore be resolved by the vendor implementation using the GStreamer context information sent along the path from application to the OCDM adaptor, `gst-svp-ext-common`, and `gst-svp-ext-soc`.
 
 ### 10.5 Symmetric SVP resources
 
 On platforms where SVP allocator resources are symmetric:
 
 - the SVP usage flag need not be signalled through GStreamer context for allocator selection;
-- ESSOS resource-manager configuration shall define the allocator resources symmetrically; and
-- the assigned ESSOS identifier alone is sufficient for vendor-resource binding.
+- the platform shall still expose the available secure-resource instance metadata in the same way for the relevant secure-playback path; and
+- the resource pool identifier or equivalent platform metadata is sufficient for vendor-resource binding.
 
-Even on symmetric platforms, the SVP-owning element shall keep a persistent ESSOS connection for the lifetime of the playback pipeline, release the allocator with `EssRMgrReleaseResource()` when playback stops or a revoke event is received, and destroy the ESSOS connection only when resource-manager communication is no longer needed.
+Even on symmetric platforms, the secure-playback path shall keep the resource context for the lifetime of the playback pipeline, and the vendor implementation shall release or replace the selected allocator state only when playback stops or when the pipeline takes a new secure-resource configuration.
 
 ### 10.6 Legacy behaviour
 
@@ -475,8 +459,8 @@ The OCDM adaptor, `gst-svp-ext-common`, and `gst-svp-ext-soc` shall carry the mi
 
 At a minimum, the secure-resource metadata shall include:
 
-- the logical usage class for the resource, such as primary or secondary video or SVP pool;
-- the selected ESSOS `assignedId` for the concrete resource instance;
+- the logical usage class for the resource, such as primary or secondary video or `fullResolution`/`standardResolution` SVP pool selection;
+- the selected secure-resource instance or pool identifier for the concrete resource allocation;
 - the pipeline or process ownership identifier used to distinguish the entering and exiting sessions; and
 - any platform-specific key or allocator identifier required by the vendor implementation.
 
@@ -489,7 +473,7 @@ Where the platform requires usage information to be visible to elements other th
 The structure shall include at least the following fields:
 
 - `usage` or equivalent logical resource class, such as `primary`, `secondary`, `fullResolution`, or `standardResolution`;
-- `assigned-id` or equivalent assigned ESSOS resource identifier;
+- `resource-id` or equivalent selected secure-resource instance or pool identifier;
 - `resource-type`, such as `video`, `audio`, or `svp`; and
 - `pipeline-role`, identifying the primary or secondary playback instance.
 
@@ -498,7 +482,7 @@ A representative example is shown below:
 ```text
 GstStructure: "svp-info"
   usage = "fullResolution"
-  assigned-id = 3
+  resource-id = "primary-svp-pool"
   resource-type = "svp"
   pipeline-role = "primary"
 ```
