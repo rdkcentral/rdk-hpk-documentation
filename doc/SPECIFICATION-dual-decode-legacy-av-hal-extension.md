@@ -615,8 +615,6 @@ sequenceDiagram
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     APP_GST_EXIT->>G_GST_EXIT: final teardown of exiting pipeline completes after arbitration
-    G_GST_EXIT->>V_GST_EXIT: release remaining video references
-    V_GST_EXIT->>RM: EssRMgrReleaseResource(video A/B)
     G_GST_EXIT->>A_GST_EXIT: release remaining audio references
     A_GST_EXIT->>RM: EssRMgrReleaseResource(audio A/B)
 ```
