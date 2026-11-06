@@ -208,7 +208,7 @@ Capability YAML shall describe the declared resource model and list the supporte
 
 It shall distinguish whether dual video decode, dual audio decode, audio mixing, dual SVP support, and dual DRM support are present for the relevant video and audio paths.
 
-Example structure:
+Example structure (TBC):
 
 ```yaml
 capabilities:
@@ -326,7 +326,7 @@ The ESSOS Resource Manager configuration shall advertise two available audio-dec
 
 ### 8.3 Example ESSOS configuration entries
 
-The `essrmgr.conf` file is expected to contain two audio resource entries in the following form:
+The `essrmgr.conf` file is expected to contain two audio resource entries in the following form (TBC):
 
 ```text
 audio: hardware
@@ -450,7 +450,7 @@ The integration shall ensure that the resource-owning element requests the alloc
 
 Where the platform requires usage information to be visible to elements other than the sink that received the direct property, the SVP usage information shall be carried in GStreamer context using a stable structure keyed by logical resource type.
 
-The structure shall include at least the following fields:
+The structure shall include at least the following fields (TBC):
 
 - `usage` or equivalent logical resource class, such as `primary`, `secondary`, `fullResolution`, or `standardResolution`;
 - `resource-id` or equivalent selected secure-resource instance or pool identifier;
