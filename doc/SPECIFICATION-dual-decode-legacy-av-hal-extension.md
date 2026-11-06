@@ -112,8 +112,8 @@ graph LR
 ### Process and IPC boundaries
 
 - **Application Process** owns playback-pipeline construction for GStreamer-based players.
-- **ESSOS Resource Manager** arbitrates assignment and returns the concrete resource instance identifiers.
-- **Video** and **audio** resource arbitration is performed by the relevant vendor element or sink, depending on the platform topology.
+- **ESSOS Resource Manager** arbitrates the assignment and release of video and audio resources and returns the concrete instance identifiers.
+- **SVP selection** is carried by GStreamer context and secure-resource metadata; it does not require a dedicated ESSOS Resource Manager IPC path for allocator selection.
 - **Vendor plugins** bind the returned `assignedId` values and any GStreamer-context signalling to the correct hardware resources.
 
 ### Contract scope
@@ -229,11 +229,13 @@ The capability description and the ESSOS resource-manager configuration shall us
 
 ### 4.5 ESSOS Resource Manager
 
-ESSOS Resource Manager is the platform arbitration layer for the video-decoder/display, audio-decoder/audio-output, and SVP paths. The application layer and vendor plugins shall request an assigned resource instance, apply the returned `assignedId`, release it during teardown, and destroy the ESSOS connection only when the resource-manager path is no longer needed.
+ESSOS Resource Manager is the platform arbitration layer for the video-decoder/display and audio-decoder/audio-output paths. For SVP, the platform shall use GStreamer context and secure-resource metadata; it shall not require a dedicated ESSOS Resource Manager IPC path for allocator selection.
+
+The application layer and vendor plugins shall request an assigned resource instance, apply the returned `assignedId`, release it during teardown, and destroy the ESSOS connection only when the resource-manager path is no longer needed.
 
 [TBC - Documentation of ESSOS Resource Manager APIs to be added; see https://github.com/rdkcmf/westeros/blob/master/essos/essos-resmgr.h]
 
-The platform-specific configuration shall document the concrete resource identifiers and any limits that apply to concurrent audio, video, and SVP acquisition. Where the platform exposes asymmetric pools, the configuration shall clearly distinguish the relevant high-specification and low-specification pools.
+The platform-specific configuration shall document the concrete resource identifiers and any limits that apply to concurrent audio and video acquisition. Where the platform exposes asymmetric pools, the configuration shall clearly distinguish the relevant high-specification and low-specification pools.
 
 ## 5. GStreamer context and `res-usage` documentation
 
@@ -258,7 +260,7 @@ Resource selection across middleware and vendor plugins relies on consistent ide
 
 The platform shall provide capability YAML, ESSOS resource-manager configuration, and a stable mapping between logical usage and the assigned `assignedId` values used by vendor plugins.
 
-The contract is simple: middleware decides the intent; ESSOS Resource Manager selects the concrete instance; vendor plugins open the selected resource; and GStreamer context is used when usage information must be visible beyond the sink that received the direct property.
+The contract is simple: middleware decides the intent; ESSOS Resource Manager selects the concrete video and audio instance; vendor plugins open the selected resource; and GStreamer context carries SVP usage information when it must be visible beyond the sink that received the direct property.
 
 ## 7. Video decoder and video plane resource model
 
@@ -603,7 +605,7 @@ sequenceDiagram
 
     AM->>APP_NG: launch non-GStreamer player before GStreamer teardown has completed
     APP_NG->>RM: EssRMgrRequestResource(video, notifyCB)
-    RM->>V_GST_EXIT: revoke or reassign the exiting video resource to the entering player
+    RM->>V_GST_EXIT: revoke both exiting video resources and reassign them to the entering player
     V_GST_EXIT-->>RM: revoke callback and release in progress
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
@@ -732,7 +734,7 @@ An implementation is conformant only when all of the following are true:
 | 10 | DRM-session provisioning occurs before pipeline construction and supports the platform's declared concurrent playback model. |
 | 11 | Transition handling prevents mixed ownership that would produce overlapping or blended video from exiting and entering players. |
 | 12 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
-| 13 | ESSOS Resource Manager support is available for switching between non-GStreamer-based applications, and between non-GStreamer-based and GStreamer-based applications, including the revoke-driven arbitration path required when the competing application requests AV resources before teardown completes. |
+| 13 | ESSOS Resource Manager support is available for switching between non-GStreamer-based applications and between non-GStreamer-based and GStreamer-based applications, including the revoke-driven arbitration path required when the competing application requests video or audio resources before teardown completes. |
 
 Failure of any mandatory gate means concurrent playback is unsupported on that implementation or supported only within a narrower capability set explicitly declared by the platform.
 
