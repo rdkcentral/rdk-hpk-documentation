@@ -2,9 +2,9 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.9
+**Specification version:** 0.91
 
-The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT** and **MAY** are interpreted as described in RFC 2119 and RFC 8174 when written in uppercase. Requirements are referenced by section and the conformance checklist, not individual requirement numbers.
+The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT** and **MAY** are interpreted as described in RFC 2119 and RFC 8174 when written in uppercase. Requirements are referenced by section and the conformance checklist.
 
 ## 1. Purpose
 
@@ -138,7 +138,7 @@ The platform video sink is westerossink. Middleware creates the westerossink ins
 
 The platform sink integrates capture directly or owns a private helper attached to its platform video output path. The helper may be a private object or child GStreamer element. The public pipeline topology remains unchanged.
 
-For every returned frame, the vendor implementation uses the same system time clock (STC) and scheduling rules as platform video output. It publishes only a selection established after decoder consumption. `CapturedFrame.presentationTimeNs` is the frame's media presentation timestamp (PTS) in nanoseconds. This is not a wall-clock or monotonic timestamp. Stream discontinuities may change the PTS timeline; the field does not establish a system-clock correlation.
+For every returned frame, the vendor implementation uses the same system time clock (STC) and scheduling rules as platform video output. It publishes only a selection established after decoder consumption. `CapturedFrame.presentationTimeNs` is the frame's media presentation timestamp (PTS) in nanoseconds, representing the media timeline. Stream discontinuities may change the PTS timeline.
 
 Capture preserves normal presentation and the platform sink's existing contract, including its properties, surface output, decoder discovery, subtitle integration, secondary-video behavior, and scheduling. A pipeline not requesting capture uses the same platform sink without a capture session and is otherwise unaffected.
 
@@ -534,6 +534,8 @@ The value types follow these rules.
 - When transferring a frame to another object, the metadata, FDs, token, and release obligation move to the new object. The source FDs become `-1`, its `slotIndex` becomes `kInvalidCaptureSlotIndex`, and its `acquisitionToken` becomes `kInvalidAcquisitionToken`.
 - You cannot overwrite a frame record that already contains data, because you would lose the FD and the obligation to release the frame. When a frame record is deleted, it does not automatically release the frame lock because the system cannot determine when the GPU has finished using the frame. To reuse a frame record, Middleware must first finish graphics use, release the lock, close or invalidate remaining owned FDs, and reset the record. Transfer ownership to another object using the transfer operation.
 
+The destructor does not release the frame lock because it cannot determine when the GPU has finished using the frame. Middleware must explicitly call releaseFrame() after GPU work completes. Move operations exist only to transfer the release obligation to one owner, not to automatically manage the frame lifetime.
+
 **Identity and complete frame descriptions**
 
 - A pool's `slotIndex` values MUST equal their positions in `slotLayouts`. They are contiguous from zero and cannot equal `kInvalidCaptureSlotIndex`.
@@ -803,6 +805,8 @@ A pipeline/source flush, seek or presentation discard does not by itself invalid
 
 Middleware must preserve acquisition order through server-to-client delivery. If inter-process communication (IPC) fails after HAL success, the server must retain pending invalidation and forward it with the next successful delivery. This applies even if the next HAL flag is false. The server cleans up the failed acquisition under Section 6. After a failed client import, the client MUST NOT restore invalidated cache entries. No acknowledgement API is added.
 
+In this context, "server-to-client" refers to Middleware's forwarding to the application client downstream of the in-process HAL call boundary.
+
 The vendor MUST determine whether a selection is new from private scheduler identity or equivalent state, not `slotIndex`. A failed acquisition MUST NOT mark the selection as returned.
 
 Reset, flush, seek or equivalent native processing may invalidate the current selection and comparison state. It MUST NOT release acquired frames. Acquisition then returns `NO_FRAME` until decoder consumption establishes another platform video output selection.
@@ -915,10 +919,10 @@ An SoC implementation is conformant only when all of the following are true:
 | Association | Sink property receipt before state change, independent sessions for two pipelines, missing/null/replaced-property rejection and rollback. | 4.1–4.3, 4.7 |
 | Configuration and capacity | Accurate configured-READY query, positive inclusive limits, every intermediate count, out-of-range rejection, initial rollback and rejection after one successful pool creation. No writes before pool creation. | 4.4, 3.1–3.2 |
 | Layout and backing | Unbound initial templates; complete bounds-checked acquisition metadata. Shared/separate/mixed objects, NV12, isolated ranges across locks and exactly one owned FD per distinct object. | 6, 5 |
-| Resolution and colour | Durable total old/new capacity, ordinary exhaustion versus session-fatal unsupported transition, valid per-frame effective colour including BT601-to-BT709. Old contents and releases remain valid. | 6.3, 7.3–7.4 |
+| Resolution and colour | Durable total old/new capacity, ordinary exhaustion versus session-fatal unsupported transition, valid per-frame effective colour including BT601-to-BT709. Old contents and releases remain valid. | 6.2, 6.3, 7.3–7.4 |
 | Native selection | OK once per new platform video output selection, NO_NEW_FRAME on repeated polls, NO_FRAME without a selection. Paused/final selections follow the lifecycle contract. | 4.6, 4.7, 7.1, 7.3 |
 | Identity and atomicity | Nonzero 64-bit IDs/tokens, safe stale/moved/released-record rejection, custom move/reset/output reuse, unchanged failed outputs and complete temporary-lock/FD rollback. | 5, 7.3–7.4 |
-| Graphics | Direct exact-layout import and correct RGB(A) sampling in both APIs; colour-compatible cache reuse, owned-FD cleanup on cache hits, GPU completion before release and partial-import rollback. Vendor supplies the matrix. | 8.3, 6.3–6.6 |
+| Graphics | Direct exact-layout import and correct RGB(A) sampling in both APIs; colour-compatible cache reuse, owned-FD cleanup on cache hits, GPU completion before release and partial-import rollback. Vendor supplies the matrix. | 8.3, 6.2–6.5 |
 | Invalidation | Latched over unsuccessful calls, ordered through failed IPC/import, applied before reused-ID lookup; old retained imports cleaned only after final use/release. Generic pipeline flush is distinct. | 6.3, 7.3 |
 | Playback and isolation | Exhaustion never blocks decode, presentation, audio or STC. Existing sink properties, surfaces, decoder discovery, subtitles, secondary video, geometry, visibility and immediate output preserved. | 6, 4 |
 | Threading and teardown | Serialized Middleware calls and native synchronization; no teardown race; final acquisition, late releases, library lifetime and deletion after all obligations. Runnable integration example and two-pipeline tests. | 4.4, 4.6, 4.7 |
@@ -933,6 +937,8 @@ These entries describe historical changes, not additional requirements. Referenc
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.91 | Draft for review | Resolves the 0.9 review: CapturedFrame rationale, corrected changelog, version reconciliation, cross-reference fixes, IPC clarification. | Design rationale, version authority, checklist references, boundary clarity. |
+| 0.9 | Draft for review | Restructured for progressive disclosure, renamed sections, consolidated pool creation, improved readability, replaced jargon. | Reading order, pool strategy, human readability, terminology. |
 | 0.81 | Draft for review | Resolves the 0.8 review: effective per-frame colour, explicit C++ ownership/compatibility, durable pool creation and a focused readability pass. | Configured READY, one total retention limit, old-frame validity, actor/ownership clarity and early conceptual orientation. |
 | 0.8 | Earlier draft | Configured slot limits, stable allocation IDs, cached imports and invalidation. Timing and transition choices were provisional in that revision. | Historical baseline for the review; the 0.81 contract supersedes its provisional lifecycle. |
 | 0.7 | Draft for review | Mandatory EGL/OpenGL ES and Vulkan direct import and logical reservation model. | Exact layout support, graphics lifetime and stable locked backing. |
@@ -955,17 +961,6 @@ These entries describe historical changes, not additional requirements. Referenc
 - Rewrote dense sentences for clarity and removed C++ jargon from narrative text.
 - Updated all cross-references to new section numbers.
 
-### What changed in version 0.9
-
-- Restructured sections for progressive disclosure: purpose, conceptual model, capture session interface, library and GStreamer integration, captured frames, acquisition/use/release, configuration changes and shutdown, vendor delivery, conformance.
-- Renamed section 3 to “Capture Session interface” and moved it before integration.
-- Moved vendor delivery requirements to section 8, after configuration changes and shutdown.
-- Merged backing allocation choices into pool creation (section 3.2).
-- Removed duplicate section 5.4; moved pool layout constraints into section 8.2.
-- Replaced “native scheduled output” with “platform video output” throughout.
-- Clarified backingSize in section 5.1 with cross-reference to section 3.2.
-- Rewrote dense sentences for clarity and removed C++ jargon from narrative text.
-- Updated all cross-references to new section numbers.
 
 ### What changed in version 0.81
 
@@ -977,3 +972,11 @@ These entries describe historical changes, not additional requirements. Referenc
 - Clarify serialized calls/native synchronization, SDK/ABI policy, factory creation and ordinary deletion. Remove the duplicate enabled flag.
 - Move history here, bring the model forward, renumber from 1 and use Mermaid for the embedded lifecycle. No individual requirement IDs.
 - Restructure sections for progressive disclosure: purpose, conceptual model, session interface, library and GStreamer integration, captured frames, acquisition/use/release, configuration changes and shutdown, vendor delivery, conformance.
+
+### What changed in version 0.91
+
+- Added explicit rationale for CapturedFrame destructor and move operations in section 5.1.
+- Removed duplicated "What changed in version 0.9" block.
+- Updated specification version to 0.91 and added 0.9 and 0.91 rows to revision-history table.
+- Fixed conformance checklist cross-references: Graphics row now cites 6.2–6.5; Resolution and colour row now cites 6.2, 6.3.
+- Clarified IPC language in section 7.3 to distinguish downstream Middleware-to-client forwarding from the in-process HAL boundary.
