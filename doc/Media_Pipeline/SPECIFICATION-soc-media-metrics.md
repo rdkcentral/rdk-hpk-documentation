@@ -2,17 +2,35 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.5
+**Specification version:** 0.7
 
 ## Revision history
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.7 | Draft for review | Fixed Appendix B implementation examples to conform with normative specification. Corrected field names, types, and enum values; removed incorrect OCCURRENCE fields; added missing observation-kind field. | Example correctness and alignment with Sections 5-7 and Appendix A. |
+| 0.6 | Draft for review | Added Appendix B with GStreamer implementation examples for custom metric messages. | Example correctness, extensible metric-message pattern, and bus handler registration. |
 | 0.5 | Draft for review | Completed episode lifecycle rules, decoder-underflow recovery, overlapping episode behavior, deliberate-drop exclusions, direct bus delivery, and event/counter consistency. | Episode boundaries and restart, final resolutions before producer-path teardown, native decoder/output conditions, overlapping metrics, and counter alignment. |
 | 0.4 | Draft for review | Added exact cumulative corrupted-frame count to the video frame snapshot already introduced in 0.3. | Corruption identity/deduplication, overlap with presentation outcomes, event consistency, and transport. |
 | 0.3 | Draft for review | Added exact cumulative rendered and dropped video-frame counters for direct SoC-rendered video. | Counter property, presentation-point ownership, hidden-frame exclusions, deliberate-removal behavior, and conformance tests. |
 | 0.2 | Draft for review | Made all seven defined metrics part of the required SoC contract and removed per-platform metric capability reporting. | Required metric coverage, topology limits, buffer-underflow reporting, and conformance tests. |
 | 0.1 | Initial draft | Introduced the GStreamer message format, metric meanings, producer ownership, and conformance rules. | Complete specification. |
+
+### What changed in version 0.7
+
+- Fixed Appendix B implementation examples to conform with the normative specification.
+- Corrected field names: changed `"pts"` to `"pts-ns"`.
+- Corrected field types: changed `metric` from `G_TYPE_STRING` to `G_TYPE_UINT`, changed `pts-ns` from `G_TYPE_UINT64` to `G_TYPE_INT64`.
+- Corrected enum usage: changed metric values from string names to numeric enum values (e.g., `1` for `MEDIA_METRIC_VIDEO_FRAME_DROP`).
+- Added missing `observation-kind` field to all examples.
+- Removed incorrect `"count"` field from OCCURRENCE examples (OCCURRENCE messages have no additional required fields).
+- Updated application-side receiving code to extract correct field types and names.
+
+### What changed in version 0.6
+
+- Added Appendix B with GStreamer implementation examples for custom metric messages.
+- Provided complete element-side and application-side code for posting and receiving metric events.
+- Documented the extensible metric-message pattern using a common structure name with a metric identifier field.
 
 ### What changed in version 0.5
 
@@ -440,3 +458,251 @@ The SoC implementation is best placed to perform this conversion because it know
 ## A.4 Polling
 
 If the hardware provides only a cumulative counter, the SoC element may poll it. The polling interval must be short enough to meet the agreed reporting requirement and must not interfere with decoding or presentation. The element expands every positive difference into individual occurrence messages before posting them.
+
+---
+
+## Appendix B: GStreamer Implementation Examples
+
+This appendix provides complete GStreamer implementation examples for posting and receiving custom metric messages using the media metrics model specified in this document.
+
+### B.1 Element-side: Posting a video frame drop metric
+
+For example, a decoder or video sink detects a dropped video frame:
+
+```c
+#include <gst/gst.h>
+
+static void
+post_frame_drop_metric(GstElement *element,
+                       guint metric,
+                       guint observation_kind,
+                       gint64 pts_ns)
+{
+    GstStructure *metric_struct;
+    GstMessage *msg;
+
+    if (!element)
+        return;
+
+    metric_struct = gst_structure_new(
+        "media-pipeline-metric",
+        "metric", G_TYPE_UINT,
+            metric,
+        "observation-kind", G_TYPE_UINT,
+            observation_kind,
+        "pts-ns", G_TYPE_INT64,
+            pts_ns,
+        NULL);
+
+    if (!metric_struct)
+        return;
+
+    msg = gst_message_new_element(
+        GST_OBJECT(element),
+        metric_struct);
+
+    if (!msg)
+    {
+        gst_structure_free(metric_struct);
+        return;
+    }
+
+    gst_element_post_message(element, msg);
+}
+```
+
+Example invocation:
+
+```c
+post_frame_drop_metric(self,
+                       MEDIA_METRIC_VIDEO_FRAME_DROP, /* metric = 1 */
+                       MEDIA_METRIC_OBSERVATION_OCCURRENCE, /* observation-kind = 1 */
+                       GST_BUFFER_PTS(buffer));
+```
+
+Resulting bus message (conceptual):
+
+```
+GST_MESSAGE_ELEMENT
+  src = video-decoder0
+
+structure:
+  name             = media-pipeline-metric
+  metric           = 1
+  observation-kind = 1
+  pts-ns           = 1234567890
+```
+
+### B.2 Application-side: Receiving metric messages
+
+Register a bus handler:
+
+```c
+#include <gst/gst.h>
+
+static gboolean
+bus_callback(GstBus *bus,
+             GstMessage *msg,
+             gpointer user_data)
+{
+    switch (GST_MESSAGE_TYPE(msg))
+    {
+        case GST_MESSAGE_ELEMENT:
+        {
+            const GstStructure *s;
+            guint metric = 0;
+            guint observation_kind = 0;
+            gboolean metric_ok, observation_kind_ok;
+
+            s = gst_message_get_structure(msg);
+
+            if (!s)
+                break;
+
+            if (!gst_structure_has_name(
+                    s,
+                    "media-pipeline-metric"))
+            {
+                break;
+            }
+
+            metric_ok = gst_structure_get_uint(
+                s,
+                "metric",
+                &metric);
+
+            observation_kind_ok = gst_structure_get_uint(
+                s,
+                "observation-kind",
+                &observation_kind);
+
+            if (metric_ok && observation_kind_ok &&
+                metric == MEDIA_METRIC_VIDEO_FRAME_DROP &&
+                observation_kind == MEDIA_METRIC_OBSERVATION_OCCURRENCE)
+            {
+                gint64 pts_ns = 0;
+                gboolean pts_ok;
+
+                pts_ok = gst_structure_get_int64(
+                    s,
+                    "pts-ns",
+                    &pts_ns);
+
+                if (pts_ok)
+                {
+                    g_print(
+                        "VIDEO_FRAME_DROP:"
+                        " pts-ns=%" G_GINT64_FORMAT "\n",
+                        pts_ns);
+                }
+            }
+
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return TRUE;
+}
+```
+
+Pipeline setup:
+
+```c
+GstBus *bus;
+guint watch_id;
+
+bus = gst_element_get_bus(pipeline);
+
+if (bus)
+{
+    watch_id = gst_bus_add_watch(
+        bus,
+        bus_callback,
+        NULL);
+
+    if (watch_id == 0)
+    {
+        g_print("Failed to add bus watch\n");
+    }
+
+    gst_object_unref(bus);
+}
+else
+{
+    g_print("Failed to get bus from pipeline\n");
+}
+```
+
+Note: `gst_bus_add_watch()` requires a running GLib main loop on the associated main context.
+
+### B.3 Extensible metric-message pattern
+
+If multiple metrics are defined in the specification, a common pattern is to always post the same structure name:
+
+```
+media-pipeline-metric
+```
+
+The metric identifier is carried as a field:
+
+```c
+static void
+post_metric(GstElement *element,
+            guint metric,
+            guint observation_kind,
+            gint64 pts_ns)
+{
+    GstStructure *metric_struct;
+    GstMessage *msg;
+
+    if (!element)
+        return;
+
+    metric_struct = gst_structure_new(
+        "media-pipeline-metric",
+        "metric", G_TYPE_UINT,
+            metric,
+        "observation-kind", G_TYPE_UINT,
+            observation_kind,
+        "pts-ns", G_TYPE_INT64,
+            pts_ns,
+        NULL);
+
+    if (!metric_struct)
+        return;
+
+    msg = gst_message_new_element(
+        GST_OBJECT(element),
+        metric_struct);
+
+    if (!msg)
+    {
+        gst_structure_free(metric_struct);
+        return;
+    }
+
+    gst_element_post_message(element, msg);
+}
+```
+
+This lets one bus callback process all metrics:
+
+```c
+if (metric == MEDIA_METRIC_VIDEO_FRAME_DROP)
+{
+    /* Process dropped-frame metric. */
+}
+else if (metric == MEDIA_METRIC_VIDEO_DECODE_ERROR)
+{
+    /* Process decode-error metric. */
+}
+else if (metric == MEDIA_METRIC_AUDIO_FRAME_DROP)
+{
+    /* Process audio dropped-frame metric. */
+}
+```
+
+This pattern scales because every media metric arrives through one GStreamer message type, `GST_MESSAGE_ELEMENT`, and one structure name, `media-pipeline-metric`. The `metric` field identifies the specific media metric.
