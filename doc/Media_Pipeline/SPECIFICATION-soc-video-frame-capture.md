@@ -2,7 +2,7 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.92
+**Specification version:** 0.93
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT** and **MAY** are interpreted as described in RFC 2119 and RFC 8174 when written in uppercase. Requirements are referenced by section and the conformance checklist.
 
@@ -102,7 +102,7 @@ public:
 
 ### 3.1 Configured capabilities
 
-Middleware calls `getCapabilities()` after the configured codec/resolution milestone in Section 4.4. An earlier call returns `CAPABILITIES_NOT_AVAILABLE_YET`. On `OK`, the HAL reports `drmFormat`, `drmModifier`, `maximumContentSize`, `minimumSlots` and `maximumSlots`. The query allocates no pool and exports no FDs. Every non-`OK` result MUST leave `out` unchanged.
+Middleware calls `getCapabilities()` after the configured codec/resolution milestone in Section 4.4. An earlier call returns `CAPABILITIES_NOT_AVAILABLE_YET`. If `CAPABILITIES_NOT_AVAILABLE_YET` is returned, Middleware may retry within the configured READY time budget before rolling back. On `OK`, the HAL reports `drmFormat`, `drmModifier`, `maximumContentSize`, `minimumSlots` and `maximumSlots`. The query allocates no pool and exports no FDs. Every non-`OK` result MUST leave `out` unchanged.
 
 The limits MUST satisfy `1 <= minimumSlots <= maximumSlots`. They count retained frames, not DMA-BUF objects. The vendor MUST support every integer in this inclusive range; equal endpoints are valid. A `createPool()` request outside the range returns `INVALID_ARGUMENT`, never a silently adjusted count. Genuine resource failures may return `NO_RESOURCES`. The vendor must not hide unsupported count values by silently adjusting them.
 
@@ -238,7 +238,7 @@ ICaptureSession* session = createCaptureSession();
 
 Middleware supplies `session` to the sink. The sink borrows the pointer and MUST NOT delete the object. This HAL session is separate from the application's public capture object.
 
-Middleware configures the pipeline's codec and resolution through GStreamer caps or properties before querying the session's limits and calling `createPool()`. By configured `READY`, the vendor integration MUST have the native codec and resolution information needed for an accurate `getCapabilities()` query and pool creation. Middleware MUST query after that milestone and create the pool before capture writes or publication begin. Generic GStreamer `READY` does not prove that caps are negotiated or preroll is complete. Middleware is responsible for ensuring the pipeline is configured with the relevant codec and resolution data before calling getCapabilities(). An earlier call to the HAL `getCapabilities()` returns `CAPABILITIES_NOT_AVAILABLE_YET`. Early public Rialto graphics-support queries are separate from this HAL query and do not require configured READY.
+Middleware configures the pipeline's codec and resolution by setting the `codec` and `resolution` properties on westerossink before driving it to READY, then queries the session's limits and calls `createPool()`. By configured `READY`, the vendor integration MUST have the native codec and resolution information needed for an accurate `getCapabilities()` query and pool creation. Middleware MUST query after that milestone and create the pool before capture writes or publication begin. Generic GStreamer `READY` does not prove that caps are negotiated or preroll is complete. Middleware is responsible for ensuring the pipeline is configured with the relevant codec and resolution data before calling getCapabilities(). An earlier call to the HAL `getCapabilities()` returns `CAPABILITIES_NOT_AVAILABLE_YET`.
 
 Middleware MUST serialize method calls within a session, even when successive calls originate on different threads. The vendor MUST synchronize native scheduler updates with those calls. Several retained frames may coexist, but this does not permit overlapping HAL calls or concurrent mutation of one output record. Setup and destruction MUST NOT overlap other HAL calls or native access to the session. Final shared-frame cleanup MUST use the same serialized release path.
 
@@ -514,6 +514,7 @@ struct CapturedFrame
     CapturedFrame() : presentationTimeNs{0}, visibleRegion{} {}
     CapturedFrame(const CapturedFrame &) = delete;
     CapturedFrame &operator=(const CapturedFrame &) = delete;
+    CapturedFrame(CapturedFrame &&) = delete;
     CapturedFrame &operator=(const CapturedFrame &&) = delete;
     ~CapturedFrame() = default;
 };
@@ -933,6 +934,7 @@ These entries describe historical changes, not additional requirements. Referenc
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.93 | Draft for review | Added explicit westerossink properties for codec/resolution configuration, clarified getCapabilities() always invokes HAL with timing requirement, added retry guidance for CAPABILITIES_NOT_AVAILABLE_YET, added explicit move constructor deletion, clarified pool metadata wording. | §4.4 explicit properties, §3.1 HAL invocation and retry guidance, §5.1 explicit move deletion, proposal §3.3 pool metadata wording. |
 | 0.92 | Draft for review | Clarified configured READY mechanism, specified factory discovery, removed move semantics, added CAPABILITIES_NOT_AVAILABLE_YET error code. | §4.4 configuration responsibility, §8.1 library name and extern "C", §5.1 non-movable CapturedFrame, §3.1 new error code. |
 | 0.91 | Draft for review | Resolves the 0.9 review: CapturedFrame rationale, corrected changelog, version reconciliation, cross-reference fixes, IPC clarification. | Design rationale, version authority, checklist references, boundary clarity. |
 | 0.9 | Draft for review | Restructured for progressive disclosure, renamed sections, consolidated pool creation, improved readability, replaced jargon. | Reading order, pool strategy, human readability, terminology. |
@@ -969,6 +971,15 @@ These entries describe historical changes, not additional requirements. Referenc
 - Clarify serialized calls/native synchronization, SDK/ABI policy, factory creation and ordinary deletion. Remove the duplicate enabled flag.
 - Move history here, bring the model forward, renumber from 1 and use Mermaid for the embedded lifecycle. No individual requirement IDs.
 - Restructure sections for progressive disclosure: purpose, conceptual model, session interface, library and GStreamer integration, captured frames, acquisition/use/release, configuration changes and shutdown, vendor delivery, conformance.
+
+### What changed in version 0.93
+
+- Added explicit westerossink properties (codec, resolution) for configuration before driving to READY in §4.4.
+- Clarified that getCapabilities() always invokes the HAL via the server; if called before configured READY, returns CAPABILITIES_NOT_AVAILABLE_YET; added retry guidance within the READY time budget in §3.1.
+- Added explicit move constructor deletion to CapturedFrame in §5.1 for clarity (move semantics were already suppressed by deleted copy operations).
+- Clarified "pool metadata is refreshed" to "updated pool metadata is returned on successful acquisition when the pool structure changes" in proposal §3.3 to align with SoC spec's durable pool model.
+- Removed supportedTextureTargets from rialto-interim/api-headers/IVideoFrameCapture.h (N1 fix).
+- Updated revision history table with 0.93 entry.
 
 ### What changed in version 0.92
 
