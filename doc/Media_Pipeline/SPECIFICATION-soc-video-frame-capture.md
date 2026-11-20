@@ -2,7 +2,7 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.91
+**Specification version:** 0.92
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT** and **MAY** are interpreted as described in RFC 2119 and RFC 8174 when written in uppercase. Requirements are referenced by section and the conformance checklist.
 
@@ -98,11 +98,11 @@ public:
 };
 ```
 
-`slotCount` is the requested total retention capacity. `out`, `outPool` and `outFrame` are output records supplied by Middleware, not objects owned by the HAL. The `frame` passed to `releaseFrame()` is the acquired record. If the record was moved to another object, use that moved record.
+`slotCount` is the requested total retention capacity. `out`, `outPool` and `outFrame` are output records supplied by Middleware, not objects owned by the HAL. The `frame` passed to `releaseFrame()` is the acquired record.
 
 ### 3.1 Configured capabilities
 
-Middleware calls `getCapabilities()` after the configured codec/resolution milestone in Section 4.4. An earlier call returns `INVALID_ARGUMENT`. On `OK`, the HAL reports `drmFormat`, `drmModifier`, `maximumContentSize`, `minimumSlots` and `maximumSlots`. The query allocates no pool and exports no FDs. Every non-`OK` result MUST leave `out` unchanged.
+Middleware calls `getCapabilities()` after the configured codec/resolution milestone in Section 4.4. An earlier call returns `CAPABILITIES_NOT_AVAILABLE_YET`. On `OK`, the HAL reports `drmFormat`, `drmModifier`, `maximumContentSize`, `minimumSlots` and `maximumSlots`. The query allocates no pool and exports no FDs. Every non-`OK` result MUST leave `out` unchanged.
 
 The limits MUST satisfy `1 <= minimumSlots <= maximumSlots`. They count retained frames, not DMA-BUF objects. The vendor MUST support every integer in this inclusive range; equal endpoints are valid. A `createPool()` request outside the range returns `INVALID_ARGUMENT`, never a silently adjusted count. Genuine resource failures may return `NO_RESOURCES`. The vendor must not hide unsupported count values by silently adjusting them.
 
@@ -238,9 +238,7 @@ ICaptureSession* session = createCaptureSession();
 
 Middleware supplies `session` to the sink. The sink borrows the pointer and MUST NOT delete the object. This HAL session is separate from the application's public capture object.
 
-Middleware configures the pipeline's codec and resolution, queries the session's limits and calls `createPool()` before enabling capture output.
-
-By configured `READY`, the vendor integration MUST have the native codec and resolution information needed for an accurate `getCapabilities()` query and pool creation. Middleware MUST query after that milestone and create the pool before capture writes or publication begin. Generic GStreamer `READY` does not prove that caps are negotiated or preroll is complete. Early native configuration is an integration requirement. Early public Rialto graphics-support queries remain separate from this HAL query.
+Middleware configures the pipeline's codec and resolution through GStreamer caps or properties before querying the session's limits and calling `createPool()`. By configured `READY`, the vendor integration MUST have the native codec and resolution information needed for an accurate `getCapabilities()` query and pool creation. Middleware MUST query after that milestone and create the pool before capture writes or publication begin. Generic GStreamer `READY` does not prove that caps are negotiated or preroll is complete. Middleware is responsible for ensuring the pipeline is configured with the relevant codec and resolution data before calling getCapabilities(). An earlier call to the HAL `getCapabilities()` returns `CAPABILITIES_NOT_AVAILABLE_YET`. Early public Rialto graphics-support queries are separate from this HAL query and do not require configured READY.
 
 Middleware MUST serialize method calls within a session, even when successive calls originate on different threads. The vendor MUST synchronize native scheduler updates with those calls. Several retained frames may coexist, but this does not permit overlapping HAL calls or concurrent mutation of one output record. Setup and destruction MUST NOT overlap other HAL calls or native access to the session. Final shared-frame cleanup MUST use the same serialized release path.
 
@@ -407,6 +405,7 @@ enum class CaptureStatus : uint32_t
     NO_RESOURCES,
     NO_FRAME,
     FATAL_ERROR,
+    CAPABILITIES_NOT_AVAILABLE_YET,
 };
 
 constexpr uint32_t kInvalidCaptureSlotIndex = std::numeric_limits<uint32_t>::max();
@@ -515,8 +514,7 @@ struct CapturedFrame
     CapturedFrame() : presentationTimeNs{0}, visibleRegion{} {}
     CapturedFrame(const CapturedFrame &) = delete;
     CapturedFrame &operator=(const CapturedFrame &) = delete;
-    CapturedFrame(CapturedFrame &&other) noexcept;
-    CapturedFrame &operator=(CapturedFrame &&other) noexcept = delete;
+    CapturedFrame &operator=(const CapturedFrame &&) = delete;
     ~CapturedFrame() = default;
 };
 ```
@@ -529,12 +527,10 @@ The value types follow these rules.
 - Pool `backingSize` gives the configured slot dimension for admitted capacity. Acquired `backingSize` describes the actual returned frame. Section 3.2 requires that pool `backingSize` not exceed `maximumContentSize`. Neither size alone identifies physical backing.
 - `DmaBufObject.sizeBytes` gives the size available for range validation in the identified acquired allocation. Reporting it does not allocate or export an FD.
 - After closing an FD or completing an ownership-consuming import, Middleware MUST set the corresponding `ExportedDmaBuf::fd` to `-1`. Section 6 defines FD ownership. Destructors do not close FDs.
-- `CapturedFrame` is non-copyable. A valid `slotIndex` and matching `acquisitionToken` mean exactly one `releaseFrame()` is owed, independently of FD ownership.
+- `CapturedFrame` is non-copyable and non-movable. A valid `slotIndex` and matching `acquisitionToken` mean exactly one `releaseFrame()` is owed, independently of FD ownership.
 - The HAL must assign a session-unique non-zero `acquisitionToken` to each successful acquisition, without colliding wraparound or reuse. The token is opaque; Middleware must not interpret or reconstruct it.
-- When transferring a frame to another object, the metadata, FDs, token, and release obligation move to the new object. The source FDs become `-1`, its `slotIndex` becomes `kInvalidCaptureSlotIndex`, and its `acquisitionToken` becomes `kInvalidAcquisitionToken`.
-- You cannot overwrite a frame record that already contains data, because you would lose the FD and the obligation to release the frame. When a frame record is deleted, it does not automatically release the frame lock because the system cannot determine when the GPU has finished using the frame. To reuse a frame record, Middleware must first finish graphics use, release the lock, close or invalidate remaining owned FDs, and reset the record. Transfer ownership to another object using the transfer operation.
 
-The destructor does not release the frame lock because it cannot determine when the GPU has finished using the frame. Middleware must explicitly call releaseFrame() after GPU work completes. Move operations exist only to transfer the release obligation to one owner, not to automatically manage the frame lifetime.
+The destructor does not release the frame lock because it cannot determine when the GPU has finished using the frame. Middleware must explicitly call releaseFrame() after GPU work completes.
 
 **Identity and complete frame descriptions**
 
@@ -555,7 +551,7 @@ The destructor does not release the frame lock because it cannot determine when 
 
 - On `OK`, `exportedDmaBufs` must contain exactly one entry for each distinct object that the frame's planes reference. The list must not contain duplicates or unrelated objects. Middleware MUST match `FramePlane::dmaBufObjectId`, `DmaBufObject::objectId` and `ExportedDmaBuf::dmaBufObjectId` within that returned frame.
 - A later selection may reuse a released allocation and ID with newly exported FDs, or return an unknown ID requiring a new import. Section 6 governs retained contents.
-- `dmaBufObjectsFlushed` tells Middleware to discard cached allocation identities before looking up the returned IDs. It is false by default. Section 7.3 defines its latching and delivery rules. Moving transfers the flag and all metadata; the source flag becomes false. Resetting a released, FD-free record clears its flag and old metadata.
+- `dmaBufObjectsFlushed` tells Middleware to discard cached allocation identities before looking up the returned IDs. It is false by default. Section 7.3 defines its latching and delivery rules. Resetting a released, FD-free record clears its flag and old metadata.
 
 Plane count can differ from object count. The exported FD count follows the distinct referenced objects.
 
@@ -821,7 +817,7 @@ On `OK`, the HAL releases the lock and ends the slot's native binding. It sets `
 
 Release does not inspect or close FDs. Middleware MUST close any remaining owned FDs separately. The content-access rule in Section 6.2 applies even if an FD remains open after release.
 
-An invalid, moved-from, out-of-range, or stale slot index returns `INVALID_ARGUMENT`. A currently unlocked slot index or a mismatched acquisition token also returns `INVALID_ARGUMENT`. Every non-`OK` result leaves both the frame and its existing lock state unchanged, so a valid frame retains exactly one release obligation. A slot cannot be reused while its lock remains active.
+An invalid, out-of-range, or stale slot index returns `INVALID_ARGUMENT`. A currently unlocked slot index or a mismatched acquisition token also returns `INVALID_ARGUMENT`. Every non-`OK` result leaves both the frame and its existing lock state unchanged, so a valid frame retains exactly one release obligation. A slot cannot be reused while its lock remains active.
 
 ### 7.5 Readiness and playback continuity
 
@@ -833,10 +829,10 @@ Capture-slot exhaustion MUST NOT block decode, native scheduled selection, audio
 
 ### 8.1 Capture library and compatibility
 
-The vendor MUST provide a shared library exporting this factory through the platform's agreed symbol-discovery convention:
+The vendor MUST provide a shared library exporting this factory through the platform's agreed symbol-discovery convention. The library name is `lib_capture_hal.so` (platform-specific names may vary). The factory function MUST be declared `extern "C"` to avoid C++ name mangling:
 
 ```cpp
-ICaptureSession* createCaptureSession();
+extern "C" ICaptureSession* createCaptureSession();
 ```
 
 The factory MUST return an owned `ICaptureSession` object. Section 4 defines how Middleware creates, uses and destroys that object.
@@ -921,7 +917,7 @@ An SoC implementation is conformant only when all of the following are true:
 | Layout and backing | Unbound initial templates; complete bounds-checked acquisition metadata. Shared/separate/mixed objects, NV12, isolated ranges across locks and exactly one owned FD per distinct object. | 6, 5 |
 | Resolution and colour | Durable total old/new capacity, ordinary exhaustion versus session-fatal unsupported transition, valid per-frame effective colour including BT601-to-BT709. Old contents and releases remain valid. | 6.2, 6.3, 7.3–7.4 |
 | Native selection | OK once per new platform video output selection, NO_NEW_FRAME on repeated polls, NO_FRAME without a selection. Paused/final selections follow the lifecycle contract. | 4.6, 4.7, 7.1, 7.3 |
-| Identity and atomicity | Nonzero 64-bit IDs/tokens, safe stale/moved/released-record rejection, custom move/reset/output reuse, unchanged failed outputs and complete temporary-lock/FD rollback. | 5, 7.3–7.4 |
+| Identity and atomicity | Nonzero 64-bit IDs/tokens, safe stale/released-record rejection, custom reset/output reuse, unchanged failed outputs and complete temporary-lock/FD rollback. | 5, 7.3–7.4 |
 | Graphics | Direct exact-layout import and correct RGB(A) sampling in both APIs; colour-compatible cache reuse, owned-FD cleanup on cache hits, GPU completion before release and partial-import rollback. Vendor supplies the matrix. | 8.3, 6.2–6.5 |
 | Invalidation | Latched over unsuccessful calls, ordered through failed IPC/import, applied before reused-ID lookup; old retained imports cleaned only after final use/release. Generic pipeline flush is distinct. | 6.3, 7.3 |
 | Playback and isolation | Exhaustion never blocks decode, presentation, audio or STC. Existing sink properties, surfaces, decoder discovery, subtitles, secondary video, geometry, visibility and immediate output preserved. | 6, 4 |
@@ -937,6 +933,7 @@ These entries describe historical changes, not additional requirements. Referenc
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
+| 0.92 | Draft for review | Clarified configured READY mechanism, specified factory discovery, removed move semantics, added CAPABILITIES_NOT_AVAILABLE_YET error code. | §4.4 configuration responsibility, §8.1 library name and extern "C", §5.1 non-movable CapturedFrame, §3.1 new error code. |
 | 0.91 | Draft for review | Resolves the 0.9 review: CapturedFrame rationale, corrected changelog, version reconciliation, cross-reference fixes, IPC clarification. | Design rationale, version authority, checklist references, boundary clarity. |
 | 0.9 | Draft for review | Restructured for progressive disclosure, renamed sections, consolidated pool creation, improved readability, replaced jargon. | Reading order, pool strategy, human readability, terminology. |
 | 0.81 | Draft for review | Resolves the 0.8 review: effective per-frame colour, explicit C++ ownership/compatibility, durable pool creation and a focused readability pass. | Configured READY, one total retention limit, old-frame validity, actor/ownership clarity and early conceptual orientation. |
@@ -972,6 +969,15 @@ These entries describe historical changes, not additional requirements. Referenc
 - Clarify serialized calls/native synchronization, SDK/ABI policy, factory creation and ordinary deletion. Remove the duplicate enabled flag.
 - Move history here, bring the model forward, renumber from 1 and use Mermaid for the embedded lifecycle. No individual requirement IDs.
 - Restructure sections for progressive disclosure: purpose, conceptual model, session interface, library and GStreamer integration, captured frames, acquisition/use/release, configuration changes and shutdown, vendor delivery, conformance.
+
+### What changed in version 0.92
+
+- Added CAPABILITIES_NOT_AVAILABLE_YET error code to CaptureStatus enum for early getCapabilities() calls before configured READY.
+- Clarified in §4.4 that Middleware configures codec/resolution through GStreamer caps or properties before calling getCapabilities(), and that earlier calls return CAPABILITIES_NOT_AVAILABLE_YET.
+- Specified in §8.1 that the HAL library name is `lib_capture_hal.so` and the factory function must be declared `extern "C"`.
+- Removed CapturedFrame move constructor and move assignment; CapturedFrame is now non-copyable and non-movable.
+- Removed all references to move semantics throughout the specification.
+- Updated revision history table with 0.92 entry.
 
 ### What changed in version 0.91
 
