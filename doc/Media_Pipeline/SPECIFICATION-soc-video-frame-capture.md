@@ -2,7 +2,7 @@
 
 **Status:** Draft for review.
 
-**Specification version:** 0.93
+**Specification version:** 0.94
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT** and **MAY** are interpreted as described in RFC 2119 and RFC 8174 when written in uppercase. Requirements are referenced by section and the conformance checklist.
 
@@ -102,7 +102,7 @@ public:
 
 ### 3.1 Configured capabilities
 
-Middleware calls `getCapabilities()` after the configured codec/resolution milestone in Section 4.4. An earlier call returns `CAPABILITIES_NOT_AVAILABLE_YET`. If `CAPABILITIES_NOT_AVAILABLE_YET` is returned, Middleware may retry within the configured READY time budget before rolling back. On `OK`, the HAL reports `drmFormat`, `drmModifier`, `maximumContentSize`, `minimumSlots` and `maximumSlots`. The query allocates no pool and exports no FDs. Every non-`OK` result MUST leave `out` unchanged.
+Middleware calls `getCapabilities()` after the configured codec/resolution milestone in Section 4.4. An earlier call returns `SESSION_NOT_READY`. If `SESSION_NOT_READY` is returned, Middleware may retry within the configured PAUSED time budget before rolling back. On `OK`, the HAL reports `drmFormat`, `drmModifier`, `maximumContentSize`, `minimumSlots` and `maximumSlots`. The query allocates no pool and exports no FDs. Every non-`OK` result MUST leave `out` unchanged.
 
 The limits MUST satisfy `1 <= minimumSlots <= maximumSlots`. They count retained frames, not DMA-BUF objects. The vendor MUST support every integer in this inclusive range; equal endpoints are valid. A `createPool()` request outside the range returns `INVALID_ARGUMENT`, never a silently adjusted count. Genuine resource failures may return `NO_RESOURCES`. The vendor must not hide unsupported count values by silently adjusting them.
 
@@ -212,6 +212,7 @@ static void gst_westeros_sink_set_property(GObject *object, guint prop_id, const
             break;
         }
         default:
+``
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
             break;
     }
@@ -219,6 +220,75 @@ static void gst_westeros_sink_set_property(GObject *object, guint prop_id, const
 ```
 
 The property MUST be registered in the class_init function.
+
+Each SoC-specific `westeros-sink-soc.c` MUST implement the following contract functions for codec and resolution properties:
+
+```cpp
+gboolean gst_westeros_sink_soc_set_codec(
+    GstWesterosSink *sink,
+    const gchar *codec);
+
+gboolean gst_westeros_sink_soc_set_resolution_width(
+    GstWesterosSink *sink,
+    guint width);
+
+gboolean gst_westeros_sink_soc_set_resolution_height(
+    GstWesterosSink *sink,
+    guint height);
+```
+
+**Semantics**:
+- `codec`: GStreamer caps string specifying the codec (e.g., "video/x-h264,profile=high"). Required when capture is enabled.
+- `resolution-width`: Integer width in pixels. Required when capture is enabled.
+- `resolution-height`: Integer height in pixels. Required when capture is enabled.
+- The implementation MUST validate that codec is non-null and is a valid GStreamer caps string
+- The implementation MUST validate that width and height are non-zero
+- The implementation MUST reject invalid values
+
+The common `westeros-sink.c` MUST implement property handlers for `codec`, `resolution-width`, and `resolution-height`:
+
+```cpp
+static void gst_westeros_sink_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+    GstWesterosSink *sink = GST_WESTEROS_SINK(object);
+
+    switch (prop_id)
+    {
+        case PROP_RDK_CODEC:
+        {
+            const gchar *codec = g_value_get_string(value);
+            if (!gst_westeros_sink_soc_set_codec(sink, codec))
+            {
+                GST_ERROR_OBJECT(sink, "Failed to set codec");
+            }
+            break;
+        }
+        case PROP_RDK_RESOLUTION_WIDTH:
+        {
+            guint width = g_value_get_uint(value);
+            if (!gst_westeros_sink_soc_set_resolution_width(sink, width))
+            {
+                GST_ERROR_OBJECT(sink, "Failed to set resolution width");
+            }
+            break;
+        }
+        case PROP_RDK_RESOLUTION_HEIGHT:
+        {
+            guint height = g_value_get_uint(value);
+            if (!gst_westeros_sink_soc_set_resolution_height(sink, height))
+            {
+                GST_ERROR_OBJECT(sink, "Failed to set resolution height");
+            }
+            break;
+        }
+        default:
+            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+            break;
+    }
+}
+```
+
+These properties MUST be registered in the class_init function.
 
 **Timing requirements**:
 - **Connect**: During NULL→READY, associate the session with platform video output in `gst_westeros_sink_soc_null_to_ready()`; do not require a pool or start capture writes. Query configured limits and create the pool afterward, before enabling capture.
@@ -238,7 +308,7 @@ ICaptureSession* session = createCaptureSession();
 
 Middleware supplies `session` to the sink. The sink borrows the pointer and MUST NOT delete the object. This HAL session is separate from the application's public capture object.
 
-Middleware configures the pipeline's codec and resolution by setting the `codec` and `resolution` properties on westerossink before driving it to READY, then queries the session's limits and calls `createPool()`. By configured `READY`, the vendor integration MUST have the native codec and resolution information needed for an accurate `getCapabilities()` query and pool creation. Middleware MUST query after that milestone and create the pool before capture writes or publication begin. Generic GStreamer `READY` does not prove that caps are negotiated or preroll is complete. Middleware is responsible for ensuring the pipeline is configured with the relevant codec and resolution data before calling getCapabilities(). An earlier call to the HAL `getCapabilities()` returns `CAPABILITIES_NOT_AVAILABLE_YET`.
+Middleware configures the pipeline's codec and resolution by setting the `codec` and `resolution` properties on westerossink before driving it to PAUSED, then queries the session's limits and calls `createPool()`. The `codec` property accepts a GStreamer caps string (e.g., "video/x-h264,profile=high"). The `resolution` property is specified as two separate integer properties: `resolution-width` and `resolution-height`. Both properties are required when capture is enabled. By configured PAUSED, the vendor integration MUST have the native codec and resolution information needed for an accurate `getCapabilities()` query and pool creation. Middleware MUST query after that milestone and create the pool before capture writes or publication begin. Generic GStreamer `READY` does not prove that caps are negotiated or preroll is complete. Middleware is responsible for ensuring the pipeline is configured with the relevant codec and resolution data before calling getCapabilities(). An earlier call to the HAL `getCapabilities()` returns `SESSION_NOT_READY`.
 
 Middleware MUST serialize method calls within a session, even when successive calls originate on different threads. The vendor MUST synchronize native scheduler updates with those calls. Several retained frames may coexist, but this does not permit overlapping HAL calls or concurrent mutation of one output record. Setup and destruction MUST NOT overlap other HAL calls or native access to the session. Final shared-frame cleanup MUST use the same serialized release path.
 
@@ -260,10 +330,10 @@ sequenceDiagram
     Middleware->>Middleware: Load library and call createCaptureSession()
     Middleware->>Playbin: Create pipeline and assign westerossink
     Middleware->>Sink: Set borrowed rdk-capture-session
-    Middleware->>Playbin: Configure codec/resolution and reach READY
+    Middleware->>Playbin: Configure codec/resolution and reach PAUSED
     Sink->>Output: Configure native association, no capture writes
     Output->>Session: Connect platform video output
-    Sink-->>Middleware: Configured READY
+    Sink-->>Middleware: Configured PAUSED
     Middleware->>Session: getCapabilities()
     Session-->>Middleware: Accurate format and inclusive slot limits
     Middleware->>Session: createPool(N, outPool), once
@@ -405,7 +475,7 @@ enum class CaptureStatus : uint32_t
     NO_RESOURCES,
     NO_FRAME,
     FATAL_ERROR,
-    CAPABILITIES_NOT_AVAILABLE_YET,
+    SESSION_NOT_READY,
 };
 
 constexpr uint32_t kInvalidCaptureSlotIndex = std::numeric_limits<uint32_t>::max();
@@ -934,8 +1004,9 @@ These entries describe historical changes, not additional requirements. Referenc
 
 | Version | Status | What changed | What reviewers should check |
 |---|---|---|---|
-| 0.93 | Draft for review | Added explicit westerossink properties for codec/resolution configuration, clarified getCapabilities() always invokes HAL with timing requirement, added retry guidance for CAPABILITIES_NOT_AVAILABLE_YET, added explicit move constructor deletion, clarified pool metadata wording. | §4.4 explicit properties, §3.1 HAL invocation and retry guidance, §5.1 explicit move deletion, proposal §3.3 pool metadata wording. |
-| 0.92 | Draft for review | Clarified configured READY mechanism, specified factory discovery, removed move semantics, added CAPABILITIES_NOT_AVAILABLE_YET error code. | §4.4 configuration responsibility, §8.1 library name and extern "C", §5.1 non-movable CapturedFrame, §3.1 new error code. |
+| 0.94 | Draft for review | Corrected admission sequence to drive sink to PAUSED (decoder allocation on READY→PAUSED), moved validation after PAUSED, added codec/resolution-width/resolution-height properties to sink contract, renamed CAPABILITIES_NOT_AVAILABLE_YET to SESSION_NOT_READY, updated getCapabilities() API to return status. | §4.3 sink contract properties, §4.4 PAUSED timing and property types, §3.1 SESSION_NOT_READY enum, headers and protos. |
+| 0.93 | Draft for review | Added explicit westerossink properties for codec/resolution configuration, clarified getCapabilities() always invokes HAL with timing requirement, added retry guidance for SESSION_NOT_READY, added explicit move constructor deletion, clarified pool metadata wording. | §4.4 explicit properties, §3.1 HAL invocation and retry guidance, §5.1 explicit move deletion, proposal §3.3 pool metadata wording. |
+| 0.92 | Draft for review | Clarified configured PAUSED mechanism, specified factory discovery, removed move semantics, added SESSION_NOT_READY error code. | §4.4 configuration responsibility, §8.1 library name and extern "C", §5.1 non-movable CapturedFrame, §3.1 new error code. |
 | 0.91 | Draft for review | Resolves the 0.9 review: CapturedFrame rationale, corrected changelog, version reconciliation, cross-reference fixes, IPC clarification. | Design rationale, version authority, checklist references, boundary clarity. |
 | 0.9 | Draft for review | Restructured for progressive disclosure, renamed sections, consolidated pool creation, improved readability, replaced jargon. | Reading order, pool strategy, human readability, terminology. |
 | 0.81 | Draft for review | Resolves the 0.8 review: effective per-frame colour, explicit C++ ownership/compatibility, durable pool creation and a focused readability pass. | Configured READY, one total retention limit, old-frame validity, actor/ownership clarity and early conceptual orientation. |
@@ -972,10 +1043,20 @@ These entries describe historical changes, not additional requirements. Referenc
 - Move history here, bring the model forward, renumber from 1 and use Mermaid for the embedded lifecycle. No individual requirement IDs.
 - Restructure sections for progressive disclosure: purpose, conceptual model, session interface, library and GStreamer integration, captured frames, acquisition/use/release, configuration changes and shutdown, vendor delivery, conformance.
 
+### What changed in version 0.94
+
+- Corrected admission sequence: drive sink to PAUSED (decoder allocation on READY→PAUSED), moved validation after PAUSED in §4.4.
+- Added codec (GStreamer caps string), resolution-width, and resolution-height (integers) properties to westerossink sink contract in §4.3.
+- Renamed CAPABILITIES_NOT_AVAILABLE_YET to SESSION_NOT_READY in enum and throughout spec.
+- Updated getCapabilities() API to return VideoFrameCaptureStatus with status parameter in headers.
+- Updated proto comments to reflect HAL invocation for getCapabilities.
+- Updated Rialto V1.1 and V2 proposals with corrected sequence and SESSION_NOT_READY terminology.
+- Updated revision history table with 0.94 entry.
+
 ### What changed in version 0.93
 
-- Added explicit westerossink properties (codec, resolution) for configuration before driving to READY in §4.4.
-- Clarified that getCapabilities() always invokes the HAL via the server; if called before configured READY, returns CAPABILITIES_NOT_AVAILABLE_YET; added retry guidance within the READY time budget in §3.1.
+- Added explicit westerossink properties (codec, resolution) for configuration before driving to PAUSED in §4.4.
+- Clarified that getCapabilities() always invokes the HAL via the server; if called before configured PAUSED, returns SESSION_NOT_READY; added retry guidance within the PAUSED time budget in §3.1.
 - Added explicit move constructor deletion to CapturedFrame in §5.1 for clarity (move semantics were already suppressed by deleted copy operations).
 - Clarified "pool metadata is refreshed" to "updated pool metadata is returned on successful acquisition when the pool structure changes" in proposal §3.3 to align with SoC spec's durable pool model.
 - Removed supportedTextureTargets from rialto-interim/api-headers/IVideoFrameCapture.h (N1 fix).
@@ -983,8 +1064,8 @@ These entries describe historical changes, not additional requirements. Referenc
 
 ### What changed in version 0.92
 
-- Added CAPABILITIES_NOT_AVAILABLE_YET error code to CaptureStatus enum for early getCapabilities() calls before configured READY.
-- Clarified in §4.4 that Middleware configures codec/resolution through GStreamer caps or properties before calling getCapabilities(), and that earlier calls return CAPABILITIES_NOT_AVAILABLE_YET.
+- Added SESSION_NOT_READY error code to CaptureStatus enum for early getCapabilities() calls before configured PAUSED.
+- Clarified in §4.4 that Middleware configures codec/resolution through GStreamer caps or properties before calling getCapabilities(), and that earlier calls return SESSION_NOT_READY.
 - Specified in §8.1 that the HAL library name is `lib_capture_hal.so` and the factory function must be declared `extern "C"`.
 - Removed CapturedFrame move constructor and move assignment; CapturedFrame is now non-copyable and non-movable.
 - Removed all references to move semantics throughout the specification.
