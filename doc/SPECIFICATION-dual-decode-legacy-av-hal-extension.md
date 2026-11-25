@@ -96,6 +96,7 @@ graph LR
 
     VARB -->|IPC| RM
     AARB -->|IPC| RM
+    SVPE -->|IPC| RM
 
     style APP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
     style GSTP fill:#e6e6e6,stroke:#666,stroke-width:1px
@@ -112,8 +113,8 @@ graph LR
 ### Process and IPC boundaries
 
 - **Application Process** owns playback-pipeline construction for GStreamer-based players.
-- **ESSOS Resource Manager** arbitrates the assignment and release of video and audio resources and returns the concrete instance identifiers.
-- **SVP selection** is carried by GStreamer context and secure-resource metadata; it does not require a dedicated ESSOS Resource Manager IPC path for allocator selection.
+- **ESSOS Resource Manager** arbitrates the assignment and release of video, audio, and SVP resources and returns the concrete instance identifiers.
+- **SVP usage selection** is carried by GStreamer context and secure-resource metadata, while allocator assignment and release remain ESSOS-managed through the `gst-svp-ext-soc` IPC path.
 - **Vendor plugins** bind the returned `assignedId` values and any GStreamer-context signalling to the correct hardware resources.
 
 ### Contract scope
@@ -229,9 +230,11 @@ The capability description and the ESSOS resource-manager configuration shall us
 
 ### 4.5 ESSOS Resource Manager
 
-ESSOS Resource Manager is the platform arbitration layer for the video-decoder/display and audio-decoder/audio-output paths. For SVP, the platform shall use GStreamer context and secure-resource metadata; it shall not require a dedicated ESSOS Resource Manager IPC path for allocator selection.
+ESSOS Resource Manager is the platform arbitration layer for the video-decoder/display, audio-decoder/audio-output, and SVP-allocator paths.
 
 The application layer and vendor plugins shall request an assigned resource instance, apply the returned `assignedId`, release it during teardown, and destroy the ESSOS connection only when the resource-manager path is no longer needed.
+
+Any SoC-vendor GStreamer element with a hardware-resource dependency shall support the full ESSOS interaction model for that dependency: request, grant handling, release, and revoke handling where arbitration requires it.
 
 [TBC - Documentation of ESSOS Resource Manager APIs to be added; see https://github.com/rdkcmf/westeros/blob/master/essos/essos-resmgr.h]
 
@@ -253,6 +256,14 @@ This specification does not add a new GStreamer property. It documents the exist
 
 - `res-usage` shall be set before the pipeline moves from `NULL` to `READY`, because the resource-owning element may request its ESSOS-managed resource during that transition.
 - On asymmetric video-decoder platforms, the selected `res-usage` shall be used to choose the correct high-specification or low-specification decoder instance before resource acquisition begins.
+
+### 5.3 Context decision tree and element coverage
+
+When a resource-usage hint is provided in GStreamer context, the receiving element shall use that hint to select the intended resource class.
+
+When no resource-usage hint is provided, the element shall treat the resource as symmetric and request an available instance from ESSOS Resource Manager.
+
+This decision tree shall be applied consistently across all relevant hardware-backed elements, including video decoder and sink paths, audio decoder and sink paths, and any synchronisation element that participates in hardware resource binding.
 
 ## 6. Resource identification model
 
@@ -394,37 +405,53 @@ All AV players supporting dual secure-video paths shall use the application-mana
 
 Platforms shall declare whether their SVP allocator resources are asymmetric or symmetric.
 
-### 10.2 Platform SVP pool declaration
+### 10.2 ESSOS Resource Manager configuration
 
-The platform shall declare the available SVP pools for the dual-decode use case without requiring a dedicated ESSOS Resource Manager IPC path for SVP allocator selection.
+The ESSOS Resource Manager configuration shall advertise two SVP allocator resources for the dual-decode use case.
 
-### 10.3 Asymmetric SVP resources
+### 10.3 Example ESSOS configuration entries
+
+For a symmetric configuration, the `essrmgr.conf` file is expected to contain two SVP resource entries in the following form:
+
+```text
+svpa: hardware
+svpa: hardware
+```
+
+### 10.4 Asymmetric SVP resources
 
 On platforms where SVP allocator resources are asymmetric, middleware shall signal SVP usage through GStreamer context.
 
 The recommended logical usage values are:
 
-- `fullResolution` for the UHD-capable pool; and
-- `standardResolution` for the FHD-capable pool.
+- `EssRMgrSVPAUse_fullResolution` for the UHD-capable pool; and
+- `EssRMgrSVPAUse_none` for the FHD-capable pool.
 
 On such platforms:
 
-- the platform shall expose both the primary and secondary SVP pool definitions through the secure allocator metadata available to the pipeline;
+- ESSOS resource-manager configuration shall define both the UHD SVP pool resource and the FHD SVP pool resource;
 - the application-managed GStreamer path shall propagate the selected SVP usage through GStreamer context before the first secure-buffer consumer binds the allocator;
 - the first component that consumes the SVP buffer, such as a decryptor or SVP payload element, shall pass the usage to the vendor-side SVP integration; and
-- vendor code shall use the usage value together with the pipeline role and pool identifier to bind the correct allocator resource.
+- vendor code shall use the usage value together with the assigned resource identifier to bind the correct allocator resource.
 
-The selected secure-resource instance shall therefore be resolved by the vendor implementation using the GStreamer context information sent along the path from application to the OCDM adaptor, `gst-svp-ext-common`, and `gst-svp-ext-soc`.
+An asymmetric configuration may, for example, contain entries in `essrmgr.conf` in the following form:
+
+```text
+svpa: hardware
+svpa: hardware, limitedQuality
+```
+
+The SVP resource-owning element shall create its ESSOS connection once for the lifetime of the playback pipeline, request the SVP allocator during the initial pipeline-establishment path before secure playback depends on that allocator, and handle grant or revoke using the same ESSOS request/callback/release pattern used for video.
 
 ### 10.5 Symmetric SVP resources
 
 On platforms where SVP allocator resources are symmetric:
 
 - the SVP usage flag need not be signalled through GStreamer context for allocator selection;
-- the platform shall still expose the available secure-resource instance metadata in the same way for the relevant secure-playback path; and
-- the resource pool identifier or equivalent platform metadata is sufficient for vendor-resource binding.
+- ESSOS resource-manager configuration shall define the allocator resources symmetrically; and
+- the assigned ESSOS identifier alone is sufficient for vendor-resource binding.
 
-Even on symmetric platforms, the secure-playback path shall keep the resource context for the lifetime of the playback pipeline, and the vendor implementation shall release or replace the selected allocator state only when playback stops or when the pipeline takes a new secure-resource configuration.
+Even on symmetric platforms, the SVP-owning element shall keep a persistent ESSOS connection for the lifetime of the playback pipeline, release the allocator with `EssRMgrReleaseResource()` when playback stops or a revoke event is received, and destroy the ESSOS connection only when resource-manager communication is no longer needed.
 
 ### 10.6 Legacy behaviour
 
@@ -435,41 +462,11 @@ For legacy AV players not using the application-managed GStreamer path:
 
 ### 10.7 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
 
-[TBC - The new APIs for OCDM Adaptor, gst-svp-ext-common and gst-svp-ext-soc to be defined]
-
-The OCDM adaptor, `gst-svp-ext-common`, and `gst-svp-ext-soc` shall carry the minimum set of attributes required to resolve the correct secure-resource instance for the active playback session.
-
-At a minimum, the secure-resource metadata shall include:
-
-- the logical usage class for the resource, such as primary or secondary video or `fullResolution`/`standardResolution` SVP pool selection;
-- the selected secure-resource instance or pool identifier for the concrete resource allocation;
-- the pipeline or process ownership identifier used to distinguish the entering and exiting sessions; and
-- any platform-specific key or allocator identifier required by the vendor implementation.
-
-The integration shall ensure that the resource-owning element requests the allocator or decryptor state in the same order used by the platform's existing secure-playback flow, and shall not allow a later session to reuse stale resource state from an earlier owner.
+TBC.
 
 ### 10.8 GStreamer context structure for carrying SVP pool information
 
-Where the platform requires usage information to be visible to elements other than the sink that received the direct property, the SVP usage information shall be carried in GStreamer context using a stable structure keyed by logical resource type.
-
-The structure shall include at least the following fields (TBC):
-
-- `usage` or equivalent logical resource class, such as `primary`, `secondary`, `fullResolution`, or `standardResolution`;
-- `resource-id` or equivalent selected secure-resource instance or pool identifier;
-- `resource-type`, such as `video`, `audio`, or `svp`; and
-- `pipeline-role`, identifying the primary or secondary playback instance.
-
-A representative example is shown below:
-
-```text
-GstStructure: "svp-info"
-  usage = "fullResolution"
-  resource-id = "primary-svp-pool"
-  resource-type = "svp"
-  pipeline-role = "primary"
-```
-
-The value passed in GStreamer context shall be read before the secure buffer is bound to the allocator, and the platform shall reject or fail positively when the context does not match an available resource instance.
+TBC.
 
 ## 11. DRM resource model
 
@@ -492,7 +489,9 @@ This applies equally to encrypted video and encrypted audio data. Encrypted medi
 
 Resource ownership shall be exclusive at any given time. For GStreamer-managed transitions, the application manager orders teardown of the exiting pipeline before startup of the entering one. For non-GStreamer players, the existing platform path remains responsible for AV ownership, with ESSOS arbitration only when a conflicting request arrives before teardown completes.
 
-In all cases, the exiting player must release the relevant video and audio resources before the entering player can acquire them. SVP arbitration is not required between GStreamer-based applications because the application manager ensures the previous pipeline is torn down before the next one starts. Non-GStreamer players do not own SVP resources.
+Even when application-level sequencing reduces contention between GStreamer-managed players, ESSOS arbitration support remains mandatory for non-GStreamer competitors such as HDMI In, Composite In, and AirPlay where request timing cannot be assumed to be orderly.
+
+In all cases, the exiting player must release the relevant video and audio resources before the entering player can acquire them. When the playback path allocates SVP resources, those SVP resources shall also follow the same ESSOS-managed release and arbitration model.
 
 If ESSOS revokes one video resource during handover, the platform shall revoke the remaining video resources owned by the exiting player in the same transition to avoid mixed video ownership. Audio-mixer ownership remains process-scoped and follows Section 9.
 
@@ -506,7 +505,7 @@ For transitions between two GStreamer-based applications:
 - the exiting pipeline releases video and audio decoders before the entering pipeline requests them; and
 - the entering pipeline waits for the release confirmation before it begins its next resource acquisition.
 
-There is no delayed-release path for this transition; the application manager defines the ordering, and no SVP arbitration through ESSOS is required because the previous GStreamer pipeline is shut down before the next one acquires the same resources.
+Both orderly-release and disorderly-release paths shall be supported. Where the transition includes secure playback, SVP resources shall follow the same ESSOS-managed grant, revoke, and release behaviour as other managed resources.
 
 Orderly-release path, where the exiting application releases resources before the entering application requests them:
 
@@ -550,11 +549,47 @@ sequenceDiagram
     APP1-->>AM: acquisition complete
 ```
 
+Disorderly-release path, where the entering GStreamer-based application requests AV resources before the exiting GStreamer-based application has fully released them:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AM as Application manager
+    participant APP1 as Entering GStreamer<br/>Application Process
+    participant G1 as GStreamer pipeline<br/>A/B
+    participant V1 as Entering Video<br/>Element A/B
+    participant A1 as Entering Audio<br/>Element A/B
+    participant RM as ESSOS Resource<br/>Manager
+    participant APP2 as Exiting GStreamer<br/>Application Process
+    participant G2 as Exiting GStreamer pipeline<br/>A/B
+    participant V2 as Exiting Video<br/>Element A/B
+    participant A2 as Exiting Audio<br/>Element A/B
+
+    Note over V2,A2: Exiting GStreamer pipeline still owns AV resources while teardown is in progress
+    Note over V1,A1: Entering GStreamer pipeline requests AV resources before exit teardown has completed
+
+    AM->>APP1: activate entering GStreamer-based application before exit teardown completes
+    APP1->>G1: activate entering pipeline A/B
+    G1->>V1: request video resources A/B
+    V1->>RM: EssRMgrRequestResource(video A/B, notifyCB)
+    RM-->>V2: notifyCB(EssRMgrEvent::Revoked)
+    V2->>RM: EssRMgrReleaseResource(video A/B)
+    RM-->>V1: notifyCB(EssRMgrEvent::Granted, assignedId)
+
+    G1->>A1: request audio resources A/B
+    A1->>RM: EssRMgrRequestResource(audio A/B, notifyCB)
+    RM-->>A2: notifyCB(EssRMgrEvent::Revoked)
+    A2->>RM: EssRMgrReleaseResource(audio A/B)
+    RM-->>A1: notifyCB(EssRMgrEvent::Granted, assignedId)
+
+    APP2->>G2: exiting teardown completes after arbitration
+```
+
 ### 12.3 GStreamer-based application to non-GStreamer-based AV player
 
 For transitions from a GStreamer-based application to a non-GStreamer player, the resource-safe behaviour is the same as the GStreamer-to-GStreamer case: the exiting pipeline must release the AV resources before the entering player can acquire them.
 
-The platform shall support an orderly release path, and if the non-GStreamer player arrives before teardown completes, ESSOS Resource Manager may arbitrate the handover and revoke the exiting AV resources. There is no SVP revoke path for this transition because non-GStreamer players do not own SVP resources.
+The platform shall support an orderly release path, and if the non-GStreamer player arrives before teardown completes, ESSOS Resource Manager may arbitrate the handover and revoke the exiting AV resources. If secure playback resources are active in the exiting path, SVP resources follow the same ESSOS revoke and release behaviour.
 
 Orderly-release path, where the exiting GStreamer-based player releases resources before the entering non-GStreamer player requests them:
 
@@ -627,7 +662,7 @@ For transitions from a non-GStreamer player to a GStreamer-based application:
 - the entering GStreamer-based application does not rely on a delayed-release path; and
 - if the non-GStreamer player is still active when the GStreamer application requests resources, ESSOS Resource Manager arbitrates the handover and revokes the exiting AV resources before granting the new owner.
 
-The orderly-release path remains required because non-GStreamer applications such as HDMI In or Composite In may still be active while the GStreamer-based application starts. No SVP arbitration is required because the exiting non-GStreamer application never owns SVP resources.
+The orderly-release path remains required because non-GStreamer applications such as HDMI In or Composite In may still be active while the GStreamer-based application starts. If secure playback resources are active, SVP allocation and arbitration are ESSOS-managed in the same transition model.
 
 Orderly-release path, where the exiting non-GStreamer player releases resources before the entering GStreamer-based application requests them:
 
@@ -706,6 +741,56 @@ This specification does not require application-managed GStreamer coordination i
 
 The transition shall work according to the current non-GStreamer model already in place on the platform.
 
+Orderly-release path, where the exiting non-GStreamer player releases AV resources before the entering non-GStreamer player requests them:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AM as Application manager
+    participant APP_NG_EXIT as Exiting Non-GStreamer<br/>AV Player
+    participant RM as ESSOS Resource<br/>Manager
+    participant APP_NG_ENTER as Entering Non-GStreamer<br/>AV Player
+
+    Note over APP_NG_EXIT: Exiting non-GStreamer player owns current AV resources
+    Note over APP_NG_ENTER: Entering non-GStreamer player starts after release confirmation
+
+    AM->>APP_NG_EXIT: stop exiting non-GStreamer player
+    APP_NG_EXIT->>RM: EssRMgrReleaseResource(video)
+    APP_NG_EXIT->>RM: EssRMgrReleaseResource(audio)
+    APP_NG_EXIT-->>AM: resource release complete
+
+    AM->>APP_NG_ENTER: launch entering non-GStreamer player
+    APP_NG_ENTER->>RM: EssRMgrRequestResource(video, notifyCB)
+    RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+    APP_NG_ENTER->>RM: EssRMgrRequestResource(audio, notifyCB)
+    RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+```
+
+Disorderly-release path, where the entering non-GStreamer player requests AV resources before the exiting non-GStreamer player has fully released them:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AM as Application manager
+    participant APP_NG_ENTER as Entering Non-GStreamer<br/>AV Player
+    participant RM as ESSOS Resource<br/>Manager
+    participant APP_NG_EXIT as Exiting Non-GStreamer<br/>AV Player
+
+    Note over APP_NG_EXIT: Exiting non-GStreamer player still owns AV resources
+    Note over APP_NG_ENTER: Entering non-GStreamer player requests resources while exit teardown is still in progress
+
+    AM->>APP_NG_ENTER: launch entering non-GStreamer player before exit teardown completes
+    APP_NG_ENTER->>RM: EssRMgrRequestResource(video, notifyCB)
+    RM->>APP_NG_EXIT: revoke or reassign exiting video resource
+    APP_NG_EXIT-->>RM: revoke callback and release in progress
+    RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+
+    APP_NG_ENTER->>RM: EssRMgrRequestResource(audio, notifyCB)
+    RM->>APP_NG_EXIT: revoke or reassign exiting audio resource
+    APP_NG_EXIT-->>RM: revoke callback and release in progress
+    RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
+```
+
 ## 13. Audio behaviour in dual-decode modes
 
 This specification does not redefine the application-facing audio UX policy, but the platform shall support at least these behavioural classes when declared by capability YAML:
@@ -733,6 +818,8 @@ An implementation is conformant only when all of the following are true:
 | 11 | Transition handling prevents mixed ownership that would produce overlapping or blended video from exiting and entering players. |
 | 12 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
 | 13 | ESSOS Resource Manager support is available for switching between non-GStreamer-based applications and between non-GStreamer-based and GStreamer-based applications, including the revoke-driven arbitration path required when the competing application requests video or audio resources before teardown completes. |
+| 14 | Vendor-level validation demonstrates HDMI In, Composite In, and equivalent non-GStreamer contention cases against GStreamer pipelines, including orderly acquisition, revoke-driven arbitration, and clean release. |
+| 15 | Hardware-backed vendor elements that consume managed resources demonstrate request, grant, release, and revoke behaviour consistent with the ESSOS model defined in this specification. |
 
 Failure of any mandatory gate means concurrent playback is unsupported on that implementation or supported only within a narrower capability set explicitly declared by the platform.
 
