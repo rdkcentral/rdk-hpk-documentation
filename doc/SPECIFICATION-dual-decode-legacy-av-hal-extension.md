@@ -369,6 +369,15 @@ video: hardware, limitedQuality, limitedPerformance
 
 The first entry represents the high-specification decoder profile; the second represents a low-specification profile with quality and performance restrictions. Platform-specific resolution limits and supported PQ features shall be documented consistently with Section 7.5 and capability YAML.
 
+For a symmetric video configuration, the `essrmgr.conf` file may contain entries in the following form:
+
+```text
+video: hardware
+video: hardware
+```
+
+Both entries represent equivalent video decoder resources; the first available decoder is assigned without regard to usage signalling.
+
 ## 8. Audio decoder resource model
 
 ### 8.1 General requirements
