@@ -646,7 +646,7 @@ sequenceDiagram
 
 For transitions from a GStreamer-based application to a non-GStreamer player, the resource-safe behaviour is the same as the GStreamer-to-GStreamer case: the exiting pipeline must release the AV resources before the entering player can acquire them.
 
-The platform shall support an orderly release path, and if the non-GStreamer player arrives before teardown completes, ESSOS Resource Manager may arbitrate the handover and revoke the exiting AV resources. If secure playback resources are active in the exiting path, SVP resources follow the same ESSOS revoke and release behaviour.
+The platform shall support an orderly release path, and if the non-GStreamer player arrives before teardown completes, ESSOS Resource Manager may arbitrate the handover and revoke the exiting AV resources.
 
 Orderly-release path, where the exiting GStreamer-based player releases resources before the entering non-GStreamer player requests them:
 
@@ -682,7 +682,7 @@ sequenceDiagram
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
-Disorderly-release path, where the entering non-GStreamer player requests AV and SVP resources before the exiting GStreamer-based application has fully released them:
+Disorderly-release path, where the entering non-GStreamer player requests AV resources before the exiting GStreamer-based application has fully released them:
 
 ```mermaid
 sequenceDiagram
@@ -727,7 +727,7 @@ For transitions from a non-GStreamer player to a GStreamer-based application:
 - the entering GStreamer-based application does not rely on a delayed-release path; and
 - if the non-GStreamer player is still active when the GStreamer application requests resources, ESSOS Resource Manager arbitrates the handover and revokes the exiting AV resources before granting the new owner.
 
-The orderly-release path remains required because non-GStreamer applications such as HDMI In or Composite In may still be active while the GStreamer-based application starts. If secure playback resources are active, SVP allocation and arbitration are ESSOS-managed in the same transition model.
+The orderly-release path remains required because non-GStreamer applications such as HDMI In or Composite In may still be active while the GStreamer-based application starts.
 
 Orderly-release path, where the exiting non-GStreamer player releases resources before the entering GStreamer-based application requests them:
 
@@ -768,7 +768,7 @@ sequenceDiagram
     RM-->>S_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
-Disorderly-release path, where the entering GStreamer-based application requests AV and SVP resources before the exiting non-GStreamer-based player has fully released them:
+Disorderly-release path, where the entering GStreamer-based application requests AV resources before the exiting non-GStreamer-based player has fully released them:
 
 ```mermaid
 sequenceDiagram
@@ -803,9 +803,6 @@ sequenceDiagram
     G_GST_ENTER->>S_GST_ENTER: request SVP resources A/B
     S_GST_ENTER->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
     RM-->>S_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    APP_NG->>RM: final release of remaining video and audio resources after arbitration
-    RM-->>APP_NG: final resource release acknowledged
 ```
 
 ### 12.5 Non-GStreamer-based AV player to non-GStreamer-based AV player
@@ -816,7 +813,7 @@ This specification does not require application-managed GStreamer coordination i
 
 The transition shall work according to the current non-GStreamer model already in place on the platform.
 
-Orderly-release path, where the exiting non-GStreamer player releases AV and SVP resources before the entering non-GStreamer player requests them:
+Orderly-release path, where the exiting non-GStreamer player releases AV resources before the entering non-GStreamer player requests them:
 
 ```mermaid
 sequenceDiagram
@@ -841,7 +838,7 @@ sequenceDiagram
     RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
-Disorderly-release path, where the entering non-GStreamer player requests AV and SVP resources before the exiting non-GStreamer player has fully released them:
+Disorderly-release path, where the entering non-GStreamer player requests AV resources before the exiting non-GStreamer player has fully released them:
 
 ```mermaid
 sequenceDiagram
