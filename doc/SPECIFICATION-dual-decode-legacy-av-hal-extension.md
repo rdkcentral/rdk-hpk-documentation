@@ -139,7 +139,7 @@ Note: Depending on SoC implementation design, the audio decoder may be integrate
 This specification defines the contract between:
 
 - **Application layer / playback owner**, which creates and tears down each GStreamer AV pipeline, owns application-level transition behaviour, and supplies each pipeline with GStreamer context information based on the capability YAML file.
-- **SoC vendor**, which provides decoders, sinks, SVP handling, DRM integration, and resource-aware vendor plugins. Vendor components use resource-usage information from an explicitly set GStreamer property for westeros sink, or from player-supplied GStreamer context, to select the required video, audio, and SVP resource profiles. Direct ESSOS resource-management integration is the SoC vendor's responsibility only for the resource-owning audio element: it requests and releases audio resources and stops using and releases them when ESSOS requests revocation. Video and SVP ESSOS communication is handled by the generic westeros sink component and `gst-svp-ext-common`, respectively.
+- **SoC vendor**, which provides decoders, sinks, SVP handling, DRM integration, and resource-aware vendor plugins. Vendor components use resource-usage information from an explicitly set GStreamer property for westeros sink, or from player-supplied GStreamer context (for asymmetric video and SVP only), to select the required resource profiles. Direct ESSOS resource-management integration is the SoC vendor's responsibility for: (a) the resource-owning audio element for audio resources, which requests and releases audio resources following the first-available decoder model and stops using and releases them when ESSOS requests revocation; (b) SVP handling via `gst-svp-ext-soc`, which binds granted SVP resources to memory pools. Video and SVP ESSOS communication is handled by the generic westeros sink component and `gst-svp-ext-common`, respectively.
 - **Vendor layer team**, which integrates the SoC delivery, capability YAML, and ESSOS resource-manager configuration.
 
 ---
@@ -274,18 +274,20 @@ This specification documents the existing `res-usage` flag and GStreamer context
 - For **asymmetric video decoders**: The video property and resource-usage context shall be available before the owning element resolves usage and requests a resource.
 - For **asymmetric SVP resources**: SVP usage context shall be resolved before secure-buffer allocation.
 
-### 5.3 Context decision tree and element coverage (asymmetric resources only)
+### 5.3 Context decision tree and element coverage
 
-The owning component shall resolve usage according to Sections 7, 8, and 10. For asymmetric resources:
+The owning component shall resolve usage according to Sections 7, 8, and 10. The selection rules differ between asymmetric and symmetric resources:
 
+**For asymmetric resources (video decoders, asymmetric SVP):**
 - Explicit property (`res-usage`) or GStreamer context values override defaults
 - An absent context value retains the applicable element default (first available resource)
 - Every selection path requests an ESSOS-managed resource and uses the granted `assignedId` for hardware binding
 
-For symmetric resources (audio decoders, symmetric SVP):
+**For symmetric resources (audio decoders, symmetric SVP):**
 - No context-based selection occurs
 - The first available symmetric resource is selected automatically
-- Context, if present, is ignored for allocation purposes
+- Context, if present, is ignored for audio (which has no concept of usage profiles); symmetric SVP similarly ignores context and always selects the first available allocator
+- Every resource request uses the ESSOS-managed grant process and the returned `assignedId` for hardware binding
 
 ## 6. Resource identification model
 
@@ -384,9 +386,9 @@ Both entries represent equivalent video decoder resources; the first available d
 
 All AV players supporting dual audio decode shall use the application-managed GStreamer path for the concurrent-playback use case.
 
-Audio decoder resources are assumed to be symmetric. This specification does not define asymmetric audio decoder resource handling. No GStreamer context or usage signalling is used for audio decoder selection; the first available audio decoder resource is selected automatically.
+Audio decoder resources are assumed to be symmetric (this specification does not define asymmetric audio decoder resource handling). Symmetric audio decoders do not use GStreamer context or usage signalling for selection; the first available audio decoder resource is selected automatically.
 
-The audio sink or audio decoder that owns the decoder resource shall request the corresponding resource from ESSOS without context-based selection. The owning element shall not propagate GStreamer context for audio resource selection.
+The audio sink or audio decoder that owns the decoder resource shall request the corresponding resource from ESSOS without context-based selection. The owning element shall not propagate GStreamer context for audio resource selection. ESSOS shall grant the first available audio-decoder instance.
 
 ### 8.2 ESSOS Resource Manager configuration
 
@@ -467,14 +469,21 @@ The components in the selected path shall forward the context before SVP usage i
 
 | Condition | Selected usage |
 |---|---|
-| GStreamer context supplies SVP resource usage (asymmetric platform). | Context value. |
-| No SVP usage value is supplied or platform is symmetric. | Existing element default: the first available SVP resource. |
+| GStreamer context supplies SVP resource usage (asymmetric platform only). | Context value. |
+| No SVP usage value is supplied (asymmetric platform). | Existing element default: the first available SVP resource. |
+
+#### Symmetric SVP platforms:
+
+For symmetric SVP platforms, `gst-svp-ext-common` shall:
+- Not use context-based selection
+- Always request the first available allocator from ESSOS without usage signalling
+- Ignore any GStreamer context values propagated by the application
 
 #### All SVP platforms (symmetric and asymmetric):
 
 `gst-svp-ext-common` shall request the corresponding resource from ESSOS. It shall pass the resolved usage and granted resource identifier to `gst-svp-ext-soc` through an API to be defined (🔴 **TBC**). The SoC module shall use the granted instance to select the SVP memory pool.
 
-For **symmetric SVP platforms**, the application may choose not to propagate context, and ESSOS RM shall simply grant the first available allocator without usage-based selection.
+The SVP resource-owning element shall create its ESSOS connection once for the lifetime of the playback pipeline, request the SVP allocator during the initial pipeline-establishment path before secure playback depends on that allocator, and handle grant or revoke using the same ESSOS request/callback/release pattern used for video.
 
 ### 10.2 ESSOS Resource Manager configuration
 
@@ -513,20 +522,11 @@ svpa: hardware
 svpa: hardware, limitedResolution(1920, 1080)
 ```
 
-The SVP resource-owning element shall create its ESSOS connection once for the lifetime of the playback pipeline, request the SVP allocator during the initial pipeline-establishment path before secure playback depends on that allocator, and handle grant or revoke using the same ESSOS request/callback/release pattern used for video.
+### 10.5 SVP resource lifecycle
 
-### 10.5 Symmetric SVP resources (symmetric platforms only)
+The SVP resource-owning element (`gst-svp-ext-common`) shall create its ESSOS connection once for the lifetime of the playback pipeline, request the SVP allocator during the initial pipeline-establishment path before secure playback depends on that allocator, and handle grant or revoke using the same ESSOS request/callback/release pattern used for video.
 
-**This section applies only to platforms with symmetric SVP allocator resources.**
-
-On platforms where SVP allocator resources are symmetric:
-
-- GStreamer context is not used for allocation selection; the application may choose not to propagate it
-- ESSOS resource-manager configuration shall define the allocator resources symmetrically; and
-- the granted ESSOS identifier shall identify the pool used for vendor-resource binding
-- ESSOS RM simply assigns the first available allocator without usage-based selection
-
-The SVP-owning element shall keep a persistent ESSOS connection for the lifetime of the playback pipeline, release the allocator with `EssRMgrReleaseResource()` when playback stops or a revoke event is received, and destroy the ESSOS connection only when resource-manager communication is no longer needed.
+The element shall release the allocator with `EssRMgrReleaseResource()` when playback stops or a revoke event is received, and destroy the ESSOS connection only when resource-manager communication is no longer needed.
 
 ### 10.6 Legacy behaviour
 
@@ -593,11 +593,17 @@ Within one AV pipeline, `EssRMgrCreate()` is called once during playback setup; 
 
 ### 12.2 GStreamer-based application to GStreamer-based application
 
-For transitions between two GStreamer-based applications:
+For transitions between two GStreamer-based applications, two distinct paths are supported:
 
+**Orderly-release path (normal case):**
 - the application manager orders teardown of the exiting pipeline and launch of the entering one;
 - the exiting pipeline releases video, audio, and SVP resources before the entering pipeline requests them; and
 - the entering pipeline waits for the release confirmation before it begins its next resource acquisition.
+
+**Disorderly-release path (exception/fallback):**
+- when the exiting application does not complete teardown before the entering application requests resources;
+- ESSOS arbitration is invoked and may revoke resources from the exiting player;
+- this path is supported to handle race conditions and non-compliant applications.
 
 Both orderly-release and disorderly-release paths shall be supported. Where the transition includes secure playback, SVP resources shall follow the same ESSOS-managed grant, revoke, and release behaviour as other managed resources.
 
@@ -936,16 +942,23 @@ An implementation is conformant only when all of the following are true:
 | 3 | `res-usage` is available early enough to select the appropriate video decoder before the `NULL` to `READY` resource request is issued. |
 | 4 | On asymmetric video-decoder platforms, `res-usage` distinguishes the high-specification UHD path from the lower-specification FHD path. |
 | 5 | ESSOS `assignedId` values are used by vendor plugins to open the selected video-decoder and audio-decoder instances. |
-| 6 | The owning audio element uses context-supplied usage, or the first available decoder default when absent, and requests the resource from ESSOS. |
+| 6 | The owning audio element requests the first available audio decoder resource from ESSOS (audio decoders are symmetric and do not use context-based selection). |
 | 7 | Audio mixer ownership for main and secondary playback inputs is process-scoped, and an entering process is isolated from stale playback audio injected by an exiting process. |
-| 8 | `gst-svp-ext-common` resolves context-supplied SVP usage or the first available resource default and passes it to `gst-svp-ext-soc` for ESSOS allocation and pool binding. |
-| 9 | Westeros sink resolves video usage in explicit-property, context, then element-default order and passes `GstWesterosSink.resUsage` to the SoC module. |
-| 10 | DRM-session provisioning occurs before pipeline construction and supports the platform's declared concurrent playback model. |
+| 8 | `gst-svp-ext-common` resolves context-supplied SVP usage (asymmetric platforms only) or the first available resource default (all platforms), and passes it to `gst-svp-ext-soc` for ESSOS allocation and pool binding. |
+| 9 | Westeros sink resolves video usage in explicit-property, context (asymmetric platforms only), then element-default order and passes `GstWesterosSink.resUsage` to the SoC module. |
+| 10 | DRM-session provisioning occurs before pipeline construction and supports the platform's declared concurrent playback model, including sufficient key sessions for concurrent encrypted audio and video streams. |
 | 11 | Transition handling prevents mixed ownership that would produce overlapping or blended video from exiting and entering players. |
 | 12 | Audio from an exiting process is ignored once the mixer is in use by the entering process, consistent with process-scoped mixer ownership. |
 | 13 | ESSOS Resource Manager support is available for switching between non-GStreamer-based applications and between non-GStreamer-based and GStreamer-based applications, including the revoke-driven arbitration path required when the competing application requests video or audio resources before teardown completes. |
 | 14 | Vendor-level validation demonstrates HDMI In, Composite In, and equivalent non-GStreamer contention cases against GStreamer pipelines, including orderly acquisition, revoke-driven arbitration, and clean release. |
 | 15 | Hardware-backed vendor elements that consume managed resources demonstrate request, grant, release, and revoke behaviour consistent with the ESSOS model defined in this specification. |
+| 16 | Capability YAML and ESSOS resource-manager configuration agree on logical resource pools, concurrent-playback limits, and asymmetric/symmetric declarations for video and SVP allocators. |
+| 17 | Independent per-pipeline AV sync, play/pause/seek, and trick-mode behavior are maintained; each pipeline operates autonomously for media control. |
+| 18 | Symmetric video, audio, and SVP default behavior (first-available selection) is correctly implemented; asymmetric video and SVP context-based selection is correctly implemented. |
+| 19 | SVP acquisition, release, and revoke behavior during both orderly and disorderly transitions follows the ESSOS-managed pattern described in Sections 10 and 12. |
+| 20 | DRM coverage for concurrent encrypted audio and video is verified, including the stated maximum of four key sessions where required by the platform. |
+| 21 | The three audio behavior modes declared in Section 13 (dual decode + dual mix, dual decode + single audible output, single audio decode + dual video decode) are supported as declared in capability YAML and demonstrated in validation. |
+| 22 | Video-plane and picture-quality pairing constraints are respected; capability YAML correctly reports limitations on the lower-specification video path where applicable. |
 
 Failure of any mandatory gate means concurrent playback is unsupported on that implementation or supported only within a narrower capability set explicitly declared by the platform.
 
