@@ -35,7 +35,7 @@
 - Video decoder and video plane resource selection using the existing `res-usage` property.
 - Audio decoder resource handling for symmetric decoders.
 - SVP allocator resource handling for asymmetric and symmetric platforms.
-- SoC vendor selection and use of audio, video, and SVP resources based on GStreamer context information.
+- SoC vendor selection and use of video and SVP resources based on GStreamer context information.
 - Audio mixer behaviour during AV player transitions involving dual decode.
 - DRM resource expectations for concurrent playback.
 - AV player transition and resource-acquisition rules for application-managed GStreamer players and non-GStreamer players.
@@ -83,7 +83,6 @@ graph LR
         Ctx -->|SVP Usage| DEC
         Ctx -->|SVP Usage| SVPP
         Ctx -->|Video decoder usage| VE
-        Ctx -->|Audio decoder usage| AE
         App --> YAML[Capability YAML]
         DEC --> OCDM[OCDM Adaptor]
         SVPP --> SVPC[gst-svp-ext-common]
@@ -164,7 +163,7 @@ The contract covers:
 | Role | Definition | Responsibilities |
 |---|---|---|
 | **Application layer / playback owner** | Owns the GStreamer-based playback pipeline and player transition logic. | Builds playback pipelines, tears down exiting pipelines, sets sink properties, propagates GStreamer context, and coordinates player transitions. Implements the generic westeros sink component, `gst-svp-ext-common` changes, OCDM adaptor changes, and SVP payload and decryptor plugin changes. |
-| **SoC vendor** | Provides vendor GStreamer elements and platform resource integration. | Implements the westeros sink SoC component, audio sink/audio decoder, audio-decoder selection based on GStreamer context and integration with ESSOS Resource Manager, `gst-svp-ext-soc`, DRM integration, assigned-resource binding, and AV sync for dual decode. |
+| **SoC vendor** | Provides vendor GStreamer elements and platform resource integration. | Implements the westeros sink SoC component, audio sink/audio decoder, `gst-svp-ext-soc`, DRM integration, assigned-resource binding, and AV sync for dual decode. |
 | **Vendor layer team** | Integrates the SoC delivery into the platform image. | Supplies capability YAML, ESSOS resource-manager configuration, and any platform-specific resource identifiers consumed by application and vendor plugins. |
 
 ## 3. Scope
@@ -273,7 +272,6 @@ This specification documents the existing `res-usage` flag and GStreamer context
 ### 5.2 Property and context application timing (asymmetric platforms only)
 
 - For **asymmetric video decoders**: The video property and resource-usage context shall be available before the owning element resolves usage and requests a resource.
-- For **symmetric audio decoders**: No context-based selection occurs; the most capable resource is selected by default.
 - For **asymmetric SVP resources**: SVP usage context shall be resolved before secure-buffer allocation.
 
 ### 5.3 Context decision tree and element coverage (asymmetric resources only)
@@ -286,7 +284,7 @@ The owning component shall resolve usage according to Sections 7, 8, and 10. For
 
 For symmetric resources (audio decoders, symmetric SVP):
 - No context-based selection occurs
-- The most capable resource is selected automatically
+- The first available symmetric resource is selected automatically
 - Context, if present, is ignored for allocation purposes
 
 ## 6. Resource identification model
@@ -306,7 +304,7 @@ All AV players supporting dual video decode shall use the application-managed GS
 Video decoder resource model depends on whether resources are asymmetric or symmetric:
 
 - **Asymmetric video decoders**: The platform supports selection between a high-specification video decoder path and a low-specification video decoder path. Resource selection is driven by `res-usage` property and GStreamer context.
-- **Symmetric video decoders**: All video decoders are equivalent; the most capable decoder is assigned automatically without usage signalling.
+- **Symmetric video decoders**: All video decoders are symmetric; the first available decoder is assigned automatically without usage signalling.
 
 ### 7.2 `res-usage` signalling and precedence (asymmetric platforms only)
 
@@ -517,7 +515,7 @@ On platforms where SVP allocator resources are symmetric:
 - GStreamer context is not used for allocation selection; the application may choose not to propagate it
 - ESSOS resource-manager configuration shall define the allocator resources symmetrically; and
 - the granted ESSOS identifier shall identify the pool used for vendor-resource binding
-- ESSOS RM simply assigns the most capable allocator without usage-based selection
+- ESSOS RM simply assigns the first available allocator without usage-based selection
 
 The SVP-owning element shall keep a persistent ESSOS connection for the lifetime of the playback pipeline, release the allocator with `EssRMgrReleaseResource()` when playback stops or a revoke event is received, and destroy the ESSOS connection only when resource-manager communication is no longer needed.
 
