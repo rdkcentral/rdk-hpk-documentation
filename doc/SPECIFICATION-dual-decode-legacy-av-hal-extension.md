@@ -81,10 +81,8 @@ graph LR
         Ctx -->|SVP Usage| DEC
         Ctx -->|SVP Usage| SVPP
         Ctx -->|SVP usage| SVPC
-        Ctx -->|Video decoder usage| VDEC
-        Ctx -->|Video decoder usage| WSU
-        Ctx -->|Audio decoder usage| ADEC
-        Ctx -->|Audio decoder usage| ASINK
+        Ctx -->|Video decoder usage| VE
+        Ctx -->|Audio decoder usage| AE
         App --> YAML[Capability YAML]
         DEC --> OCDM[OCDM Adaptor]
         SVPP --> SVPC[gst-svp-ext-common]
