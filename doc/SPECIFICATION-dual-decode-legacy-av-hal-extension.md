@@ -86,7 +86,7 @@ graph LR
         App --> YAML[Capability YAML]
         DEC --> OCDM[OCDM Adaptor]
         SVPP --> SVPC[gst-svp-ext-common]
-        SVPC -->|Resolved SVP usage: API TBC| SVPE[gst-svp-ext-soc<br/>SVP Allocator]
+        SVPC -->|Resolved SVP usage: API 🔴 **TBC**| SVPE[gst-svp-ext-soc<br/>SVP Allocator]
         WSU -->|GstWesterosSink pointer: resUsage| WSOC
         OCDM --> SVPC
     end
@@ -220,13 +220,13 @@ The capability YAML and ESSOS resource-manager configuration shall refer consist
 
 ### 4.4 Capability YAML
 
-[TBC - Link to Capability schema to be added]
+[🔴 **TBC** - Link to Capability schema to be added]
 
 Capability YAML shall describe the declared resource model and list the supported concurrent-playback features together with the platform-specific resource classes used by the middleware.
 
 It shall distinguish whether dual video decode, dual audio decode, audio mixing, dual SVP support, and dual DRM support are present for the relevant video and audio paths.
 
-Example structure (TBC):
+Example structure (🔴 **TBC**):
 
 ```yaml
 capabilities:
@@ -253,7 +253,7 @@ The application layer and vendor plugins shall request an assigned resource inst
 
 The generic westeros sink component for video, the resource-owning SoC-vendor audio element for audio, and `gst-svp-ext-common` for SVP shall handle the full ESSOS interaction model for their respective resources: request, grant handling, release, and revoke handling where arbitration requires it. The vendor video and SVP components shall bind the granted resources and relinquish them when instructed by the component handling ESSOS communication.
 
-[TBC - Documentation of ESSOS Resource Manager APIs to be added; see https://github.com/rdkcmf/westeros/blob/master/essos/essos-resmgr.h]
+[🔴 **TBC** - Documentation of ESSOS Resource Manager APIs to be added; see https://github.com/rdkcmf/westeros/blob/master/essos/essos-resmgr.h]
 
 The platform-specific configuration shall document the concrete resource identifiers and any limits that apply to concurrent audio and video acquisition. Where the platform exposes asymmetric pools, the configuration shall clearly distinguish the relevant high-specification and low-specification pools.
 
@@ -293,7 +293,7 @@ Resource selection across middleware and vendor plugins relies on consistent ide
 
 The platform shall provide capability YAML, ESSOS resource-manager configuration, and a stable mapping between logical usage and the assigned `assignedId` values used by vendor plugins.
 
-Usage identifies the requested resource profile, not a granted instance. ESSOS assigns the concrete video, audio, or SVP resource; the vendor implementation binds the returned `assignedId`. Context field names and the SVP handoff API remain TBC where not already defined by the implementation.
+Usage identifies the requested resource profile, not a granted instance. ESSOS assigns the concrete video, audio, or SVP resource; the vendor implementation binds the returned `assignedId`. Context field names and the SVP handoff API remain 🔴 **TBC** where not already defined by the implementation.
 
 ## 7. Video decoder and video plane resource model
 
@@ -394,7 +394,7 @@ The ESSOS Resource Manager configuration shall advertise two available audio-dec
 
 ### 8.3 Example ESSOS configuration entries
 
-The `essrmgr.conf` file is expected to contain two audio resource entries in the following form (TBC):
+The `essrmgr.conf` file is expected to contain two audio resource entries in the following form (🔴 **TBC**):
 
 ```text
 audio: hardware
@@ -472,7 +472,7 @@ The components in the selected path shall forward the context before SVP usage i
 
 #### All SVP platforms (symmetric and asymmetric):
 
-`gst-svp-ext-common` shall request the corresponding resource from ESSOS. It shall pass the resolved usage and granted resource identifier to `gst-svp-ext-soc` through an API to be defined (TBC). The SoC module shall use the granted instance to select the SVP memory pool.
+`gst-svp-ext-common` shall request the corresponding resource from ESSOS. It shall pass the resolved usage and granted resource identifier to `gst-svp-ext-soc` through an API to be defined (🔴 **TBC**). The SoC module shall use the granted instance to select the SVP memory pool.
 
 For **symmetric SVP platforms**, the application may choose not to propagate context, and ESSOS RM shall simply grant the first available allocator without usage-based selection.
 
@@ -552,15 +552,15 @@ Asymmetric SVP resource platforms require extensions to the ESSOS Resource Manag
 - `gst-svp-ext-soc` receives the usage value and the ESSOS-granted `assignedId` and binds the returned allocator instance to the corresponding memory pool
 - Platforms without asymmetric SVP resources shall treat all allocators as symmetric and ignore usage signalling for pool selection
 
-API details and integration patterns with `gst-svp-ext-soc` remain TBC.
+API details and integration patterns with `gst-svp-ext-soc` remain 🔴 **TBC**.
 
 ### 10.8 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
 
-API changes shall support propagation of GStreamer context through the OCDM adaptor to `gst-svp-ext-common` and passing resolved SVP usage and the granted resource identifier from `gst-svp-ext-common` to `gst-svp-ext-soc`. The API signatures are TBC; this specification does not define new function prototypes.
+API changes shall support propagation of GStreamer context through the OCDM adaptor to `gst-svp-ext-common` and passing resolved SVP usage and the granted resource identifier from `gst-svp-ext-common` to `gst-svp-ext-soc`. The API signatures are 🔴 **TBC**; this specification does not define new function prototypes.
 
 ### 10.9 GStreamer context structure for carrying SVP pool information
 
-The SVP context structure and field names are TBC. The context shall carry the requested usage; ESSOS supplies the granted resource identifier.
+The SVP context structure and field names are 🔴 **TBC**. The context shall carry the requested usage; ESSOS supplies the granted resource identifier.
 
 ## 11. DRM resource model
 
