@@ -558,16 +558,13 @@ sequenceDiagram
     participant G1 as GStreamer pipeline<br/>A/B
     participant V1 as Entering Video<br/>Element A/B
     participant A1 as Entering Audio<br/>Element A/B
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant S1 as Entering gst-svp-ext-common A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP2 as Exiting GStreamer<br/>Application Process
     participant G2 as GStreamer pipeline<br/>A/B
     participant V2 as Exiting Video<br/>Element A/B
     participant A2 as Exiting Audio<br/>Element A/B
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
-
-    Note over V2,S2: EssRMgrCreate() already completed for exiting player Pipeline A/B during initial pipeline setup
-    Note over V1,S1: EssRMgrCreate() will be done once for entering player Pipeline A/B during this pipeline setup, not per transition
+    participant S2 as Exiting gst-svp-ext-common A/B
 
     AM->>APP2: stop exiting GStreamer-based application
     APP2->>G2: stop exiting pipeline A/B
@@ -609,13 +606,13 @@ sequenceDiagram
     participant G1 as GStreamer pipeline<br/>A/B
     participant V1 as Entering Video<br/>Element A/B
     participant A1 as Entering Audio<br/>Element A/B
-    participant S1 as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant S1 as Entering gst-svp-ext-common A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP2 as Exiting GStreamer<br/>Application Process
     participant G2 as Exiting GStreamer pipeline<br/>A/B
     participant V2 as Exiting Video<br/>Element A/B
     participant A2 as Exiting Audio<br/>Element A/B
-    participant S2 as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant S2 as Exiting gst-svp-ext-common A/B
 
     Note over V2,S2: Exiting GStreamer pipeline still owns AV and SVP resources while teardown is in progress
     Note over V1,S1: Entering GStreamer pipeline requests AV and SVP resources before exit teardown has completed
@@ -661,7 +658,7 @@ sequenceDiagram
     participant G_GST_EXIT as GStreamer pipeline<br/>A/B
     participant V_GST_EXIT as Exiting Video<br/>Element A/B
     participant A_GST_EXIT as Exiting Audio<br/>Element A/B
-    participant S_GST_EXIT as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant S_GST_EXIT as Exiting gst-svp-ext-common A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP_NG as Non-GStreamer<br/>AV Player
 
@@ -683,8 +680,6 @@ sequenceDiagram
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
     APP_NG->>RM: EssRMgrRequestResource(audio, notifyCB)
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    APP_NG->>RM: EssRMgrRequestResource(svp, notifyCB)
-    RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
 Disorderly-release path, where the entering non-GStreamer player requests AV and SVP resources before the exiting GStreamer-based application has fully released them:
@@ -698,11 +693,11 @@ sequenceDiagram
     participant G_GST_EXIT as Exiting GStreamer pipeline<br/>A/B
     participant V_GST_EXIT as Exiting Video<br/>Element A/B
     participant A_GST_EXIT as Exiting Audio<br/>Element A/B
-    participant S_GST_EXIT as Exiting Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant S_GST_EXIT as Exiting gst-svp-ext-common A/B
     participant APP_NG as Non-GStreamer<br/>AV Player
 
-    Note over APP_GST_EXIT: Exiting GStreamer pipeline is still tearing down and has not yet fully released all AV/SVP resources
-    Note over APP_NG: Entering non-GStreamer player requests video, audio, and SVP resources sequentially
+    Note over APP_GST_EXIT: Exiting GStreamer pipeline is still tearing down and has not yet fully released all AV resources
+    Note over APP_NG: Entering non-GStreamer player requests video and audio resources sequentially
 
     AM->>APP_NG: launch non-GStreamer player before GStreamer teardown has completed
     APP_NG->>RM: EssRMgrRequestResource(video, notifyCB)
@@ -715,11 +710,6 @@ sequenceDiagram
     APP_NG->>RM: EssRMgrRequestResource(audio, notifyCB)
     RM->>A_GST_EXIT: revoke or reassign the exiting audio resource to the entering player
     A_GST_EXIT-->>RM: revoke callback and release in progress
-    RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    APP_NG->>RM: EssRMgrRequestResource(svp, notifyCB)
-    RM->>S_GST_EXIT: revoke or reassign the exiting SVP resource to the entering player
-    S_GST_EXIT-->>RM: revoke callback and release in progress
     RM-->>APP_NG: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     APP_GST_EXIT->>G_GST_EXIT: final teardown of exiting pipeline completes after arbitration
@@ -751,7 +741,7 @@ sequenceDiagram
     participant G_GST_ENTER as GStreamer pipeline<br/>A/B
     participant V_GST_ENTER as Entering Video<br/>Element A/B
     participant A_GST_ENTER as Entering Audio<br/>Element A/B
-    participant S_GST_ENTER as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant S_GST_ENTER as Entering gst-svp-ext-common A/B
 
     Note over APP_NG: Exiting non-GStreamer player is still the current owner of the audio and video resources
     Note over APP_GST_ENTER: Entering GStreamer-based application waits until the previous player has released ownership
@@ -759,7 +749,6 @@ sequenceDiagram
     AM->>APP_NG: stop exiting non-GStreamer player
     APP_NG->>RM: EssRMgrReleaseResource(video)
     APP_NG->>RM: EssRMgrReleaseResource(audio)
-    APP_NG->>RM: EssRMgrReleaseResource(svp)
     APP_NG-->>AM: resource release complete
 
     AM->>APP_GST_ENTER: launch incoming GStreamer-based application
@@ -789,12 +778,12 @@ sequenceDiagram
     participant G_GST_ENTER as GStreamer pipeline<br/>A/B
     participant V_GST_ENTER as Entering Video<br/>Element A/B
     participant A_GST_ENTER as Entering Audio<br/>Element A/B
-    participant S_GST_ENTER as Entering Decryptor/svp payload element<br/>OCDM adaptor - gst-svp-ext-common<br/>gst-svp-ext-soc A/B
+    participant S_GST_ENTER as Entering gst-svp-ext-common A/B
     participant RM as ESSOS Resource<br/>Manager
     participant APP_NG as Exiting Non-GStreamer<br/>AV Player
 
-    Note over APP_NG: Exiting non-GStreamer player still owns the current AV/SVP resources
-    Note over APP_GST_ENTER: Entering GStreamer-based application requests AV/SVP resources while the non-GStreamer player is still unwinding
+    Note over APP_NG: Exiting non-GStreamer player still owns the current AV resources
+    Note over APP_GST_ENTER: Entering GStreamer-based application requests AV resources while the non-GStreamer player is still unwinding
 
     AM->>APP_GST_ENTER: launch incoming GStreamer-based application before non-GStreamer teardown is complete
     APP_GST_ENTER->>G_GST_ENTER: activate entering pipeline A/B
@@ -818,7 +807,7 @@ sequenceDiagram
     APP_NG-->>RM: revoke callback and release in progress
     RM-->>S_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
-    APP_NG->>RM: final release of remaining video, audio, and SVP resources after arbitration
+    APP_NG->>RM: final release of remaining video and audio resources after arbitration
     RM-->>APP_NG: final resource release acknowledged
 ```
 
@@ -846,15 +835,12 @@ sequenceDiagram
     AM->>APP_NG_EXIT: stop exiting non-GStreamer player
     APP_NG_EXIT->>RM: EssRMgrReleaseResource(video)
     APP_NG_EXIT->>RM: EssRMgrReleaseResource(audio)
-    APP_NG_EXIT->>RM: EssRMgrReleaseResource(svp)
     APP_NG_EXIT-->>AM: resource release complete
 
     AM->>APP_NG_ENTER: launch entering non-GStreamer player
     APP_NG_ENTER->>RM: EssRMgrRequestResource(video, notifyCB)
     RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
     APP_NG_ENTER->>RM: EssRMgrRequestResource(audio, notifyCB)
-    RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-    APP_NG_ENTER->>RM: EssRMgrRequestResource(svp, notifyCB)
     RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
 
@@ -881,11 +867,6 @@ sequenceDiagram
 
     APP_NG_ENTER->>RM: EssRMgrRequestResource(audio, notifyCB)
     RM->>APP_NG_EXIT: revoke or reassign exiting audio resource
-    APP_NG_EXIT-->>RM: revoke callback and release in progress
-    RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
-
-    APP_NG_ENTER->>RM: EssRMgrRequestResource(svp, notifyCB)
-    RM->>APP_NG_EXIT: revoke or reassign exiting SVP resource
     APP_NG_EXIT-->>RM: revoke callback and release in progress
     RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 ```
