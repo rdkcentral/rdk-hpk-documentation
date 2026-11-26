@@ -802,8 +802,6 @@ sequenceDiagram
 
     G_GST_ENTER->>S_GST_ENTER: request SVP resources A/B
     S_GST_ENTER->>RM: EssRMgrRequestResource(svp A/B, notifyCB)
-    RM->>APP_NG: revoke or reassign the exiting SVP resource to the entering GStreamer-based application
-    APP_NG-->>RM: revoke callback and release in progress
     RM-->>S_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     APP_NG->>RM: final release of remaining video and audio resources after arbitration
