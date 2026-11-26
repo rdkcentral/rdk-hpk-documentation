@@ -358,6 +358,8 @@ The first entry represents the high-specification decoder profile; the second re
 
 All AV players supporting dual audio decode shall use the application-managed GStreamer path for the concurrent-playback use case.
 
+Audio decoder resources are assumed to be symmetric. This specification does not define asymmetric audio decoder resource handling.
+
 The audio sink or audio decoder that owns the decoder resource shall resolve audio usage as follows:
 
 | Condition | Selected usage |
@@ -479,7 +481,7 @@ An asymmetric configuration may, for example, contain entries in `essrmgr.conf` 
 
 ```text
 svpa: hardware
-svpa: hardware, limitedQuality
+svpa: hardware, limitedResolution(1920, 1080)
 ```
 
 The SVP resource-owning element shall create its ESSOS connection once for the lifetime of the playback pipeline, request the SVP allocator during the initial pipeline-establishment path before secure playback depends on that allocator, and handle grant or revoke using the same ESSOS request/callback/release pattern used for video.
@@ -501,11 +503,30 @@ For legacy AV players not using the application-managed GStreamer path:
 - only one SVP allocator is typically requested; and
 - absent usage signalling, the default is the highest available SVP resource.
 
-### 10.7 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
+### 10.7 Extensions to ESSOS Resource Manager for asymmetric SVP resources
+
+Asymmetric SVP resource platforms require extensions to the ESSOS Resource Manager to support resolution-aware allocation and usage signalling.
+
+**Changes required in ESSOS Resource Manager implementation** (see https://github.com/rdkcmf/westeros/blob/master/essos/):
+
+- Extend capability declarations to distinguish UHD-capable and FHD-capable SVP allocator resources
+- Implement usage-based allocation matching the requested resolution profile to the available memory pool
+- Support the `EssRMgrSVPAUse_fullResolution` and `EssRMgrSVPAUse_none` usage values or platform-defined equivalents
+- Ensure configuration parsing recognizes the `limitedResolution(width, height)` capability modifier in `essrmgr.conf`
+
+**GStreamer component expectations:**
+
+- `gst-svp-ext-common` resolves usage based on GStreamer context and passes it to `gst-svp-ext-soc`
+- `gst-svp-ext-soc` receives the usage value and the ESSOS-granted `assignedId` and binds the returned allocator instance to the corresponding memory pool
+- Platforms without asymmetric SVP resources shall treat all allocators as symmetric and ignore usage signalling for pool selection
+
+API details and integration patterns with `gst-svp-ext-soc` remain TBC.
+
+### 10.8 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
 
 API changes shall support propagation of GStreamer context through the OCDM adaptor to `gst-svp-ext-common` and passing resolved SVP usage and the granted resource identifier from `gst-svp-ext-common` to `gst-svp-ext-soc`. The API signatures are TBC; this specification does not define new function prototypes.
 
-### 10.8 GStreamer context structure for carrying SVP pool information
+### 10.9 GStreamer context structure for carrying SVP pool information
 
 The SVP context structure and field names are TBC. The context shall carry the requested usage; ESSOS supplies the granted resource identifier.
 
