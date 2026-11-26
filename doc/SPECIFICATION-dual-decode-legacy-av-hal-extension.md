@@ -60,17 +60,30 @@ graph LR
             Ctx[GStreamer Context]
             DEC[decryptor]
             SVPP[svp payload]
-            VARB["Video Element: video decoder or westeros sink"]
-            AARB["Audio Element: audio decoder or audio sink"]
+            subgraph VE[Video Element]
+                VDEC[video decoder]
+                WSU[westeros sink]
+                WSOC[Westeros sink SoC]
+            end
+            subgraph AE[Audio Element]
+                ADEC[Audio decoder]
+                ASINK[Audio Sink]
+            end
         end
         App --> GST
         GST --> DEC
         GST --> SVPP
-        GST --> VARB
-        GST --> AARB
+        GST --> VDEC
+        GST --> WSU
+        GST --> ADEC
+        GST --> ASINK
         App --> Ctx
         Ctx -->|SVP Usage| DEC
         Ctx -->|SVP Usage| SVPP
+        Ctx -->|Video decoder usage| VDEC
+        Ctx -->|Video decoder usage| WSU
+        Ctx -->|Audio decoder usage| ADEC
+        Ctx -->|Audio decoder usage| ASINK
         App --> YAML[Capability YAML]
         DEC --> OCDM[OCDM Adaptor]
         SVPP --> SVPC[gst-svp-ext-common]
@@ -94,8 +107,8 @@ graph LR
         RM[ESSOS Resource Manager]
     end
 
-    VARB -->|IPC| RM
-    AARB -->|IPC| RM
+    VE -->|IPC| RM
+    AE -->|IPC| RM
     SVPE -->|IPC| RM
 
     style APP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
@@ -103,12 +116,16 @@ graph LR
     style LEG fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
     style OCP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
     style RMP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
-    style VARB fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
-    style AARB fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style VDEC fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style WSOC fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style ADEC fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
+    style ASINK fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
     style SVPE fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
     style DRM fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
     style LRESP fill:#d9e8fb,stroke:#3c78d8,stroke-width:1px,color:#000
 ```
+
+Note: Depending on SoC implementation design, the audio decoder may be integrated within the audio sink component, and the video decoder may be integrated within the westeros sink component.
 
 ### Process and IPC boundaries
 
