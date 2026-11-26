@@ -35,6 +35,8 @@
 - Video decoder and video plane resource selection using the existing `res-usage` property.
 - Audio decoder resource handling for symmetric decoders.
 - SVP allocator resource handling for asymmetric and symmetric platforms.
+- SoC vendor selection and use of audio, video, and SVP resources based on GStreamer context information.
+- Audio mixer behaviour during AV player transitions involving dual decode.
 - DRM resource expectations for concurrent playback.
 - AV player transition and resource-acquisition rules for application-managed GStreamer players and non-GStreamer players.
 
@@ -80,7 +82,6 @@ graph LR
         App --> Ctx
         Ctx -->|SVP Usage| DEC
         Ctx -->|SVP Usage| SVPP
-        Ctx -->|SVP usage| SVPC
         Ctx -->|Video decoder usage| VE
         Ctx -->|Audio decoder usage| AE
         App --> YAML[Capability YAML]
@@ -88,7 +89,7 @@ graph LR
         SVPP --> SVPC[gst-svp-ext-common]
         SVPC -->|Resolved SVP usage: API TBC| SVPE[gst-svp-ext-soc<br/>SVP Allocator]
         WSU -->|GstWesterosSink pointer: resUsage| WSOC
-        OCDM --> SVPE
+        OCDM --> SVPC
     end
 
     subgraph OCP[openCDMi Process]
@@ -107,9 +108,9 @@ graph LR
         RM[ESSOS Resource Manager]
     end
 
-    VE -->|IPC| RM
+    WSU -->|IPC| RM
     AE -->|IPC| RM
-    SVPE -->|IPC| RM
+    SVPC -->|IPC| RM
 
     style APP fill:none,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
     style GSTP fill:#e6e6e6,stroke:#666,stroke-width:1px
@@ -131,15 +132,15 @@ Note: Depending on SoC implementation design, the audio decoder may be integrate
 
 - **Application Process** owns playback-pipeline construction for GStreamer-based players.
 - **ESSOS Resource Manager** arbitrates the assignment and release of video, audio, and SVP resources and returns the concrete instance identifiers.
-- **Resource usage** is resolved by westeros sink for video, the resource-owning audio element for audio, and `gst-svp-ext-common` for SVP. The corresponding SoC implementation requests the resource from ESSOS and binds the granted instance.
+- **Resource usage** is resolved by the generic westeros sink component for video, the resource-owning audio element for audio, and `gst-svp-ext-common` for SVP. The generic westeros sink component handles all video ESSOS communication; the resource-owning audio element handles audio ESSOS communication. `gst-svp-ext-common` communicates with ESSOS for SVP allocation and passes the resolved usage and granted resource identifier to `gst-svp-ext-soc` for memory-pool binding.
 - **Vendor plugins** bind the returned `assignedId` values and any GStreamer-context signalling to the correct hardware resources.
 
 ### Contract scope
 
 This specification defines the contract between:
 
-- **Application layer / playback owner**, which creates and tears down the GStreamer-owned playback pipeline and owns application-level transition behaviour.
-- **SoC vendor**, which provides the decoder, sinks, SVP handling, DRM integration, and resource-aware vendor plugins.
+- **Application layer / playback owner**, which creates and tears down each GStreamer AV pipeline, owns application-level transition behaviour, and supplies each pipeline with GStreamer context information based on the capability YAML file.
+- **SoC vendor**, which provides decoders, sinks, SVP handling, DRM integration, and resource-aware vendor plugins. Vendor components use resource-usage information from an explicitly set GStreamer property for westeros sink, or from player-supplied GStreamer context, to select the required video, audio, and SVP resource profiles. Direct ESSOS resource-management integration is the SoC vendor's responsibility only for the resource-owning audio element: it requests and releases audio resources and stops using and releases them when ESSOS requests revocation. Video and SVP ESSOS communication is handled by the generic westeros sink component and `gst-svp-ext-common`, respectively.
 - **Vendor layer team**, which integrates the SoC delivery, capability YAML, and ESSOS resource-manager configuration.
 
 ---
@@ -154,16 +155,16 @@ The contract covers:
 
 - existing resource-usage properties and GStreamer context;
 - capability declaration and resource identification;
-- selection of high-specification and low-specification video resources;
-- audio-decoder and SVP resource allocation rules; and
+- selection of high-specification and low-specification video and SVP resources;
+- video-decoder, audio-decoder and SVP resource allocation rules; and
 - behaviour during transitions between GStreamer-based applications and non-GStreamer AV players.
 
 ## 2. Roles and responsibilities
 
 | Role | Definition | Responsibilities |
 |---|---|---|
-| **Application layer / playback owner** | Owns the GStreamer-based playback pipeline and player transition logic. | Builds playback pipelines, tears down exiting pipelines, sets sink properties, propagates GStreamer context, and coordinates player transitions. |
-| **SoC vendor** | Provides vendor GStreamer elements and platform resource integration. | Implements westeros sink, audio sink, decoder selection, SVP usage handling, DRM integration, assigned-resource binding, and AV sync for dual decode. |
+| **Application layer / playback owner** | Owns the GStreamer-based playback pipeline and player transition logic. | Builds playback pipelines, tears down exiting pipelines, sets sink properties, propagates GStreamer context, and coordinates player transitions. Implements the generic westeros sink component, `gst-svp-ext-common` changes, OCDM adaptor changes, and SVP payload and decryptor plugin changes. |
+| **SoC vendor** | Provides vendor GStreamer elements and platform resource integration. | Implements the westeros sink SoC component, audio sink/audio decoder, audio-decoder selection based on GStreamer context and integration with ESSOS Resource Manager, `gst-svp-ext-soc`, DRM integration, assigned-resource binding, and AV sync for dual decode. |
 | **Vendor layer team** | Integrates the SoC delivery into the platform image. | Supplies capability YAML, ESSOS resource-manager configuration, and any platform-specific resource identifiers consumed by application and vendor plugins. |
 
 ## 3. Scope
@@ -200,7 +201,7 @@ The contract covers:
 ### 4.2 Assumptions
 
 - Legacy pipeline construction remains unchanged.
-- New functionality is delivered primarily through sink properties, GStreamer context, capability YAML, and existing middleware orchestration.
+- New functionality is delivered primarily through sink properties, GStreamer context, capability YAML, `gst-svp-ext-soc`/`gst-svp-ext-common` API changes, OCDM adaptor API changes, and existing middleware orchestration.
 - During dual decode, the SoC vendor may assume that the corresponding audio and video sinks belong to the same process.
 - Where helpful for sink association inside the same playbin, the SoC vendor may use `gst_element_parent()` to locate the corresponding audio and video sinks that require AV synchronisation.
 - Unsupported capability requests must fail positively rather than producing undefined behaviour.
@@ -251,7 +252,7 @@ ESSOS Resource Manager is the platform arbitration layer for the video-decoder/d
 
 The application layer and vendor plugins shall request an assigned resource instance, apply the returned `assignedId`, release it during teardown, and destroy the ESSOS connection only when the resource-manager path is no longer needed.
 
-Any SoC-vendor GStreamer element with a hardware-resource dependency shall support the full ESSOS interaction model for that dependency: request, grant handling, release, and revoke handling where arbitration requires it.
+The generic westeros sink component for video, the resource-owning SoC-vendor audio element for audio, and `gst-svp-ext-common` for SVP shall handle the full ESSOS interaction model for their respective resources: request, grant handling, release, and revoke handling where arbitration requires it. The vendor video and SVP components shall bind the granted resources and relinquish them when instructed by the component handling ESSOS communication.
 
 [TBC - Documentation of ESSOS Resource Manager APIs to be added; see https://github.com/rdkcmf/westeros/blob/master/essos/essos-resmgr.h]
 
@@ -304,7 +305,7 @@ Westeros sink shall resolve video usage in the following order:
 | 2 | The property was not explicitly set and GStreamer context supplies video `res-usage`. | Context value. |
 | 3 | Neither supplies a value. | Existing element default: the most capable video decoder resource. |
 
-Westeros sink shall store the resolved value in `GstWesterosSink.resUsage` and pass the structure pointer to the SoC module through `gst_westeros_sink_soc_init()`. The SoC implementation shall use this value to distinguish primary and secondary decoder profiles when requesting a resource from ESSOS, then bind the granted video-decoder instance. It shall track whether the property was explicitly set rather than infer this from its value.
+The generic westeros sink component shall track whether the property was explicitly set rather than infer this from its value. It shall store the resolved value in `GstWesterosSink.resUsage`, use it when requesting a resource from ESSOS, and pass the structure pointer to the SoC module through `gst_westeros_sink_soc_init()`. The SoC implementation shall use this value to distinguish primary and secondary decoder profiles and bind the video-decoder instance granted through the generic component.
 
 ### 7.3 Resource-class mapping
 
@@ -317,15 +318,17 @@ The `res-usage` value shall be established before the pipeline transitions from 
 
 ### 7.4 ESSOS interaction
 
-The video resource-owning element, following the westeros-sink pattern, shall create its ESSOS Resource Manager connection once for the lifetime of the playback pipeline and shall request the video decoder during the GStreamer `NULL` to `READY` transition.
+The generic westeros sink component of the westeros sink plugin shall handle all ESSOS Resource Manager communication for video resources, including connection management, resource requests, grant callbacks, release, and revoke handling. The SoC component shall not communicate directly with ESSOS for video resources.
+
+The generic component shall create its ESSOS Resource Manager connection once for the lifetime of the playback pipeline and shall request the video decoder during the GStreamer `NULL` to `READY` transition.
 
 ESSOS Resource Manager shall return the appropriate video-decoder instance identifier through `assignedId` in the resource request result, either immediately from the request call or asynchronously through the registered notify callback.
 
-The vendor video plugin shall use the returned `assignedId` to open the concrete video-decoder instance.
+The generic component shall pass the returned `assignedId` to the SoC component, which shall use it to open the concrete video-decoder instance.
 
-If ESSOS later issues a revoke event for that decoder, the owning element shall stop using the decoder, release any vendor-side resources associated with it, and call `EssRMgrReleaseResource()` before another player is granted the same decoder.
+If ESSOS later issues a revoke event for that decoder, the generic component shall coordinate with the SoC component to stop using the decoder and release any vendor-side resources associated with it, then call `EssRMgrReleaseResource()` before another player is granted the same decoder.
 
-When playback is torn down and ESSOS communication is no longer required, the owning element shall destroy its ESSOS Resource Manager connection.
+When playback is torn down and ESSOS communication is no longer required, the generic component shall destroy its ESSOS Resource Manager connection.
 
 For legacy AV players not using the application-managed GStreamer path:
 
@@ -337,6 +340,17 @@ For legacy AV players not using the application-managed GStreamer path:
 The high-specification video decoder is expected to pair with the high-specification video plane and PQ pipeline.
 
 The low-specification decoder and associated plane may omit support for Dolby Vision or other PQ features on some platforms. That limitation shall be reflected in platform capability reporting.
+
+### Example ESSOS configuration entries
+
+For an asymmetric video configuration, the `essrmgr.conf` file may contain entries in the following form:
+
+```text
+video: hardware
+video: hardware, limitedQuality, limitedPerformance
+```
+
+The first entry represents the high-specification decoder profile; the second represents a low-specification profile with quality and performance restrictions. Platform-specific resolution limits and supported PQ features shall be documented consistently with Section 7.5 and capability YAML.
 
 ## 8. Audio decoder resource model
 
@@ -417,6 +431,13 @@ All AV players supporting dual secure-video paths shall use the application-mana
 
 Platforms shall declare whether their SVP allocator resources are asymmetric or symmetric.
 
+The application shall propagate GStreamer context to `gst-svp-ext-common` through one of the following paths:
+
+- Application -> decryptor -> OCDM adaptor -> `gst-svp-ext-common`.
+- Application -> SVP payload -> `gst-svp-ext-common`.
+
+The components in the selected path shall forward the context before SVP usage is resolved and before secure-buffer allocation.
+
 `gst-svp-ext-common` shall resolve SVP usage as follows:
 
 | Condition | Selected usage |
@@ -424,7 +445,7 @@ Platforms shall declare whether their SVP allocator resources are asymmetric or 
 | GStreamer context supplies SVP resource usage. | Context value. |
 | No SVP usage value is supplied. | Existing element default: the highest available SVP resource. |
 
-It shall pass the resolved usage to `gst-svp-ext-soc` through an API to be defined (TBC). The SoC module shall request the corresponding resource from ESSOS in both cases and use the granted instance to select the SVP memory pool.
+`gst-svp-ext-common` shall request the corresponding resource from ESSOS in both cases. It shall pass the resolved usage and granted resource identifier to `gst-svp-ext-soc` through an API to be defined (TBC). The SoC module shall use the granted instance to select the SVP memory pool.
 
 ### 10.2 ESSOS Resource Manager configuration
 
@@ -482,7 +503,7 @@ For legacy AV players not using the application-managed GStreamer path:
 
 ### 10.7 Extensions to the OCDM Adaptor, gst-svp-ext-common, and gst-svp-ext-soc
 
-The API for passing resolved SVP usage from `gst-svp-ext-common` to `gst-svp-ext-soc` is TBC. This specification does not define a new function prototype or additional OCDM adaptor API.
+API changes shall support propagation of GStreamer context through the OCDM adaptor to `gst-svp-ext-common` and passing resolved SVP usage and the granted resource identifier from `gst-svp-ext-common` to `gst-svp-ext-soc`. The API signatures are TBC; this specification does not define new function prototypes.
 
 ### 10.8 GStreamer context structure for carrying SVP pool information
 
