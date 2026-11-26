@@ -789,10 +789,9 @@ sequenceDiagram
     APP_GST_ENTER->>G_GST_ENTER: activate entering pipeline A/B
     G_GST_ENTER->>V_GST_ENTER: request video resources A/B
     V_GST_ENTER->>RM: EssRMgrRequestResource(video A/B, notifyCB)
-    RM->>APP_NG: revoke both exiting video resources and reassign them to the entering GStreamer-based application
+    RM->>APP_NG: revoke exiting video resource and reassign to the entering GStreamer-based application
     APP_NG-->>RM: notifyCB(EssRMgrEvent::Revoked)
-    APP_NG->>RM: EssRMgrReleaseResource(video primary)
-    APP_NG->>RM: EssRMgrReleaseResource(video secondary)
+    APP_NG->>RM: EssRMgrReleaseResource(video)
     RM-->>V_GST_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     G_GST_ENTER->>A_GST_ENTER: request audio resources A/B
@@ -859,10 +858,9 @@ sequenceDiagram
 
     AM->>APP_NG_ENTER: launch entering non-GStreamer player before exit teardown completes
     APP_NG_ENTER->>RM: EssRMgrRequestResource(video, notifyCB)
-    RM->>APP_NG_EXIT: revoke both exiting video resources and reassign them to the entering player
+    RM->>APP_NG_EXIT: revoke exiting video resource and reassign to the entering player
     APP_NG_EXIT-->>RM: notifyCB(EssRMgrEvent::Revoked)
-    APP_NG_EXIT->>RM: EssRMgrReleaseResource(video primary)
-    APP_NG_EXIT->>RM: EssRMgrReleaseResource(video secondary)
+    APP_NG_EXIT->>RM: EssRMgrReleaseResource(video)
     RM-->>APP_NG_ENTER: request result or notifyCB(EssRMgrEvent::Granted, assignedId)
 
     APP_NG_ENTER->>RM: EssRMgrRequestResource(audio, notifyCB)
